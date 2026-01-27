@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <script>
+      // IIFE to set the initial theme and prevent FOUC
+      (function() {
+        try {
+          const theme = localStorage.getItem('theme');
+          // If theme is not 'light', default to 'dark'
+          if (theme !== 'light') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch (e) {
+          console.warn('Could not set initial theme from localStorage:', e);
+        }
+      })();
+    </script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>仙途</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      html,
+      body,
+      #app {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        overflow: auto;
+      }
+    </style>
+    <script>
+      // 全局定义Turnstile回调
+      window.turnstileCallbacks = [];
+      window.onTurnstileLoad = function() {
+        console.log('[Turnstile] SDK已加载，调用所有回调');
+        window.turnstileCallbacks.forEach(function(callback) {
+          try {
+            callback();
+          } catch (error) {
+            console.error('[Turnstile] 回调执行失败:', error);
+          }
+        });
+      };
+    </script>
+    <script
+      src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad"
+      async
+      defer
+    ></script>
+    <!-- Vue.js CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Vue Router CDN -->
+    <script src="https://unpkg.com/vue-router@4/dist/vue-router.global.js"></script>
+    <!-- Lodash CDN -->
+    <script src="https://unpkg.com/lodash@4/lodash.min.js"></script>
+    <!-- jQuery CDN -->
+    <script src="https://unpkg.com/jquery@3/dist/jquery.min.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
