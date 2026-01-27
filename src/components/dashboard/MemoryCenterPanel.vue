@@ -506,6 +506,12 @@ const vectorMemoryService = {
   getAllMemories: async () => [] as VectorMemoryEntry[],
   clearAllMemories: async () => {},
   getMemoryCount: async () => 0,
+  getConfig: () => ({ enabled: false, embeddingApiId: undefined }),
+  saveConfig: (_config: any) => {},
+  getStats: async () => ({ totalMemories: 0, indexedMemories: 0 }),
+  getEmbeddingStatus: () => ({ isConfigured: false, apiName: '' }),
+  rebuildFromLongTermMemories: async (_memories: any[], _options?: any) => ({ success: true, count: 0 }),
+  clear: async () => {},
 };
 import { useAPIManagementStore } from '@/stores/apiManagementStore'; // 导入API管理Store
 

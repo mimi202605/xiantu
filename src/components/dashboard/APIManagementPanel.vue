@@ -588,6 +588,12 @@ const vectorMemoryService = {
   getAllMemories: async () => [] as any[],
   clearAllMemories: async () => {},
   getMemoryCount: async () => 0,
+  getConfig: () => ({ enabled: false, embeddingApiId: undefined }),
+  saveConfig: (_config: any) => {},
+  getStats: async () => ({ totalMemories: 0, indexedMemories: 0 }),
+  getEmbeddingStatus: () => ({ isConfigured: false, apiName: '' }),
+  rebuildFromLongTermMemories: async (_memories: any[], _options?: any) => ({ success: true, count: 0 }),
+  clear: async () => {},
 };
 import { getNsfwSettingsFromStorage, type NsfwGenderFilter } from '@/utils/nsfw';
 import { isTavernEnv } from '@/utils/tavern';
