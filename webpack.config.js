@@ -25,7 +25,7 @@ export default (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
       filename: (isWatch || isSingleFile) ? 'inline.js' : 'XianTu.js',
       clean: true,
-      publicPath: './', // 使用相对路径，便于部署
+      publicPath: isProduction ? './' : '/', // [MING] Use absolute path for dev server, relative for production
     },
     devtool: isProduction ? false : (isWatch ? false : 'eval-source-map'),
     optimization: {
