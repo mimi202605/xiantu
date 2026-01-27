@@ -219,4 +219,16 @@ export interface GM_Response {
   system_messages?: string[];
   /** 行动选项（必填，3-5个选项） */
   action_options: string[];
+
+  /**
+   * [MING] 游戏实体索引（LLM 在分步第 2 步或单步输出，用于结构化实体与关系）
+   * 可选；有则合并入 系统.扩展.游戏实体索引
+   */
+  game_entities?: import('@/types/gameStateIndex').GameEntitiesOutput;
+
+  /**
+   * [MING] 语义记忆（LLM 在分步第 2 步或单步输出的三元组）
+   * 可选；有则合并入 系统.扩展.语义记忆
+   */
+  semantic_memory?: import('@/types/gameStateIndex').SemanticMemoryOutput;
 }

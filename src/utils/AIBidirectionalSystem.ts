@@ -26,6 +26,8 @@ import { sanitizeAITextForDisplay } from '@/utils/textSanitizer';
 import { validateAndRepairNpcProfile } from '@/utils/dataValidation';
 import { stripNsfwContent } from '@/utils/prompts/definitions/dataDefinitions';
 import { isSaveDataV3, migrateSaveDataToLatest } from './saveMigration';
+import { mergeInto扩展 } from '@/services/gameStateIndexer';
+import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
 
 type PlainObject = Record<string, unknown>;
 
@@ -451,6 +453,19 @@ class AIBidirectionalSystemClass {
       let vectorMemorySection = '';
       // Vector memory service removed in Ming version - using standard memory only
 
+      // [MING] 语义记忆与实体索引检索（按相关度/关系/时间·重要性 合并后注入）
+      let retrievalBlock = '';
+      try {
+        retrievalBlock = memoryRetrieve(stateForAI as Record<string, unknown>, {
+          playerName: (stateForAI.角色?.身份 as any)?.名字,
+          locationDesc: (stateForAI.角色?.位置 as any)?.描述,
+          recentNpcNames: Object.keys(stateForAI.社交?.关系 || {}).slice(0, 10),
+          maxLines: 35,
+        });
+      } catch (e) {
+        console.warn('[AI双向系统] 语义记忆检索失败:', e);
+      }
+
       // 保存短期记忆用于单独发送
       const shortTermMemory = v3?.社交?.记忆?.短期记忆 || [];
 
@@ -671,6 +686,7 @@ ${assembledPrompt}
 ${travelStatusPrompt}
 ${coreStatusSummary}
 ${vectorMemorySection ? `\n${vectorMemorySection}\n` : ''}
+${retrievalBlock ? `\n# 语义记忆与实体索引\n${retrievalBlock}\n` : ''}
 # 游戏状态
 你正在修仙世界《仙途》中扮演GM。以下是当前完整游戏存档(JSON格式):
 ${stateJsonString}
@@ -1031,7 +1047,9 @@ ${step1Text}
           text: step1Text,
           mid_term_memory: parsedStep2.mid_term_memory || '',
           tavern_commands: parsedStep2.tavern_commands || [],
-          action_options: uiStore.enableActionOptions ? this.sanitizeActionOptionsForDisplay(parsedStep2.action_options || []) : []
+          action_options: uiStore.enableActionOptions ? this.sanitizeActionOptionsForDisplay(parsedStep2.action_options || []) : [],
+          game_entities: (parsedStep2 as any).game_entities,
+          semantic_memory: (parsedStep2 as any).semantic_memory,
         };
       } else if (tavernHelper) {
         // 酒馆模式
@@ -1399,7 +1417,9 @@ ${step1Text}
           tavern_commands: parsedStep2.tavern_commands || [],
           action_options: uiStore.enableActionOptions
             ? this.sanitizeActionOptionsForDisplay(parsedStep2.action_options?.length ? parsedStep2.action_options : defaultInitialActionOptions)
-            : []
+            : [],
+          game_entities: (parsedStep2 as any).game_entities,
+          semantic_memory: (parsedStep2 as any).semantic_memory,
         };
 
         // 🔥 文本优化：如果启用，对生成的文本进行润色（分步模式）
@@ -1716,6 +1736,11 @@ ${step1Text}
       console.warn('[AI双向系统] 检查自动总结阈值时出错:', error);
     }
 
+    // [MING] 合并 game_entities / semantic_memory 到 系统.扩展（LLM 在 step2 或单步输出）
+    mergeInto扩展(saveData as Record<string, unknown>, {
+      game_entities: (response as any).game_entities,
+      semantic_memory: (response as any).semantic_memory,
+    });
 
     if (!response.tavern_commands?.length) {
       return { saveData, stateChanges: { changes, timestamp: new Date().toISOString() } };
@@ -2550,12 +2575,15 @@ ${saveDataJson}`;
         ];
       }
 
-      return {
+      const gm: GM_Response = {
         text: String(obj.text || obj.叙事文本 || obj.narrative || ''),
         mid_term_memory: String(obj.mid_term_memory || obj.中期记忆 || obj.memory || ''),
         tavern_commands: tavernCommands,
         action_options: this.sanitizeActionOptionsForDisplay(actionOptions)
       };
+      if (obj.game_entities != null && typeof obj.game_entities === 'object') gm.game_entities = obj.game_entities as GM_Response['game_entities'];
+      if (obj.semantic_memory != null && typeof obj.semantic_memory === 'object') gm.semantic_memory = obj.semantic_memory as GM_Response['semantic_memory'];
+      return gm;
     };
 
     // 1. 直接解析

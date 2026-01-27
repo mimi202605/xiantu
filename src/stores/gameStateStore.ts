@@ -91,6 +91,10 @@ interface GameState {
 
   // 对话后自动存档配置
   conversationAutoSaveEnabled: boolean; // 是否启用对话后自动存档
+
+  // [MING] 游戏实体索引与语义记忆（来自 系统.扩展，用于 token 高效检索）
+  gameEntityIndex: import('@/types/gameStateIndex').GameEntityIndex | null;
+  semanticMemory: import('@/types/gameStateIndex').SemanticMemoryStore | null;
 }
 
 export const useGameStateStore = defineStore('gameState', {
@@ -142,6 +146,9 @@ export const useGameStateStore = defineStore('gameState', {
 
     // 对话后自动存档配置（默认开启）
     conversationAutoSaveEnabled: true,
+
+    gameEntityIndex: null,
+    semanticMemory: null,
   }),
 
   actions: {
@@ -321,6 +328,15 @@ export const useGameStateStore = defineStore('gameState', {
         this.systemConfig = ensureSystemConfigHasNsfw(this.systemConfig) as any;
       }
 
+      // [MING] 游戏实体索引与语义记忆（系统.扩展）
+      const 扩展 = v3?.系统?.扩展;
+      this.gameEntityIndex = 扩展 && typeof 扩展 === 'object' && 扩展.游戏实体索引
+        ? deepCopy(扩展.游戏实体索引)
+        : null;
+      this.semanticMemory = 扩展 && typeof 扩展 === 'object' && 扩展.语义记忆
+        ? deepCopy(扩展.语义记忆)
+        : null;
+
       // Tavern 兜底：即使存档没带“角色.身体”，也保证 UI/变量面板有可写路径
       if (isTavernEnv()) {
         const bodyObj: Record<string, any> =
@@ -480,7 +496,10 @@ export const useGameStateStore = defineStore('gameState', {
           设置: settings,
           缓存: { 掌握技能: this.masteredSkills ?? (skillState as any)?.掌握技能 ?? [] },
           历史: { 叙事: this.narrativeHistory || [] },
-          扩展: {},
+          扩展: {
+            游戏实体索引: this.gameEntityIndex ?? { entities: [], relationships: [] },
+            语义记忆: this.semanticMemory ?? { triples: [] },
+          },
           联机: online,
         },
       };

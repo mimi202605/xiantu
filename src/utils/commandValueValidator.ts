@@ -282,9 +282,8 @@ function validateNPCObject(value: any): ValidationResult {
   if (!value.性别) errors.push('NPC缺少"性别"字段');
   if (!value.出生日期) errors.push('NPC缺少"出生日期"字段');
 
-  if (!value.境界) {
-    errors.push('NPC缺少"境界"字段');
-  } else {
+  // 境界：修仙版必填；MING 通用版不包含境界，若提供则校验
+  if (value.境界 != null) {
     const realmResult = validateRealmObject(value.境界, 'NPC');
     errors.push(...realmResult.errors);
   }
