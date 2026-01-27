@@ -26,31 +26,35 @@ function createEmptyThousandDaoSystem() {
 }
 
 // [MING] Stub for EnhancedWorldGenerator - simplified world generation
+// Returns WorldInfo-shaped object with 势力信息 and 地点信息 (required by initializeCharacter)
 class EnhancedWorldGenerator {
   constructor(_config?: any) {}
   
   async generateWorldInfo(_prompt: string, _options?: any): Promise<any> {
-    // Return basic world info structure
+    return this.buildStubWorldInfo();
+  }
+  
+  async generateValidatedWorld(): Promise<{ success: boolean; worldInfo?: any; errors?: string[] }> {
+    return {
+      success: true,
+      worldInfo: this.buildStubWorldInfo()
+    };
+  }
+
+  private buildStubWorldInfo() {
     return {
       世界名称: '默认世界',
       世界描述: '一个充满可能的世界',
       世界观: '自由探索的世界',
-      势力列表: [],
-      地点列表: []
-    };
-  }
-  
-  async generateValidatedWorld(): Promise<{ success: boolean; worldInfo?: any; errors?: string[] }> {
-    // Return success with basic world info
-    return {
-      success: true,
-      worldInfo: {
-        世界名称: '默认世界',
-        世界描述: '一个充满可能的世界',
-        世界观: '自由探索的世界',
-        势力列表: [],
-        地点列表: []
-      }
+      大陆信息: [] as any[],
+      continents: [] as any[],
+      势力信息: [] as any[],  // Required: initializeCharacter calls .find() on this
+      地点信息: [] as any[],
+      生成时间: new Date().toISOString(),
+      世界背景: '默认背景',
+      世界纪元: '默认纪元',
+      特殊设定: [] as string[],
+      版本: '1.0'
     };
   }
 }
