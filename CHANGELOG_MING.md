@@ -4,6 +4,16 @@
 
 ---
 
+## [0.2.1] - 2026-01-28
+
+### 变更：语义记忆三元组不再设总量上限
+
+- **合并**：`mergeInto扩展` 中的 `mergeTriples` 不再对 `系统.扩展.语义记忆.triples` 做数量上限裁剪，本回合及隐式中期记忆产出的三元组全部追加保留。
+- **依据**：记忆检索 `memoryRetrieve` 已通过 `maxLines`、按关系/按重要度×时间取前 N 等逻辑，只向提示词注入有界子集，token 不会随 triples 总量 unbounded 增长。
+- **代码**：`gameStateIndexer.ts` 移除 `MAX_TRIPLES` 及 `mergeTriples` 内的 sort+slice；`memoryRetrievalService.ts` 在文件头与 `queryByTimeImportance` 处补充提取逻辑说明。
+
+---
+
 ## [0.2.0] - 2026-01-27
 
 ### ✨ 游戏状态索引与语义记忆（Token 高效架构）

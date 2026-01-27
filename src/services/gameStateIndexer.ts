@@ -17,8 +17,9 @@ import type {
 const DEFAULT_INDEX: GameEntityIndex = { entities: [], relationships: [] };
 const DEFAULT_SEMANTIC: SemanticMemoryStore = { triples: [] };
 
-/** Max triples to keep; drop lowest-importance when over. */
-const MAX_TRIPLES = 800;
+/** Triples are not capped on merge. memoryRetrievalService.retrieve() extracts only
+ *  a bounded subset (by relevance, relationships, importance×recency, maxLines) for
+ *  injection, so token usage stays bounded. */
 
 /** Max entities; drop by oldest updatedAt when over. */
 const MAX_ENTITIES = 400;
@@ -86,10 +87,7 @@ function mergeTriples(existing: SemanticTriple[], incoming: SemanticTriple[]): S
   for (const t of incoming) {
     if (isTriple(t)) combined.push(t);
   }
-  if (combined.length <= MAX_TRIPLES) return combined;
-  const withImportance = (t: SemanticTriple) => ({ t, imp: typeof t.importance === 'number' ? t.importance : 5 });
-  combined.sort((a, b) => withImportance(b).imp - withImportance(a).imp);
-  return combined.slice(0, MAX_TRIPLES);
+  return combined;
 }
 
 function capEntities(list: GameEntity[]): GameEntity[] {

@@ -2,6 +2,12 @@
  * @fileoverview
  * Memory Retrieval: query by relevance (graph distance), by relationships (traversal),
  * and by time/importance; combine and rank for injection into the prompt.
+ *
+ * Extract logic (keeps prompt token‑bounded although 系统.扩展.语义记忆.triples can grow):
+ * - maxLines (default 35): total lines in the combined block; add() stops when reached.
+ * - Relationship-derived triples: at most 12 (player + recent NPCs only).
+ * - Semantic triples: queryByTimeImportance(store, 15) — top 15 by importance×recency.
+ * - Entity lines: from BFS over relationship graph (player + recent NPCs, depth 2).
  */
 import { readFrom扩展 } from './gameStateIndexer';
 import type { GameEntity, EntityRelationship, SemanticTriple, GameEntityIndex, SemanticMemoryStore } from '@/types/gameStateIndex';
@@ -117,6 +123,7 @@ function queryByRelationships(
 
 /**
  * Query by time/importance: recent and high-importance triples.
+ * Used as the main extract for 系统.扩展.语义记忆.triples (limit 15 in retrieve).
  */
 function queryByTimeImportance(store: SemanticMemoryStore, limit: number): SemanticTriple[] {
   const withScore = (t: SemanticTriple) => {
