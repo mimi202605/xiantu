@@ -1,4 +1,4 @@
-﻿import { ref, computed, triggerRef } from 'vue';
+import { ref, computed, triggerRef } from 'vue';
 import { defineStore } from 'pinia';
 import { set as setLodash, cloneDeep } from 'lodash';
 import { toast } from '@/utils/toast';
@@ -9,13 +9,24 @@ import * as storage from '@/utils/indexedDBManager';
 import { getTavernHelper, clearAllCharacterData, isTavernEnv } from '@/utils/tavern';
 import { ensureSaveDataHasTavernNsfw } from '@/utils/nsfw';
 import { initializeCharacter } from '@/services/characterInitialization';
-import { createCharacter as createCharacterAPI, fetchCharacterProfile, updateCharacterSave, verifyStoredToken } from '@/services/request';
-import { isBackendConfigured } from '@/services/backendConfig';
+// [MING] Removed backend API - local only
+// import { createCharacter as createCharacterAPI, fetchCharacterProfile, updateCharacterSave, verifyStoredToken } from '@/services/request';
+// import { isBackendConfigured } from '@/services/backendConfig';
 import { validateGameData } from '@/utils/dataValidation';
 import { getAIDataRepairSystemPrompt } from '@/utils/prompts/tasks/dataRepairPrompts';
 import { updateLifespanFromGameTime, updateNpcLifespanFromGameTime } from '@/utils/lifespanCalculator'; // <-- 导入寿命计算工具
-import { updateMasteredSkills } from '@/utils/masteredSkillsCalculator'; // <-- 导入掌握技能计算工具
+// [MING] Removed mastered skills calculator - simplified skills
+// import { updateMasteredSkills } from '@/utils/masteredSkillsCalculator';
 import { updateStatusEffects } from '@/utils/statusEffectManager'; // <-- 导入状态效果管理工具
+
+// [MING] Stub functions for removed backend API
+function isBackendConfigured(): boolean { return false; }
+async function createCharacterAPI(_data: any): Promise<any> { return null; }
+async function fetchCharacterProfile(_id: string): Promise<any> { return null; }
+async function updateCharacterSave(_id: string, _data?: any, _slot?: string): Promise<any> { return null; }
+async function verifyStoredToken(): Promise<boolean> { return false; }
+// [MING] Stub for removed mastered skills calculator - returns empty array
+function updateMasteredSkills(_store: any): any[] { return []; }
 import { detectLegacySaveData, isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
 import { useGameStateStore } from '@/stores/gameStateStore';
@@ -911,26 +922,8 @@ export const useCharacterStore = defineStore('characterV3', () => {
         gameStateStore.loadFromSaveData(patched);
         debug.log('角色商店', '✅ 存档数据已加载到 gameStateStore');
 
-        // 🔥 初始化向量记忆服务并导入现有长期记忆
-        try {
-          const { vectorMemoryService } = await import('@/services/vectorMemoryService');
-          const saveSlotId = `${charId}_${slotKey}`;
-          await vectorMemoryService.init(saveSlotId);
-
-          // 如果启用了向量记忆且向量库为空，导入现有长期记忆
-          if (vectorMemoryService.isEnabled()) {
-            const existingMemories = (targetSlot.存档数据 as any).社交?.记忆?.长期记忆 || [];
-            if (existingMemories.length > 0) {
-              const stats = await vectorMemoryService.getStats();
-              if (stats.total === 0) {
-                debug.log('角色商店', `向量记忆库为空，开始导入 ${existingMemories.length} 条长期记忆`);
-                await vectorMemoryService.importLongTermMemories(existingMemories);
-              }
-            }
-          }
-        } catch (e) {
-          console.warn('[角色商店] 初始化向量记忆服务失败（非致命）:', e);
-        }
+        // [MING] 向量记忆服务已移除 - 使用简化的记忆系统
+        // Vector memory service removed in Ming version
       }
 
       debug.log('角色商店', '加载完成');

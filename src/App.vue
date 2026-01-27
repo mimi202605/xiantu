@@ -225,9 +225,15 @@ import { useUIStore } from './stores/uiStore';
 import { useGameStateStore } from './stores/gameStateStore';
 import { toast } from './utils/toast';
 import { getTavernHelper } from './utils/tavern'; // 添加导入
-import { fetchBackendVersion, isBackendConfigured } from '@/services/backendConfig';
-import { heartbeatPresenceSilent } from '@/services/presence';
-import { endTravelBeacon } from '@/services/onlineTravel';
+// [MING] Removed: import { fetchBackendVersion, isBackendConfigured } from '@/services/backendConfig';
+const fetchBackendVersion = async (): Promise<string | null> => null;
+const isBackendConfigured = (): boolean => false;
+
+// [MING] Removed: import { heartbeatPresenceSilent } from '@/services/presence';
+const heartbeatPresenceSilent = async (): Promise<void> => {};
+
+// [MING] Removed: import { endTravelBeacon } from '@/services/onlineTravel';
+const endTravelBeacon = (_sessionId: number): void => {};
 import { getFullscreenElement, requestFullscreen, exitFullscreen, explainFullscreenError } from './utils/fullscreen';
 import type { CharacterBaseInfo } from '@/types/game';
 import type { CharacterCreationPayload, Talent } from '@/types';

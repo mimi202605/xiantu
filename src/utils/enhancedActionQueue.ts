@@ -8,6 +8,10 @@ import { useGameStateStore } from '@/stores/gameStateStore';
 import { useActionQueueStore } from '@/stores/actionQueueStore';
 import type { Item, SaveData, CultivationTechniqueReference } from '@/types/game';
 import { toast } from './toast';
+
+// [MING] Stubs for removed equipment bonus system
+function applyEquipmentBonus(_saveData: any, _itemId: string): void { /* no-op */ }
+function removeEquipmentBonus(_saveData: any, _itemId: string): void { /* no-op */ }
 // import { getTavernHelper } from '@/utils/tavern'; // 已废弃：新架构中不再使用
 
 export interface UndoAction {
@@ -179,8 +183,7 @@ export class EnhancedActionQueueManager {
       // 注意：不从背包中移除物品，装备和背包是独立的
       // 被替换的装备也不放回背包，而是丢失（符合游戏逻辑）
 
-      // 应用装备属性加成到存档的 角色.身份.后天六司（V3）
-      const { applyEquipmentBonus } = await import('./equipmentBonusApplier');
+      // [MING] 装备属性加成已移除 - Equipment bonuses removed
       applyEquipmentBonus(saveData, item.物品ID);
 
       // 🔥 [新架构] 更新 gameStateStore 并保存到 IndexedDB
@@ -307,8 +310,7 @@ export class EnhancedActionQueueManager {
 
       // 注意：不需要将装备放回背包，因为装备从未从背包中移除
 
-      // 移除装备属性加成从存档的 角色.身份.后天六司（V3）
-      const { removeEquipmentBonus } = await import('./equipmentBonusApplier');
+      // [MING] 装备属性加成已移除 - Equipment bonuses removed
       removeEquipmentBonus(saveData, item.物品ID);
 
       // 🔥 [新架构] 更新 gameStateStore 并保存到 IndexedDB
@@ -757,8 +759,7 @@ export class EnhancedActionQueueManager {
     for (let i = 1; i <= 6; i++) {
       const slotKey = `装备${i}`;
       if (equipmentSlots[slotKey] === action.itemId) {
-        // 移除装备属性加成（撤回装备 = 卸下装备）
-        const { removeEquipmentBonus } = await import('./equipmentBonusApplier');
+        // [MING] 装备属性加成已移除 - Equipment bonuses removed
         removeEquipmentBonus(saveData, action.itemId);
 
         // 卸下装备
@@ -772,8 +773,7 @@ export class EnhancedActionQueueManager {
 
         // 如果有被替换的装备，恢复它
         if (action.restoreData?.replacedItem) {
-          // 应用被替换装备的属性加成
-          const { applyEquipmentBonus } = await import('./equipmentBonusApplier');
+          // [MING] 装备属性加成已移除 - Equipment bonuses removed
           applyEquipmentBonus(saveData, action.restoreData.replacedItem.物品ID);
 
           equipmentSlots[slotKey] = action.restoreData.replacedItem.物品ID;
@@ -820,8 +820,7 @@ export class EnhancedActionQueueManager {
       inventoryItems[action.itemId] = { ...inventoryItem, 已装备: true };
     }
 
-    // 应用装备属性加成
-    const { applyEquipmentBonus } = await import('./equipmentBonusApplier');
+    // [MING] 装备属性加成已移除 - Equipment bonuses removed
     applyEquipmentBonus(saveData, action.itemId);
   }
   

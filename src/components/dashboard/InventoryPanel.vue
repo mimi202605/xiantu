@@ -622,7 +622,8 @@ const unequipItem = async (slot: { name: string; slotKey: string; item: Item | n
     }
 
     // 移除装备属性加成
-    const { removeEquipmentBonus } = await import('@/utils/equipmentBonusApplier')
+    // [MING] Removed: const { removeEquipmentBonus } = await import('@/utils/equipmentBonusApplier')
+    const removeEquipmentBonus = (_saveData: any, _itemId: string): void => {};
     removeEquipmentBonus(saveData, itemToUnequip.物品ID)
 
     // 更新 gameStateStore 并保存

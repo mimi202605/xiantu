@@ -1,4 +1,4 @@
-﻿
+
 <template>
   <div class="right-sidebar">
     <div class="sidebar-header">
@@ -206,7 +206,8 @@ import StatusDetailCard from './components/StatusDetailCard.vue';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useUIStore } from '@/stores/uiStore';
 import type { StatusEffect } from '@/types/game.d.ts';
-import { formatRealmWithStage } from '@/utils/realmUtils';
+// [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils';
+const formatRealmWithStage = (_realm: any): string => '';
 import { calculateAgeFromBirthdate } from '@/utils/lifespanCalculator';
 import { useI18n } from '@/i18n';
 

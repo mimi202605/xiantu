@@ -1,7 +1,12 @@
 import { defineStore } from 'pinia';
 import { ref, shallowRef, computed, type Component } from 'vue';
 import { sanitizeAITextForDisplay } from '@/utils/textSanitizer';
-import { isBackendConfigured, fetchBackendVersion } from '@/services/backendConfig';
+// [MING] Removed backend config - local only mode
+// import { isBackendConfigured, fetchBackendVersion } from '@/services/backendConfig';
+
+// [MING] Stub functions - always offline mode
+function isBackendConfigured(): boolean { return false; }
+async function fetchBackendVersion(): Promise<string | null> { return null; }
 
 interface RetryDialogConfig {
   title: string;

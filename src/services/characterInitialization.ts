@@ -13,13 +13,47 @@ import type { GM_Response, TavernCommand } from '@/types/AIGameMaster';
 import { AIBidirectionalSystem } from '@/utils/AIBidirectionalSystem';
 import { isTavernEnv } from '@/utils/tavern';
 import { getNsfwSettingsFromStorage, ensureSystemConfigHasNsfw } from '@/utils/nsfw';
-import { createEmptyThousandDaoSystem } from '@/data/thousandDaoData';
+// [MING] Removed: import { createEmptyThousandDaoSystem } from '@/data/thousandDaoData';
 import { buildCharacterInitializationPrompt, buildCharacterSelectionsSummary } from '@/utils/prompts/tasks/characterInitializationPrompts';
 import { validateGameData } from '@/utils/dataValidation';
 import { migrateSaveDataToLatest } from '@/utils/saveMigration';
-// 移除未使用的旧生成器导入,改用增强版生成器
-// import { WorldGenerationConfig } from '@/utils/worldGeneration/gameWorldConfig';
-import { EnhancedWorldGenerator } from '@/utils/worldGeneration/enhancedWorldGenerator';
+// [MING] Removed enhanced world generator - using simplified world generation
+// import { EnhancedWorldGenerator } from '@/utils/worldGeneration/enhancedWorldGenerator';
+
+// [MING] Stub for removed thousandDaoSystem
+function createEmptyThousandDaoSystem() {
+  return { 大道列表: {} };
+}
+
+// [MING] Stub for EnhancedWorldGenerator - simplified world generation
+class EnhancedWorldGenerator {
+  constructor(_config?: any) {}
+  
+  async generateWorldInfo(_prompt: string, _options?: any): Promise<any> {
+    // Return basic world info structure
+    return {
+      世界名称: '默认世界',
+      世界描述: '一个充满可能的世界',
+      世界观: '自由探索的世界',
+      势力列表: [],
+      地点列表: []
+    };
+  }
+  
+  async generateValidatedWorld(): Promise<{ success: boolean; worldInfo?: any; errors?: string[] }> {
+    // Return success with basic world info
+    return {
+      success: true,
+      worldInfo: {
+        世界名称: '默认世界',
+        世界描述: '一个充满可能的世界',
+        世界观: '自由探索的世界',
+        势力列表: [],
+        地点列表: []
+      }
+    };
+  }
+}
 // 导入本地数据库用于随机生成
 import { LOCAL_SPIRIT_ROOTS, LOCAL_ORIGINS } from '@/data/creationData';
 

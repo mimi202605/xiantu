@@ -495,7 +495,18 @@ import { toast } from '@/utils/toast';
 import { debug } from '@/utils/debug';
 import { type MemoryFormatConfig } from '@/utils/memoryFormatConfig';
 import { AIBidirectionalSystem } from '@/utils/AIBidirectionalSystem'; // 导入AI系统
-import { vectorMemoryService, type VectorMemoryEntry } from '@/services/vectorMemoryService';
+// [MING] Removed: import { vectorMemoryService, type VectorMemoryEntry } from '@/services/vectorMemoryService';
+type VectorMemoryEntry = { id: string; content: string; embedding?: number[]; metadata?: any; timestamp?: number; };
+const vectorMemoryService = {
+  initialize: async () => {},
+  isInitialized: () => false,
+  addMemory: async (_content: string, _metadata?: any) => '',
+  search: async (_query: string, _limit?: number) => [] as VectorMemoryEntry[],
+  deleteMemory: async (_id: string) => {},
+  getAllMemories: async () => [] as VectorMemoryEntry[],
+  clearAllMemories: async () => {},
+  getMemoryCount: async () => 0,
+};
 import { useAPIManagementStore } from '@/stores/apiManagementStore'; // 导入API管理Store
 
 interface Memory {

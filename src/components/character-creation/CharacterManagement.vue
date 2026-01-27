@@ -562,7 +562,8 @@ import { ArrowLeft, Upload, History, Clock, Star, Wrench } from 'lucide-vue-next
 import LegacySaveMigrationModal from './LegacySaveMigrationModal.vue';
 import type { CharacterProfile, SaveSlot } from '@/types/game';
 import "@/style.css";
-import { formatRealmWithStage } from '@/utils/realmUtils';
+// [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils';
+const formatRealmWithStage = (_realm: any): string => '';
 import { toast } from '@/utils/toast';
 import { isTavernEnv } from '@/utils/tavern';
 import { ensureSaveDataHasTavernNsfw } from '@/utils/nsfw';
@@ -570,8 +571,10 @@ import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
 import { createDadBundle, unwrapDadBundle } from '@/utils/dadBundle';
 import type { SaveDataV3 } from '@/types/saveSchemaV3';
-import { verifyStoredToken } from '@/services/request';
-import { isBackendConfigured } from '@/services/backendConfig';
+// [MING] Removed: import { verifyStoredToken } from '@/services/request';
+const verifyStoredToken = async (): Promise<boolean> => false;
+// [MING] Removed: import { isBackendConfigured } from '@/services/backendConfig';
+const isBackendConfigured = (): boolean => false;
 
 interface Props {
   fullscreen?: boolean;

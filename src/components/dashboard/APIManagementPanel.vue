@@ -578,7 +578,17 @@ import { Plus, Edit2, Trash2, Upload, Download, X, RefreshCw, FlaskConical } fro
 import { useAPIManagementStore, type APIConfig, type APIUsageType } from '@/stores/apiManagementStore';
 import { aiService, API_PROVIDER_PRESETS, type APIProvider } from '@/services/aiService';
 import { useUIStore } from '@/stores/uiStore';
-import { vectorMemoryService } from '@/services/vectorMemoryService';
+// [MING] Removed: import { vectorMemoryService } from '@/services/vectorMemoryService';
+const vectorMemoryService = {
+  initialize: async () => {},
+  isInitialized: () => false,
+  addMemory: async (_content: string, _metadata?: any) => '',
+  search: async (_query: string, _limit?: number) => [] as any[],
+  deleteMemory: async (_id: string) => {},
+  getAllMemories: async () => [] as any[],
+  clearAllMemories: async () => {},
+  getMemoryCount: async () => 0,
+};
 import { getNsfwSettingsFromStorage, type NsfwGenderFilter } from '@/utils/nsfw';
 import { isTavernEnv } from '@/utils/tavern';
 import { toast } from '@/utils/toast';

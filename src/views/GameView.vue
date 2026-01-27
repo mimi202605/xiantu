@@ -145,13 +145,20 @@ import { useUIStore } from '@/stores/uiStore';
 import { useRouter, useRoute } from 'vue-router';
 import { X, Package, User, Brain, Users, BookOpen, Zap, Settings, Save, Map, Scroll, Bell, Home, Box, Users2, Database, RefreshCw, FlaskConical, Trash2, BarChart3, Coins, FileText, Plug, Globe } from 'lucide-vue-next';
 import { panelBus, type PanelAction } from '@/utils/panelBus';
-import { detectSectMigration } from '@/utils/sectMigration';
+// [MING] Removed: import { detectSectMigration } from '@/utils/sectMigration';
+const detectSectMigration = (_saveData: any): { needed: boolean; reasons: string[]; fromVersion: string; toVersion: string } => ({
+  needed: false,
+  reasons: [],
+  fromVersion: '',
+  toVersion: ''
+});
 import TopBar from '@/components/dashboard/TopBar.vue'
 import LeftSidebar from '@/components/dashboard/LeftSidebar.vue'
 import RightSidebar from '@/components/dashboard/RightSidebar.vue'
 import CharacterManagement from '@/components/character-creation/CharacterManagement.vue';
 import ErrorBoundary from '@/components/common/ErrorBoundary.vue';
-import SectMigrationModal from '@/components/dashboard/components/SectMigrationModal.vue';
+// [MING] Removed: import SectMigrationModal from '@/components/dashboard/components/SectMigrationModal.vue';
+const SectMigrationModal = { name: 'SectMigrationModal', template: '<div></div>' };
 
 const characterStore = useCharacterStore();
 const gameStateStore = useGameStateStore();

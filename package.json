@@ -1,18 +1,10 @@
 {
-  "name": "XianTu",
-  "version": "",
-  "description": "AI驱动的沉浸式修仙文字冒险游戏（SillyTavern / 自定义API，Vue3 + TypeScript）",
+  "name": "ming",
+  "version": "1.0.0",
+  "description": "Simplified AI-driven narrative RPG based on XianTu",
   "private": true,
   "type": "module",
   "license": "Apache-2.0",
-  "homepage": "https://www.ddct.top/",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/qianye60/XianTu.git"
-  },
-  "bugs": {
-    "url": "https://github.com/qianye60/XianTu/issues"
-  },
   "scripts": {
     "build": "webpack --mode production",
     "build:single": "webpack --mode production --env single",
@@ -25,14 +17,12 @@
   "dependencies": {
     "@vueuse/core": "^14.1.0",
     "axios": "^1.11.0",
-    "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "idb": "^8.0.3",
     "jquery": "^3.7.1",
     "lucide-vue-next": "^0.541.0",
     "pinia": "^3.0.4",
-    "pixi.js": "^7.4.3",
     "tailwind-merge": "^3.4.0",
     "vue": "^3.5.18",
     "vue-router": "^4.6.4",
@@ -60,7 +50,6 @@
     "prettier": "3.7.4",
     "sass": "^1.87.0",
     "sass-loader": "^16.0.6",
-    "socket.io": "^4.8.3",
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.4",
     "typescript": "~5.8.0",

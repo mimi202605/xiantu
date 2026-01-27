@@ -128,7 +128,8 @@
 
 <script setup lang="ts">
 import VideoBackground from '@/components/common/VideoBackground.vue';
-import CloudDataSync from '@/components/common/CloudDataSync.vue';
+// [MING] Removed: import CloudDataSync from '@/components/common/CloudDataSync.vue';
+const CloudDataSync = { name: 'CloudDataSync', template: '<div></div>' };
 import DataClearButtons from '@/components/common/DataClearButtons.vue';
 import StorePreSeting from '@/components/common/StorePreSeting.vue';
 import LoadingPreSeting from '@/components/common/LoadingPreSeting.vue';
@@ -141,11 +142,14 @@ import Step5_TalentSelection from '../components/character-creation/Step5_Talent
 import Step6_AttributeAllocation from '../components/character-creation/Step6_AttributeAllocation.vue'
 import Step7_Preview from '../components/character-creation/Step7_Preview.vue'
 import RedemptionCodeModal from '../components/character-creation/RedemptionCodeModal.vue'
-import { request, verifyStoredToken } from '../services/request'
+// [MING] Removed: import { request, verifyStoredToken } from '../services/request'
+const request = async <T>(_url: string, _options?: RequestInit): Promise<T | null> => null;
+const verifyStoredToken = async (): Promise<boolean> => false;
 import { toast } from '../utils/toast'
 import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue';
 import { getCurrentCharacterName } from '../utils/tavern';
-import { isBackendConfigured } from '@/services/backendConfig';
+// [MING] Removed: import { isBackendConfigured } from '@/services/backendConfig';
+const isBackendConfigured = (): boolean => false;
 import { useI18n } from '../i18n';
 import type { CharacterPreset } from '@/utils/presetManager';
 

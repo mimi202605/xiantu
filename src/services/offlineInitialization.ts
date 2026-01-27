@@ -1,7 +1,12 @@
 import type { CharacterBaseInfo, SaveData, PlayerStatus } from '@/types/game';
 import type { World } from '@/types';
-import { createEmptyThousandDaoSystem } from '@/data/thousandDaoData';
+// [MING] Removed: import { createEmptyThousandDaoSystem } from '@/data/thousandDaoData';
 import { calculateInitialAttributes } from './characterInitialization';
+
+// [MING] Stub for removed thousandDaoSystem
+function createEmptyThousandDaoSystem() {
+  return { 大道列表: {} };
+}
 
 /**
  * 单机模式下的本地初始化（不依赖酒馆/AI）

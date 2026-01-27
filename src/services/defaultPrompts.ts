@@ -10,8 +10,16 @@
 import { getSaveDataStructureForEnv } from '@/utils/prompts/definitions/dataDefinitions';
 import { getCharacterInitializationPromptForEnv } from '@/utils/prompts/tasks/characterInitializationPrompts';
 import { getCotCorePrompt } from '@/utils/prompts/cot/cotCore';
-import { EnhancedWorldPromptBuilder } from '@/utils/worldGeneration/enhancedWorldPrompts';
+// [MING] Removed: import { EnhancedWorldPromptBuilder } from '@/utils/worldGeneration/enhancedWorldPrompts';
 import { promptStorage } from './promptStorage';
+
+// [MING] Stub for removed EnhancedWorldPromptBuilder
+const EnhancedWorldPromptBuilder = {
+  buildBaseWorldGenPrompt: () => '请生成一个修仙世界的基本信息。',
+  buildDetailedWorldGenPrompt: () => '请生成详细的世界设定。',
+  getWorldGenPromptForEnv: () => '请根据当前环境生成世界信息。',
+  buildPrompt: (_config?: any) => '请生成一个完整的世界设定，包括大陆、势力和地点。'
+};
 import { isTavernEnv } from '@/utils/tavern';
 // 核心规则
 import { JSON_OUTPUT_RULES, RESPONSE_FORMAT_RULES, DATA_STRUCTURE_STRICTNESS, NARRATIVE_PURITY_RULES } from '@/utils/prompts/definitions/coreRules';

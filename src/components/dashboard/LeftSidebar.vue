@@ -276,7 +276,9 @@ import { useCharacterStore } from '@/stores/characterStore';
 import { toast } from '@/utils/toast';
 import { useUIStore } from '@/stores/uiStore';
 import { useI18n } from '@/i18n';
-import { isBackendConfigured, fetchBackendVersion } from '@/services/backendConfig';
+// [MING] Removed: import { isBackendConfigured, fetchBackendVersion } from '@/services/backendConfig';
+const isBackendConfigured = (): boolean => false;
+const fetchBackendVersion = async (): Promise<string | null> => null;
 
 const router = useRouter();
 const characterStore = useCharacterStore();

@@ -110,8 +110,12 @@ import { ref, computed, onMounted } from 'vue';
 import VideoBackground from '@/components/common/VideoBackground.vue';
 import { Sparkles, History, User, Users, Check, Lock } from 'lucide-vue-next';
 import { useUIStore } from '@/stores/uiStore';
-import { isBackendConfigured, fetchBackendVersion } from '@/services/backendConfig';
-import { verifyStoredToken } from '@/services/request';
+// [MING] Removed: import { isBackendConfigured, fetchBackendVersion } from '@/services/backendConfig';
+const isBackendConfigured = (): boolean => false;
+const fetchBackendVersion = async (): Promise<string | null> => null;
+
+// [MING] Removed: import { verifyStoredToken } from '@/services/request';
+const verifyStoredToken = async (): Promise<boolean> => false;
 
 const selectedMode = ref<'single' | 'cloud' | null>(null);
 const backendReady = ref(false);

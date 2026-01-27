@@ -4,7 +4,8 @@ import fs from 'fs'
 import { VueLoaderPlugin } from 'vue-loader'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import HtmlInlineScriptPlugin from 'html-inline-script-webpack-plugin'
-import TavernLiveReloadPlugin from './webpack/TavernLiveReloadPlugin.js'
+// [MING] Removed TavernLiveReloadPlugin - requires socket.io which is removed
+// import TavernLiveReloadPlugin from './webpack/TavernLiveReloadPlugin.js'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -150,7 +151,7 @@ export default (env, argv) => {
         directory: path.join(__dirname, 'dist'),
       },
       compress: true,
-      port: 8080,
+      port: 9091,  // [MING] Changed to 9091 to avoid conflict
       hot: true,
       // 配置代理，解决CORS问题
       proxy: [

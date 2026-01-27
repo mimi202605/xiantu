@@ -1,11 +1,12 @@
 import { createRouter, createMemoryHistory } from 'vue-router';
 import ModeSelection from '../views/ModeSelection.vue';
 import CharacterCreation from '../views/CharacterCreation.vue';
-import LoginView from '../views/LoginView.vue';
-import WorkshopView from '../views/WorkshopView.vue';
+// [MING] Removed backend views
+// import LoginView from '../views/LoginView.vue';
+// import WorkshopView from '../views/WorkshopView.vue';
 import GameView from '../views/GameView.vue';
-import AccountCenter from '../views/AccountCenter.vue';
-import BackendAdminView from '../views/BackendAdminView.vue';
+// import AccountCenter from '../views/AccountCenter.vue';
+// import BackendAdminView from '../views/BackendAdminView.vue';
 
 // 创建一个包装组件来传递fullscreen属性
 import { h } from 'vue';
@@ -39,20 +40,21 @@ import MemoryCenterPanel from '../components/dashboard/MemoryCenterPanel.vue';
 import CharacterDetailsPanel from '../components/dashboard/CharacterDetailsPanel.vue';
 import InventoryPanel from '../components/dashboard/InventoryPanel.vue';
 import RelationshipNetworkPanel from '../components/dashboard/RelationshipNetworkPanel.vue';
-import SkillsPanel from '../components/dashboard/SkillsPanel.vue'; // 功法面板
-import ThousandDaoPanel from '../components/dashboard/ThousandDaoPanel.vue'; // 新的三千大道面板
+// [MING] Removed deleted panels
+// import SkillsPanel from '../components/dashboard/SkillsPanel.vue';
+// import ThousandDaoPanel from '../components/dashboard/ThousandDaoPanel.vue';
 import SettingsPanel from '../components/dashboard/SettingsPanel.vue';
 import SavePanel from '../components/dashboard/SavePanel.vue';
-import WorldMapRoute from '../components/dashboard/WorldMapRoute.vue';
+// import WorldMapRoute from '../components/dashboard/WorldMapRoute.vue';
 import EventPanel from '../components/dashboard/EventPanel.vue';
-import SectPanel from '../components/dashboard/SectPanel.vue';
-import SectSystemPanel from '../components/dashboard/SectSystemPanel.vue';
-import SectMembersContent from '../components/dashboard/components/SectMembersContent.vue';
-import SectLibraryContent from '../components/dashboard/components/SectLibraryContent.vue';
-import SectContributionContent from '../components/dashboard/components/SectContributionContent.vue';
+// import SectPanel from '../components/dashboard/SectPanel.vue';
+// import SectSystemPanel from '../components/dashboard/SectSystemPanel.vue';
+// import SectMembersContent from '../components/dashboard/components/SectMembersContent.vue';
+// import SectLibraryContent from '../components/dashboard/components/SectLibraryContent.vue';
+// import SectContributionContent from '../components/dashboard/components/SectContributionContent.vue';
 import GameVariablePanel from '../components/dashboard/GameVariablePanel.vue';
 import PromptManagementPanel from '../components/dashboard/PromptManagementPanel.vue';
-import OnlineTravelPanel from '../components/dashboard/OnlineTravelPanel.vue';
+// import OnlineTravelPanel from '../components/dashboard/OnlineTravelPanel.vue';
 import APIManagementPanel from '../components/dashboard/APIManagementPanel.vue';
 
 const routes = [
@@ -66,26 +68,27 @@ const routes = [
     name: 'CharacterCreation',
     component: CharacterCreation,
   },
-  {
-    path: '/login',
-    name: 'Login',
-    component: LoginView,
-  },
-  {
-    path: '/workshop',
-    name: 'Workshop',
-    component: WorkshopView,
-  },
-  {
-    path: '/account',
-    name: 'AccountCenter',
-    component: AccountCenter,
-  },
-  {
-    path: '/backend-admin',
-    name: 'BackendAdmin',
-    component: BackendAdminView,
-  },
+  // [MING] Removed backend routes
+  // {
+  //   path: '/login',
+  //   name: 'Login',
+  //   component: LoginView,
+  // },
+  // {
+  //   path: '/workshop',
+  //   name: 'Workshop',
+  //   component: WorkshopView,
+  // },
+  // {
+  //   path: '/account',
+  //   name: 'AccountCenter',
+  //   component: AccountCenter,
+  // },
+  // {
+  //   path: '/backend-admin',
+  //   name: 'BackendAdmin',
+  //   component: BackendAdminView,
+  // },
   {
     // 提示词管理 - 独立顶级路由，不需要加载游戏数据
     path: '/prompts',
@@ -122,16 +125,17 @@ const routes = [
         name: 'Relationships',
         component: RelationshipNetworkPanel,
       },
-      {
-        path: 'techniques',
-        name: 'Techniques',
-        component: SkillsPanel, // 功法面板（合并了原cultivation功能）
-      },
-      {
-        path: 'thousand-dao',
-        name: 'ThousandDao',
-        component: ThousandDaoPanel, // 三千大道面板
-      },
+      // [MING] Removed deleted routes
+      // {
+      //   path: 'techniques',
+      //   name: 'Techniques',
+      //   component: SkillsPanel,
+      // },
+      // {
+      //   path: 'thousand-dao',
+      //   name: 'ThousandDao',
+      //   component: ThousandDaoPanel,
+      // },
       {
         path: 'settings',
         name: 'Settings',
@@ -142,47 +146,23 @@ const routes = [
         name: 'Save',
         component: SavePanel,
       },
-      {
-        path: 'world-map',
-        name: 'WorldMap',
-        component: WorldMapRoute,
-      },
+      // {
+      //   path: 'world-map',
+      //   name: 'WorldMap',
+      //   component: WorldMapRoute,
+      // },
       {
         path: 'events',
         name: 'Events',
         component: EventPanel,
       },
-      {
-        path: 'sect',
-        name: 'Sect',
-        component: SectSystemPanel,
-        children: [
-          {
-            path: '',
-            redirect: { name: 'SectOverview' },
-          },
-          {
-            path: 'overview',
-            name: 'SectOverview',
-            component: SectPanel,
-          },
-          {
-            path: 'members',
-            name: 'SectMembers',
-            component: SectMembersContent,
-          },
-          {
-            path: 'library',
-            name: 'SectLibrary',
-            component: SectLibraryContent,
-          },
-          {
-            path: 'contribution',
-            name: 'SectContribution',
-            component: SectContributionContent,
-          },
-        ],
-      },
+      // [MING] Removed sect routes
+      // {
+      //   path: 'sect',
+      //   name: 'Sect',
+      //   component: SectSystemPanel,
+      //   children: [...],
+      // },
       {
         path: 'game-variables',
         name: 'GameVariables',
@@ -193,11 +173,11 @@ const routes = [
         name: 'Prompts',
         component: PromptManagementPanel,
       },
-      {
-        path: 'travel',
-        name: 'Travel',
-        component: OnlineTravelPanel,
-      },
+      // {
+      //   path: 'travel',
+      //   name: 'Travel',
+      //   component: OnlineTravelPanel,
+      // },
       {
         path: 'api-management',
         name: 'APIManagement',
