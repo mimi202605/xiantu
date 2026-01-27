@@ -153,6 +153,7 @@ export default (env, argv) => {
       compress: true,
       port: 9091,  // [MING] Changed to 9091 to avoid conflict
       hot: true,
+      historyApiFallback: true,  // [MING] Required for SPA routing
       // 配置代理，解决CORS问题
       proxy: [
         {
