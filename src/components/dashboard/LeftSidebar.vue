@@ -40,34 +40,6 @@
         </div>
       </div>
 
-      <!-- 修炼系统区 -->
-      <div class="function-section">
-        <div class="section-title">{{ t('修炼系统') }}</div>
-        <div class="function-group">
-          <button class="function-btn cultivation" @click="handleTechniques">
-            <div class="btn-icon">
-              <BookOpen :size="18" />
-            </div>
-            <div class="btn-content">
-              <span class="btn-text">{{ t('功法技能') }}</span>
-              <span class="btn-desc">{{ t('修炼突破晋级') }}</span>
-            </div>
-            <ChevronRight :size="14" class="btn-arrow" />
-          </button>
-
-          <button class="function-btn cultivation" @click="handleThousandDao">
-            <div class="btn-icon">
-              <Zap :size="18" />
-            </div>
-            <div class="btn-content">
-              <span class="btn-text">{{ t('大道感悟') }}</span>
-              <span class="btn-desc">{{ t('领悟天地法则') }}</span>
-            </div>
-            <ChevronRight :size="14" class="btn-arrow" />
-          </button>
-        </div>
-      </div>
-
       <!-- 事件与探索区 -->
       <div class="function-section">
         <div class="section-title">{{ t('事件探索') }}</div>
@@ -83,27 +55,6 @@
             <ChevronRight :size="14" class="btn-arrow" />
           </button>
 
-          <button class="function-btn quest" @click="handleWorldMap">
-            <div class="btn-icon">
-              <Map :size="18" />
-            </div>
-            <div class="btn-content">
-              <span class="btn-text">{{ t('世界地图') }}</span>
-              <span class="btn-desc">{{ t('探索天下各地') }}</span>
-            </div>
-            <ChevronRight :size="14" class="btn-arrow" />
-          </button>
-
-          <button class="function-btn quest" v-if="isOnlineMode" @click="handleOnlinePlay">
-            <div class="btn-icon">
-              <Globe :size="18" />
-            </div>
-            <div class="btn-content">
-              <span class="btn-text">{{ t('穿越') }}</span>
-              <span class="btn-desc">{{ t('进入他人世界') }}</span>
-            </div>
-            <ChevronRight :size="14" class="btn-arrow" />
-          </button>
         </div>
       </div>
 
@@ -118,17 +69,6 @@
             <div class="btn-content">
               <span class="btn-text">{{ t('人物关系') }}</span>
               <span class="btn-desc">{{ t('人脉交际管理') }}</span>
-            </div>
-            <ChevronRight :size="14" class="btn-arrow" />
-          </button>
-
-          <button class="function-btn secondary" @click="handleSect">
-            <div class="btn-icon">
-              <Home :size="18" />
-            </div>
-            <div class="btn-content">
-              <span class="btn-text">{{ t('宗门') }}</span>
-              <span class="btn-desc">{{ t('门派事务管理') }}</span>
             </div>
             <ChevronRight :size="14" class="btn-arrow" />
           </button>
@@ -206,17 +146,6 @@
             <ChevronRight :size="14" class="btn-arrow" />
           </button>
 
-          <button v-if="isAdmin" class="function-btn admin" @click="handleBackendAdmin">
-            <div class="btn-icon">
-              <Shield :size="18" />
-            </div>
-            <div class="btn-content">
-              <span class="btn-text">{{ t('仙官后台') }}</span>
-              <span class="btn-desc">{{ t('管理员控制台') }}</span>
-            </div>
-            <ChevronRight :size="14" class="btn-arrow" />
-          </button>
-
           <button class="function-btn exit-btn no-arrow" @click="handleBackToMenu">
             <div class="btn-icon">
               <LogOut :size="18" />
@@ -271,7 +200,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Package, User, Users, BookOpen, Zap, Brain, Map, Globe, Save, Settings, LogOut, Compass, Home, Bell, ChevronRight, Database, Clock, FileText, Plug, LayoutGrid, Heart, Shield } from 'lucide-vue-next';
+import { Package, User, Users, Brain, Save, Settings, LogOut, Bell, ChevronRight, Database, Clock, FileText, Plug, LayoutGrid, Heart } from 'lucide-vue-next';
 import { useCharacterStore } from '@/stores/characterStore';
 import { toast } from '@/utils/toast';
 import { useUIStore } from '@/stores/uiStore';
@@ -331,9 +260,6 @@ onUnmounted(() => {
 
 // 使用 store 的 getters 获取数据
 const activeCharacter = computed(() => characterStore.activeCharacterProfile);
-const isOnlineMode = computed(() => activeCharacter.value?.模式 === '联机');
-const isAdmin = computed(() => localStorage.getItem('is_admin') === 'true');
-
 const handleSaveGame = async () => {
   router.push('/game/save');
 };
@@ -350,32 +276,12 @@ const handleEvents = () => {
   router.push('/game/events');
 };
 
-const handleSect = () => {
-  router.push('/game/sect');
-};
-
 const handleRelationships = () => {
   router.push('/game/relationships');
 };
 
-const handleTechniques = () => {
-  router.push('/game/techniques');
-};
-
-const handleThousandDao = () => {
-  router.push('/game/thousand-dao');
-};
-
 const handleMemoryCenter = () => {
   router.push('/game/memory');
-};
-
-const handleWorldMap = () => {
-  router.push('/game/world-map');
-};
-
-const handleOnlinePlay = () => {
-  router.push('/game/travel');
 };
 
 const handlePrompts = () => {
@@ -392,10 +298,6 @@ const handleAPIManagement = () => {
 
 const handleGameVariables = () => {
   router.push('/game/game-variables');
-};
-
-const handleBackendAdmin = () => {
-  router.push('/backend-admin');
 };
 
 const handleBackToMenu = () => {

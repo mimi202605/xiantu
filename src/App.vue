@@ -62,18 +62,6 @@
           <Plug :size="18" />
           <span>API管理</span>
         </button>
-        <button class="action-menu-item" :class="{ 'is-disabled': !backendReady }" @click="openWorkshop(close)">
-          <Store :size="18" />
-          <span>创意工坊</span>
-        </button>
-        <button class="action-menu-item" :class="{ 'is-disabled': !backendReady }" @click="openAccountCenter(close)">
-          <UserCircle :size="18" />
-          <span>账号中心</span>
-        </button>
-        <button v-if="isAdmin" class="action-menu-item" :class="{ 'is-disabled': !backendReady }" @click="openBackendAdmin(close)">
-          <Shield :size="18" />
-          <span>后端管理</span>
-        </button>
         <button class="action-menu-item" @click="toggleTheme(); close()">
           <component :is="isDarkMode ? Sun : Moon" :size="18" />
           <span>{{ isDarkMode ? '切换亮色' : '切换暗色' }}</span>
@@ -183,11 +171,11 @@
             <h3>核心功能</h3>
             <div class="help-features">
               <span>🎲 智能判定</span>
-              <span>🌟 三千大道</span>
+              <span>🧠 记忆系统</span>
               <span>📖 动态剧情</span>
               <span>💾 多存档</span>
               <span>⚔️ 深度RPG</span>
-              <span>🗺️ 世界探索</span>
+              <span>📜 事件系统</span>
             </div>
           </div>
 
@@ -208,7 +196,7 @@
 import { ref, onMounted, onUnmounted, computed, watchEffect, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import $ from 'jquery'; // 导入 jQuery
-import { BookOpen, X, Scroll, Sparkles, Maximize2, Minimize2, Moon, Sun, Settings, Store, Globe, UserCircle, Heart, ArrowRight, Plug, Shield } from 'lucide-vue-next'; // 导入图标
+import { BookOpen, X, Scroll, Sparkles, Maximize2, Minimize2, Moon, Sun, Settings, Globe, Heart, ArrowRight, Plug } from 'lucide-vue-next'; // 导入图标
 import ToastContainer from './components/common/ToastContainer.vue';
 import GlobalLoadingOverlay from './components/common/GlobalLoadingOverlay.vue';
 import RetryConfirmDialog from './components/common/RetryConfirmDialog.vue';
@@ -249,7 +237,6 @@ const showSettingsModal = ref(false);
 const showAPIModal = ref(false);
 const showSponsorModal = ref(false);
 const backendReady = ref(isBackendConfigured());
-const isAdmin = computed(() => localStorage.getItem('is_admin') === 'true');
 const displayVersion = computed(() => (
   backendReady.value ? (backendVersion.value ?? '同步中') : APP_VERSION
 ));
@@ -361,41 +348,6 @@ const handleGoToLogin = () => {
     return;
   }
   switchView('Login');
-};
-
-const openWorkshop = (close: () => void) => {
-  if (!backendReady.value) {
-    toast.info('未配置后端服务器，创意工坊不可用');
-    return;
-  }
-  router.push('/workshop');
-  close();
-};
-
-const openAccountCenter = (close: () => void) => {
-  if (!backendReady.value) {
-    toast.info('未配置后端服务器，账号中心不可用');
-    return;
-  }
-  router.push('/account');
-  close();
-};
-
-const openBackendAdmin = (close: () => void) => {
-  if (!backendReady.value) {
-    toast.info('未配置后端服务器，后端管理不可用');
-    return;
-  }
-
-  // 检查是否是管理员
-  const isAdmin = localStorage.getItem('is_admin') === 'true';
-  if (!isAdmin) {
-    toast.error('需要管理员权限才能访问后端管理');
-    return;
-  }
-
-  router.push('/backend-admin');
-  close();
 };
 
 const handleCreationComplete = async (rawPayload: CharacterCreationPayload) => {

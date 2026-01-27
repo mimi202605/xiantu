@@ -230,115 +230,7 @@
             </div>
           </div>
 
-          <!-- 2. 修炼体系 -->
-          <div v-else-if="activeTab === 'cultivation'" class="tab-pane">
-            <div class="pane-grid">
-               <!-- 功法 -->
-               <section class="info-card glass-panel">
-                  <div class="card-header">
-                    <BookOpen :size="20" class="header-icon gold" />
-                    <h3>{{ t('主修功法') }}</h3>
-                  </div>
-
-                  <div v-if="!fullCultivationTechnique" class="empty-placeholder">
-                    <BookOpen :size="40" opacity="0.5"/>
-                    <p>{{ t('尚未修习任何功法') }}</p>
-                  </div>
-
-                  <div v-else class="technique-container">
-                    <div class="technique-master-card clickable" @click="toggleTechniqueDetails" :class="getItemQualityClass(fullCultivationTechnique)">
-                       <div class="tm-header">
-                         <span class="tm-name">{{ fullCultivationTechnique?.名称 }}</span>
-                         <div class="tm-badges">
-                            <span class="badge">{{ t(fullCultivationTechnique?.品质?.quality || '未知') }}</span>
-                            <ChevronDown :size="16" :class="{ 'rotate-180': showTechniqueDetails }" class="transition-icon"/>
-                         </div>
-                       </div>
-                       <!-- 进度条 -->
-                       <div class="tm-progress">
-                          <span>{{ t('领悟重数') }}</span>
-                          <div class="bar-bg"><div class="bar-fg" :style="{width: (fullCultivationTechnique.修炼进度 || 0) + '%'}"></div></div>
-                          <span>{{ fullCultivationTechnique.修炼进度 || 0 }}%</span>
-                       </div>
-                    </div>
-
-                    <transition name="expand">
-                      <div v-show="showTechniqueDetails" class="technique-detail-panel">
-                        <div class="detail-section">
-                          <div class="section-label">{{ t('功法描述') }}</div>
-                          <p class="desc-text">{{ t(fullCultivationTechnique?.描述 || '此功法奥妙无穷。') }}</p>
-                        </div>
-
-                        <div v-if="hasTechniqueEffects" class="detail-section">
-                          <div class="section-label">{{ t('功法效果') }}</div>
-                          <div class="effects-box">
-                            <div class="effect-row" v-if="fullCultivationTechnique.功法效果?.修炼速度加成">
-                              <Rocket :size="16" class="effect-icon" />
-                              <span class="effect-label">{{ t('修炼速度') }}</span>
-                              <span class="effect-value">+{{ (fullCultivationTechnique.功法效果.修炼速度加成 * 100).toFixed(0) }}%</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </transition>
-                  </div>
-               </section>
-
-               <!-- 技能列表 -->
-               <section class="info-card glass-panel">
-                  <div class="card-header">
-                    <Zap :size="20" class="header-icon blue"/>
-                    <h3>{{ t('神通技能') }} <span class="count-badge">{{ totalSkillsCount }}</span></h3>
-                  </div>
-
-                  <div class="skills-grid-wrapper custom-scrollbar">
-                     <div v-for="skill in allLearnedSkills" :key="skill.name"
-                          class="skill-card clickable" @click="showSkillDetails(skill)">
-                        <div class="skill-icon-placeholder">{{ skill.name[0] }}</div>
-                        <div class="skill-info">
-                           <div class="skill-name">{{ skill.name }}</div>
-                           <div class="skill-meta">{{ skill.source }}</div>
-                        </div>
-                        <div class="skill-prof">
-                           {{ skill.proficiency }}%
-                        </div>
-                     </div>
-                     <div v-if="allLearnedSkills.length === 0" class="empty-placeholder text-sm">
-                        {{ t('尚未领悟神通') }}
-                     </div>
-                  </div>
-               </section>
-
-               <!-- 三千大道 -->
-               <section class="info-card glass-panel full-width">
-                  <div class="card-header toggle-header" @click="toggleDaoDetails">
-                     <div class="flex-row">
-                        <Mountain :size="20" class="header-icon ink" />
-                        <h3>{{ t('三千大道') }}</h3>
-                     </div>
-                     <div class="header-actions">
-                        <span class="text-mini">{{ t('已感悟') }} {{ unlockedDaoList.length }}</span>
-                        <ChevronDown :size="16" :class="{ 'rotate-180': showDaoDetails }" />
-                     </div>
-                  </div>
-
-                  <div class="dao-grid" v-show="showDaoDetails || unlockedDaoList.length > 0">
-                     <div v-for="dao in (showDaoDetails ? unlockedDaoList : unlockedDaoList.slice(0, 4))"
-                          :key="dao.道名" class="dao-pill clickable" @click="showDaoInfo(dao.道名)">
-                        <span class="dao-char">{{ dao.道名[0] }}</span>
-                        <div class="dao-content">
-                           <div class="dao-name">{{ dao.道名 }}</div>
-                           <div class="dao-progress-mini">
-                              <div class="fill" :style="{width: getDaoProgress(dao.道名) + '%'}"></div>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </section>
-            </div>
-          </div>
-
-          <!-- 3. 社交 & 4. 物品 & 5. 身体 保持相同的卡片结构风格 -->
+          <!-- 社交 & 物品 & 身体 -->
            <div v-else-if="activeTab === 'social'" class="tab-pane">
              <div class="pane-grid">
                 <section class="info-card glass-panel">
@@ -377,15 +269,6 @@
                   </div>
                 </section>
 
-                <section class="info-card glass-panel" v-if="playerSectInfo">
-                   <div class="card-header"><Mountain :size="20" class="header-icon"/> <h3>{{ playerSectInfo.宗门名称 }}</h3></div>
-                   <div class="sect-grid">
-                     <div class="kv"><span class="k">{{ t('职位') }}</span><span class="v">{{ playerSectInfo.职位 }}</span></div>
-                     <div class="kv"><span class="k">{{ t('关系') }}</span><span class="v">{{ playerSectInfo.关系 }}</span></div>
-                     <div class="kv"><span class="k">{{ t('贡献') }}</span><span class="v">{{ playerSectInfo.贡献 }}</span></div>
-                     <div class="kv"><span class="k">{{ t('声望') }}</span><span class="v highlight">{{ playerSectInfo.声望 }}</span></div>
-                   </div>
-                </section>
              </div>
            </div>
 
@@ -442,7 +325,7 @@
 
     <!-- 弹窗组件复用 (样式优化) -->
     <Transition name="modal-fade">
-        <div v-if="showSkillModal || showDaoModal || showSpiritRootModal || showOriginModal" class="modal-overlay" @click="closeModals">
+        <div v-if="showSpiritRootModal || showOriginModal" class="modal-overlay" @click="closeModals">
            <!-- 具体的弹窗内容，保持逻辑不变，只应用新样式类 -->
            <div class="modal-card glass-panel" @click.stop>
                <!-- ... 内容插槽, 这里使用简化的示例，实际项目中保留原v-if逻辑 ... -->
@@ -469,30 +352,6 @@
                   <p class="modal-subtitle">{{ t('出身') }}</p>
                   <div class="d-desc-box">{{ getOriginModalContent()?.description }}</div>
                 </div>
-
-                <!-- 技能详情 -->
-               <div v-if="showSkillModal" class="modal-inner">
-                 <h2 class="modal-title">{{ getSkillModalContent()?.name }}</h2>
-                  <p class="modal-subtitle">{{ getSkillModalContent()?.type }} · {{ getSkillModalContent()?.source }}</p>
-                 <div class="d-desc-box">{{ getSkillModalContent()?.description }}</div>
-                 <div class="skill-stat-row">
-                    <span>{{ t('熟练度') }}: {{ getSkillModalContent()?.proficiency }}</span>
-                 </div>
-              </div>
-
-              <!-- 大道详情 -->
-               <div v-if="showDaoModal" class="modal-inner">
-                  <h2 class="modal-title">{{ getDaoModalContent()?.name }}</h2>
-                  <div class="progress-big">
-                     <div class="fill" :style="{width: getDaoModalContent()?.progressPercent + '%'}"></div>
-                     <span class="text">{{ getDaoModalContent()?.progressPercent }}%</span>
-                  </div>
-                  <div class="detail-grid">
-                    <div class="d-item"><label>{{ t('阶段') }}</label> <span>{{ getDaoModalContent()?.stage }}</span></div>
-                    <div class="d-item"><label>{{ t('经验') }}</label> <span>{{ getDaoModalContent()?.exp }}</span></div>
-                  </div>
-                  <p>{{ getDaoModalContent()?.description }}</p>
-               </div>
 
            </div>
         </div>
@@ -601,7 +460,6 @@ const selectedOrigin = ref<Origin | string | Record<string, unknown> | null>(nul
 const tabs = computed(() => {
   const base = [
     { id: 'character', label: '角色', icon: Users },
-    { id: 'cultivation', label: '修炼', icon: BookOpen },
     { id: 'social', label: '社交', icon: Handshake },
     { id: 'inventory', label: '物品', icon: Backpack },
   ];

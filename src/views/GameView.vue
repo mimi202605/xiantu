@@ -143,7 +143,7 @@ import { useCharacterStore } from '@/stores/characterStore';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useRouter, useRoute } from 'vue-router';
-import { X, Package, User, Brain, Users, BookOpen, Zap, Settings, Save, Map, Scroll, Bell, Home, Box, Users2, Database, RefreshCw, FlaskConical, Trash2, BarChart3, Coins, FileText, Plug, Globe } from 'lucide-vue-next';
+import { X, Package, User, Brain, Users, Settings, Save, Bell, Box, Users2, Database, RefreshCw, FlaskConical, Trash2, BarChart3, FileText, Plug } from 'lucide-vue-next';
 import { panelBus, type PanelAction } from '@/utils/panelBus';
 // [MING] Removed: import { detectSectMigration } from '@/utils/sectMigration';
 const detectSectMigration = (_saveData: any): { needed: boolean; reasons: string[]; fromVersion: string; toVersion: string } => ({
@@ -223,9 +223,8 @@ const maybePromptSectMigration = () => {
 // 面板状态管理
 const panelRoutes = new Set([
   'Inventory', 'CharacterDetails', 'Memory', 'Relationships',
-  'Cultivation', 'Techniques', 'ThousandDao', 'Settings', 'Save', 'WorldMap',
-  'Events', 'Sect', 'SectOverview', 'SectMembers', 'SectLibrary', 'SectContribution', 'GameVariables',
-  'Prompts', 'APIManagement', 'Travel'
+  'Settings', 'Save', 'Events', 'GameVariables',
+  'Prompts', 'APIManagement'
 ]);
 
 // 不需要角色数据就能访问的面板（设置类）
@@ -235,8 +234,7 @@ const noDataRequiredRoutes = new Set([
 
 // 右侧相关面板（应该影响右侧收缩按钮）
 const rightPanelRoutes = new Set([
-  'Memory', 'Relationships', 'Cultivation', 'Techniques', 'ThousandDao', 'Settings', 'Save',
-  'Sect', 'SectOverview', 'SectMembers', 'SectLibrary', 'SectContribution'
+  'Memory', 'Relationships', 'Settings', 'Save'
 ]);
 
 type IconComponent = typeof Package;
@@ -246,22 +244,12 @@ const panelTitles: Record<string, { title: string; icon: IconComponent }> = {
   CharacterDetails: { title: '人物详情', icon: User },
   Memory: { title: '记忆中心', icon: Brain },
   Relationships: { title: '人物关系', icon: Users },
-  Cultivation: { title: '修炼系统', icon: BookOpen },
-  Techniques: { title: '修炼功法', icon: Zap },
-  ThousandDao: { title: '三千大道', icon: Scroll },
   Settings: { title: '系统设置', icon: Settings },
   Save: { title: '保存游戏', icon: Save },
-  WorldMap: { title: '世界地图', icon: Map },
   Events: { title: '世界事件', icon: Bell },
-  Sect: { title: '宗门势力', icon: Home },
-  SectOverview: { title: '宗门概览', icon: Home },
-  SectMembers: { title: '宗门成员', icon: Users },
-  SectLibrary: { title: '宗门藏经', icon: BookOpen },
-  SectContribution: { title: '贡献兑换', icon: Coins },
   GameVariables: { title: '游戏变量', icon: Database },
   Prompts: { title: '提示词管理', icon: FileText },
-  APIManagement: { title: 'API管理', icon: Plug },
-  Travel: { title: '联机穿越', icon: Globe }
+  APIManagement: { title: 'API管理', icon: Plug }
 };
 
 const isPanelOpen = computed(() => {
@@ -299,9 +287,6 @@ const panelActionMap: Record<string, Array<{ key: string; title: string; icon: I
   Save: [
     { key: 'refresh', title: '刷新', icon: RefreshCw, action: 'refresh' },
     { key: 'save', title: '快速存档', icon: Save, action: 'save' },
-  ],
-  ThousandDao: [
-    { key: 'refresh', title: '刷新', icon: RefreshCw, action: 'refresh' },
   ],
   GameVariables: [
     { key: 'refresh', title: '刷新数据', icon: RefreshCw, action: 'refresh' },
