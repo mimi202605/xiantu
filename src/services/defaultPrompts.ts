@@ -6,6 +6,8 @@
  * 2. 总结请求提示词 - 记忆总结时使用
  * 3. 生成类提示词 - 世界/NPC/任务等生成
  * 4. 角色初始化提示词 - 创建角色时使用
+ *
+ * [MING] 本项目使用通用版 (ming) 提示词，不绑定修仙。原有定义保留于 definitions/ 供参考。
  */
 import { getSaveDataStructureForEnv } from '@/utils/prompts/definitions/dataDefinitions';
 import { getCharacterInitializationPromptForEnv } from '@/utils/prompts/tasks/characterInitializationPrompts';
@@ -21,9 +23,21 @@ const EnhancedWorldPromptBuilder = {
   buildPrompt: (_config?: any) => '请生成一个完整的世界设定，包括大陆、势力和地点。'
 };
 import { isTavernEnv } from '@/utils/tavern';
-// 核心规则
+
+// ---------- 原有定义（definitions/）保留，以下为 ming 通用版 ----------
+import { getSaveDataStructureMingForEnv } from '@/utils/prompts/definitions/ming/dataDefinitionsMing';
+import { getCharacterInitializationPromptMingForEnv } from '@/utils/prompts/tasks/characterInitializationPromptsMing';
+import * as CoreMing from '@/utils/prompts/definitions/ming/coreRulesMing';
+import * as BusinessMing from '@/utils/prompts/definitions/ming/businessRulesMing';
+import * as TextMing from '@/utils/prompts/definitions/ming/textFormatsMing';
+import * as WorldMing from '@/utils/prompts/definitions/ming/worldStandardsMing';
+import { ACTION_OPTIONS_RULES_MING } from '@/utils/prompts/definitions/ming/actionOptionsMing';
+import { EVENT_SYSTEM_RULES_MING } from '@/utils/prompts/definitions/ming/eventSystemRulesMing';
+import * as InlineMing from '@/utils/prompts/definitions/ming/inlinePromptsMing';
+
+// 核心规则（原有）
 import { JSON_OUTPUT_RULES, RESPONSE_FORMAT_RULES, DATA_STRUCTURE_STRICTNESS, NARRATIVE_PURITY_RULES } from '@/utils/prompts/definitions/coreRules';
-// 业务规则
+// 业务规则（原有）
 import {
   REALM_SYSTEM_RULES,
   THREE_THOUSAND_DAOS_RULES,
@@ -51,12 +65,15 @@ import {
   SECT_DYNAMIC_GENERATION_RULES,
   COMBAT_TURN_BASED_RULES
 } from '@/utils/prompts/definitions/businessRules';
-// 文本格式
+// 文本格式（原有）
 import { TEXT_FORMAT_MARKERS, DICE_ROLLING_RULES, COMBAT_DAMAGE_RULES, NAMING_CONVENTIONS } from '@/utils/prompts/definitions/textFormats';
-// 世界标准
+// 世界标准（原有）
 import { REALM_ATTRIBUTE_STANDARDS, QUALITY_SYSTEM, REPUTATION_GUIDE } from '@/utils/prompts/definitions/worldStandards';
 import { ACTION_OPTIONS_RULES } from '@/utils/prompts/definitions/actionOptions';
 import { EVENT_SYSTEM_RULES } from '@/utils/prompts/definitions/eventSystemRules';
+
+/** [MING] 使用通用版提示词，不绑定修仙。原有 definitions/ 未删除，仅此处切换选用。 */
+const USE_MING_PROMPTS = true;
 
 export interface PromptDefinition {
   name: string;
@@ -100,46 +117,65 @@ export const PROMPT_CATEGORIES = {
 };
 
 // 合并核心输出规则
-const CORE_OUTPUT_RULES = [JSON_OUTPUT_RULES, RESPONSE_FORMAT_RULES, DATA_STRUCTURE_STRICTNESS, NARRATIVE_PURITY_RULES].join('\n\n');
+const CORE_OUTPUT_RULES = USE_MING_PROMPTS
+  ? [CoreMing.JSON_OUTPUT_RULES, CoreMing.RESPONSE_FORMAT_RULES, CoreMing.DATA_STRUCTURE_STRICTNESS, CoreMing.NARRATIVE_PURITY_RULES].join('\n\n')
+  : [JSON_OUTPUT_RULES, RESPONSE_FORMAT_RULES, DATA_STRUCTURE_STRICTNESS, NARRATIVE_PURITY_RULES].join('\n\n');
 
 // 合并业务规则（精简版，核心规则优先）
-const BUSINESS_RULES = [
-  RATIONALITY_AUDIT_RULES,
-  ANTI_SYCOPHANCY_RULES,
-  PROFESSION_MASTERY_RULES,
-  DUAL_REALM_NARRATIVE_RULES,
-  DIFFICULTY_ENHANCEMENT_RULES,
-  REALM_SYSTEM_RULES,
-  NPC_RULES,
-  COMMAND_PATH_CONSTRUCTION_RULES,
-  TECHNIQUE_SYSTEM_RULES,
-  COMBAT_ALCHEMY_RISK_RULES,
-  COMBAT_TURN_BASED_RULES,
-  PLAYER_AUTONOMY_RULES,
-  NSFW_CONTENT_RULES
-].join('\n\n');
+const BUSINESS_RULES = USE_MING_PROMPTS
+  ? [
+      BusinessMing.RATIONALITY_AUDIT_RULES,
+      BusinessMing.ANTI_SYCOPHANCY_RULES,
+      BusinessMing.DIFFICULTY_ENHANCEMENT_RULES,
+      BusinessMing.NPC_RULES,
+      BusinessMing.COMMAND_PATH_CONSTRUCTION_RULES,
+      BusinessMing.CONFLICT_TURN_RULES,
+      BusinessMing.PLAYER_AUTONOMY_RULES,
+      BusinessMing.NSFW_CONTENT_RULES
+    ].join('\n\n')
+  : [
+      RATIONALITY_AUDIT_RULES,
+      ANTI_SYCOPHANCY_RULES,
+      PROFESSION_MASTERY_RULES,
+      DUAL_REALM_NARRATIVE_RULES,
+      DIFFICULTY_ENHANCEMENT_RULES,
+      REALM_SYSTEM_RULES,
+      NPC_RULES,
+      COMMAND_PATH_CONSTRUCTION_RULES,
+      TECHNIQUE_SYSTEM_RULES,
+      COMBAT_ALCHEMY_RISK_RULES,
+      COMBAT_TURN_BASED_RULES,
+      PLAYER_AUTONOMY_RULES,
+      NSFW_CONTENT_RULES
+    ].join('\n\n');
 
 // 扩展业务规则（可选，用户可自定义开启）
-const EXTENDED_BUSINESS_RULES = [
-  THREE_THOUSAND_DAOS_RULES,
-  GRAND_CONCEPT_CONSTRAINTS,
-  SKILL_AND_SPELL_USAGE_RULES,
-  CULTIVATION_DETAIL_RULES,
-  STATUS_EFFECT_RULES,
-  LOCATION_UPDATE_RULES,
-  SECT_SYSTEM_RULES,
-  CULTIVATION_PRACTICE_RULES,
-  DAO_COMPREHENSION_RULES,
-  CULTIVATION_SPEED_RULES,
-  SIX_SI_ACQUISITION_RULES,
-  SECT_DYNAMIC_GENERATION_RULES
-].join('\n\n');
+const EXTENDED_BUSINESS_RULES = USE_MING_PROMPTS
+  ? [BusinessMing.STATUS_EFFECT_RULES, BusinessMing.LOCATION_UPDATE_RULES].join('\n\n')
+  : [
+      THREE_THOUSAND_DAOS_RULES,
+      GRAND_CONCEPT_CONSTRAINTS,
+      SKILL_AND_SPELL_USAGE_RULES,
+      CULTIVATION_DETAIL_RULES,
+      STATUS_EFFECT_RULES,
+      LOCATION_UPDATE_RULES,
+      SECT_SYSTEM_RULES,
+      CULTIVATION_PRACTICE_RULES,
+      DAO_COMPREHENSION_RULES,
+      CULTIVATION_SPEED_RULES,
+      SIX_SI_ACQUISITION_RULES,
+      SECT_DYNAMIC_GENERATION_RULES
+    ].join('\n\n');
 
 // 合并文本格式规范
-const TEXT_FORMAT_RULES = [TEXT_FORMAT_MARKERS, DICE_ROLLING_RULES, COMBAT_DAMAGE_RULES, NAMING_CONVENTIONS].join('\n\n');
+const TEXT_FORMAT_RULES = USE_MING_PROMPTS
+  ? [TextMing.TEXT_FORMAT_MARKERS, TextMing.DICE_ROLLING_RULES, TextMing.CONSEQUENCE_RULES, TextMing.NAMING_CONVENTIONS].join('\n\n')
+  : [TEXT_FORMAT_MARKERS, DICE_ROLLING_RULES, COMBAT_DAMAGE_RULES, NAMING_CONVENTIONS].join('\n\n');
 
 // 合并世界观标准
-const WORLD_STANDARDS = [REALM_ATTRIBUTE_STANDARDS, QUALITY_SYSTEM, REPUTATION_GUIDE].join('\n\n');
+const WORLD_STANDARDS = USE_MING_PROMPTS
+  ? [WorldMing.QUALITY_SYSTEM, WorldMing.REPUTATION_GUIDE].join('\n\n')
+  : [REALM_ATTRIBUTE_STANDARDS, QUALITY_SYSTEM, REPUTATION_GUIDE].join('\n\n');
 
 export function getSystemPrompts(): Record<string, PromptDefinition> {
   const tavernEnv = isTavernEnv();
@@ -171,7 +207,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     dataDefinitions: {
       name: '3. 数据结构',
-      content: getSaveDataStructureForEnv(tavernEnv),
+      content: USE_MING_PROMPTS ? getSaveDataStructureMingForEnv(tavernEnv) : getSaveDataStructureForEnv(tavernEnv),
       category: 'coreRequest',
       description: '存档结构定义',
       order: 3,
@@ -358,7 +394,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     actionOptions: {
       name: '7. 行动选项',
-      content: ACTION_OPTIONS_RULES,
+      content: USE_MING_PROMPTS ? ACTION_OPTIONS_RULES_MING : ACTION_OPTIONS_RULES,
       category: 'coreRequest',
       description: '生成玩家选项',
       order: 7,
@@ -366,7 +402,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     eventSystemRules: {
       name: '8. 世界事件',
-      content: EVENT_SYSTEM_RULES,
+      content: USE_MING_PROMPTS ? EVENT_SYSTEM_RULES_MING : EVENT_SYSTEM_RULES,
       category: 'coreRequest',
       description: '世界事件演变与影响',
       order: 8,
@@ -375,7 +411,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     splitGenerationStep1: {
       name: '9. 分步正文',
-      content: `# 分步生成 1/2：仅正文
+      content: USE_MING_PROMPTS ? InlineMing.SPLIT_GENERATION_STEP1_MING : `# 分步生成 1/2：仅正文
 
 ## 🔴 输出格式
 {"text":"500-1500字叙事正文"}
@@ -419,7 +455,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     splitGenerationStep2: {
       name: '10. 分步指令',
-      content: `# 分步生成 2/2：仅指令
+      content: USE_MING_PROMPTS ? InlineMing.SPLIT_GENERATION_STEP2_MING : `# 分步生成 2/2：仅指令
 
 ## 🔴 输出格式（必须严格遵守）
 {"mid_term_memory":"50-100字摘要","tavern_commands":[{"action":"add","key":"元数据.时间.分钟","value":30}],"action_options":["选项1","选项2","选项3","选项4","选项5"]}
@@ -455,7 +491,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     splitInitStep1: {
       name: '11. 开局正文',
-      content: `# 开局生成 1/2：仅开局叙事
+      content: USE_MING_PROMPTS ? InlineMing.SPLIT_INIT_STEP1_MING : `# 开局生成 1/2：仅开局叙事
 
 ## 🔴 输出格式（必须严格遵守）
 {"text":"1200-2500字开局叙事，第三人称，修仙正剧风"}
@@ -498,7 +534,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     splitInitStep2: {
       name: '12. 开局指令',
-      content: `# 开局生成 2/2：初始化数据
+      content: USE_MING_PROMPTS ? InlineMing.SPLIT_INIT_STEP2_MING : `# 开局生成 2/2：初始化数据
 
 ## 🔴 输出格式（必须严格遵守）
 {"mid_term_memory":"50-100字摘要","tavern_commands":[...],"action_options":["选项1","选项2","选项3","选项4","选项5"]}
@@ -535,7 +571,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     // ==================== 总结请求提示词 ====================
     memorySummary: {
       name: '记忆总结',
-      content: `记忆总结助手。第一人称"我"，250-400字，保留人名/地名/事件/物品/境界，忽略对话/情绪/细节。
+      content: USE_MING_PROMPTS ? InlineMing.MEMORY_SUMMARY_MING : `记忆总结助手。第一人称"我"，250-400字，保留人名/地名/事件/物品/境界，忽略对话/情绪/细节。
 输出：{"text": "总结内容"}`,
       category: 'summary',
       description: '中期→长期记忆',
@@ -544,7 +580,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     npcMemorySummary: {
       name: 'NPC记忆总结',
-      content: `NPC记忆总结。第三人称，100-200字，保留关键事件和情感变化。
+      content: USE_MING_PROMPTS ? InlineMing.NPC_MEMORY_SUMMARY_MING : `NPC记忆总结。第三人称，100-200字，保留关键事件和情感变化。
 输出：{"text": "总结内容"}`,
       category: 'summary',
       description: 'NPC记忆总结',
@@ -555,7 +591,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     // ==================== 动态生成提示词 ====================
     npcGeneration: {
       name: 'NPC生成',
-      content: `生成修仙世界NPC。
+      content: USE_MING_PROMPTS ? InlineMing.NPC_GENERATION_MING : `生成修仙世界NPC。
 核心：世界不以玩家为中心，NPC有独立生活；严禁参考玩家境界生成"镜像NPC"或"量身对手"。
 要求：根据场景合理分布境界、姓名性格多样化、身份决定行为。
 输出JSON：{姓名,性别,年龄,境界:{名称,阶段},性格,外貌,背景,说话风格,当前行为,个人目标,初始好感度:50}`,
@@ -566,7 +602,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     eventGeneration: {
       name: '事件生成',
-      content: `生成修仙世界"刚刚发生"的世界事件（用于影响玩家与世界演变）。要求：
+      content: USE_MING_PROMPTS ? InlineMing.EVENT_GENERATION_MING : `生成修仙世界"刚刚发生"的世界事件（用于影响玩家与世界演变）。要求：
 - 必须让玩家受到影响（危险/资源/关系/位置/修炼环境/势力格局至少一项）
 - 事件可以是宗门大战、世界变化、异宝降世、秘境现世、好友出事/突破等
 - 涉及好友时，需参考关系/好感度与境界，不能无端超规格
@@ -595,7 +631,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     itemGeneration: {
       name: '物品生成',
-      content: `生成修仙世界物品。品质：凡(1-3)/黄(4-5)/玄(6-7)/地(8-9)/天(10)。
+      content: USE_MING_PROMPTS ? InlineMing.ITEM_GENERATION_MING : `生成修仙世界物品。品质：凡(1-3)/黄(4-5)/玄(6-7)/地(8-9)/天(10)。
 输出JSON：{物品ID,名称,类型,品质:{quality,grade},描述,数量,效果}`,
       category: 'generation',
       description: '动态生成物品',
@@ -619,7 +655,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     characterInit: {
       name: '角色初始化',
-      content: getCharacterInitializationPromptForEnv(tavernEnv),
+      content: USE_MING_PROMPTS ? getCharacterInitializationPromptMingForEnv(tavernEnv) : getCharacterInitializationPromptForEnv(tavernEnv),
       category: 'initialization',
       description: '生成角色和开场',
       order: 2,
@@ -627,7 +663,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     newbieGuide: {
       name: '新手引导',
-      content: `新手引导（前3回合）。原则：自然融入叙事，不打破沉浸感，通过NPC对话传递。
+      content: USE_MING_PROMPTS ? InlineMing.NEWBIE_GUIDE_MING : `新手引导（前3回合）。原则：自然融入叙事，不打破沉浸感，通过NPC对话传递。
 内容：行动方式/查看状态/物品使用/交流/探索。`,
       category: 'initialization',
       description: '自然新手引导',
@@ -638,7 +674,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     // ==================== 文本优化提示词 ====================
     textOptimization: {
       name: '文本优化',
-      content: `# 文本优化助手
+      content: USE_MING_PROMPTS ? InlineMing.TEXT_OPTIMIZATION_MING : `# 文本优化助手
 
 你是一个专业的中文文学编辑，负责优化修仙小说文本。
 
