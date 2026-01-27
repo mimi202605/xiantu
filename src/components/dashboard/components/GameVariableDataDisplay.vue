@@ -33,6 +33,7 @@ import { AlertCircle, Loader2 } from 'lucide-vue-next'
 import CustomOptionsSection from './CustomOptionsSection.vue'
 import GameVariableCharacterSection from './GameVariableCharacterSection.vue'
 import GameVariableSaveDataSection from './GameVariableSaveDataSection.vue'
+import GameVariableGameIndexSection from './GameVariableGameIndexSection.vue'
 import GameVariableWorldInfoSection from './GameVariableWorldInfoSection.vue'
 import GameVariableMemorySection from './GameVariableMemorySection.vue'
 import GameVariableRawDataSection from './GameVariableRawDataSection.vue'
@@ -50,6 +51,7 @@ interface Props {
   saveData: Record<string, GameVariableValue>
   worldInfo: Record<string, GameVariableValue>
   memoryData: Record<string, GameVariableValue>
+  gameIndexData?: { gameEntityIndex?: unknown; semanticMemory?: unknown } | null
   allGameData: Record<string, GameVariableValue>
   filteredCoreDataViews: Record<string, GameVariableValue>
   filteredCustomOptions: Record<string, GameVariableValue>
@@ -84,6 +86,8 @@ const getCurrentDataComponent = () => {
       return GameVariableCharacterSection
     case 'saveData':
       return GameVariableSaveDataSection
+    case 'gameIndex':
+      return GameVariableGameIndexSection
     case 'worldInfo':
       return GameVariableWorldInfoSection
     case 'memory':
@@ -125,6 +129,10 @@ const getCurrentDataProps = (): any => {
       return {
         saveData: props.saveData,
         readOnly: props.readOnly,
+      }
+    case 'gameIndex':
+      return {
+        gameIndexData: props.gameIndexData ?? null,
       }
     case 'worldInfo':
       return {

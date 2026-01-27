@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { MessageSquare, Globe, Users, Archive, Book, Brain, Code } from 'lucide-vue-next'
+import { MessageSquare, Globe, Users, Archive, Book, Brain, Code, Network } from 'lucide-vue-next'
 
 interface DataType {
   key: string
@@ -45,7 +45,8 @@ const getIconComponent = (iconName: string) => {
     Archive,
     Book,
     Brain,
-    Code
+    Code,
+    Network
   }
   return iconMap[iconName] || Code
 }

@@ -28,6 +28,7 @@
       :saveData="saveData"
       :worldInfo="worldInfo"
       :memoryData="memoryData"
+      :gameIndexData="gameIndexData"
       :allGameData="allGameData"
       :filteredCoreDataViews="filteredCoreDataViews"
       :filteredCustomOptions="filteredCustomOptions"
@@ -177,6 +178,12 @@ const saveData = computed(() => {
 })
 const worldInfo = computed(() => gameStateStore.worldInfo || {})
 const memoryData = computed(() => gameStateStore.memory || {})
+
+const gameIndexData = computed(() => ({
+  gameEntityIndex: gameStateStore.gameEntityIndex ?? { entities: [], relationships: [] },
+  semanticMemory: gameStateStore.semanticMemory ?? { triples: [] },
+}))
+
 const allGameData = computed(() => ({
   ...coreDataViews.value,
   ...customOptions.value
@@ -212,9 +219,19 @@ const getDataCount = (type: string) => {
     case 'saveData': return Object.keys(saveData.value).length
     case 'worldInfo': return getWorldItemCount()
     case 'memory': return getMemoryCount()
+    case 'gameIndex': return getGameIndexCount()
     case 'raw': return Object.keys(allGameData.value).length
     default: return 0
   }
+}
+
+const getGameIndexCount = () => {
+  const idx = gameIndexData.value.gameEntityIndex
+  const sm = gameIndexData.value.semanticMemory
+  const e = Array.isArray(idx?.entities) ? idx.entities.length : 0
+  const r = Array.isArray(idx?.relationships) ? idx.relationships.length : 0
+  const t = Array.isArray(sm?.triples) ? sm.triples.length : 0
+  return e + r + t
 }
 
 const getMemoryCount = () => {
@@ -234,6 +251,7 @@ const getWorldItemCount = () => {
 // 数据类型配置 - 将存档数据放在第一个
 const dataTypes = [
   { key: 'saveData',  label: t('存档数据(短路径)'), icon: 'Archive' },
+  { key: 'gameIndex', label: t('实体与语义'), icon: 'Network' },
   { key: 'core',      label: t('核心数据'), icon: 'Database' },
   { key: 'character', label: t('角色数据'), icon: 'Users' },
   { key: 'worldInfo', label: t('世界信息'), icon: 'Book' },
@@ -389,6 +407,8 @@ const saveVariable = async (item: EditingItem) => {
         { from: '系统.缓存.掌握技能', to: 'masteredSkills' },
         { from: '系统.历史.叙事', to: 'narrativeHistory' },
         { from: '系统.联机', to: 'onlineState' },
+        { from: '系统.扩展.游戏实体索引', to: 'gameEntityIndex' },
+        { from: '系统.扩展.语义记忆', to: 'semanticMemory' },
       ]
 
       for (const { from, to } of mappings) {

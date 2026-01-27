@@ -2,9 +2,10 @@
 
 ## [MING] 通用版 0.2.0 (2026-01-27)
 
-MING 通用版更新：游戏状态索引与语义记忆、NPC 境界校验修复。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+MING 通用版更新：游戏状态索引与语义记忆、NPC 境界校验修复、游戏变量展示。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 - **游戏状态索引与语义记忆**：LLM 在分步第 2 步输出 `game_entities`、`semantic_memory`，落盘到 `系统.扩展`，每回合按相关度/关系/时间·重要性检索后注入提示词，减少 token、增强长期一致性。
+- **游戏变量展示**：新增「实体与语义」Tab，展示 `游戏实体索引`（实体、关系）与 `语义记忆`（三元组），支持复制与编辑回写。
 - **修复**：MING 下 NPC 不再因缺少「境界」被 `commandValueValidator` 拒绝。
 
 ---
