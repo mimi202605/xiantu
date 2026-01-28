@@ -4,6 +4,26 @@
 
 ---
 
+## [0.2.2] - 2026-01-28
+
+### ✨ 游戏实体关系图（游戏变量·实体与语义）
+
+在「实体与语义」视图中新增**关系图**，基于 Cytoscape 可视化 `游戏实体索引` 的实体与关系。
+
+- **关系图**：在游戏变量 → 实体与语义中增加「关系图」区块，以节点（实体）与有向边（关系）展示；支持缩放、拖拽节点（仅视图，不写回）、恢复默认布局、节点/边标签显隐切换。
+- **依赖**：`cytoscape`；节点按 type 着色（npc/location/item/event/faction/other）。
+- **主角节点**：`id === 'player'` 的节点显示 角色.身份.名字，缺省为「玩家」。
+- **悬停描述**：悬停 NPC 节点时显示 人物关系（社交.关系）中该角色的 **出生**（string 或 `{描述,名称}`）；工具提示紧贴节点右侧（按 pan/zoom 将节点模型坐标换算为视口坐标后偏移）。
+
+#### 新增与修改
+
+- `GameEntityGraph.vue`：关系图组件；`GameVariableGameIndexSection` 引入关系图并传入 `entities`、`relationships`、`npcProfiles`（社交.关系）、`playerName`（角色.身份.名字）。
+- `GameVariablePanel`：`socialRelations`（`gameStateStore.relationships`）传入 DataDisplay；`GameVariableDataDisplay`、`GameVariableGameIndexSection` 增加 `socialRelations`、`playerName` 传递。
+- `package.json`：`cytoscape`。
+- i18n：`关系图`、`显示标签`、`恢复默认`、`暂无实体或关系`。
+
+---
+
 ## [0.2.1] - 2026-01-28
 
 ### 变更：语义记忆三元组不再设总量上限

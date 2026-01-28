@@ -6,6 +6,19 @@
     </div>
 
     <div class="game-index-content">
+      <!-- 关系图 -->
+      <div class="subsection">
+        <h4 class="subsection-title">{{ t('关系图') }}</h4>
+        <GameEntityGraph
+          v-if="entities.length > 0 || relationships.length > 0"
+          :entities="entities"
+          :relationships="relationships"
+          :npcProfiles="socialRelations"
+          :playerName="playerName"
+        />
+        <div v-else class="empty-hint">{{ t('暂无实体或关系') }}</div>
+      </div>
+
       <!-- 游戏实体索引 -->
       <div class="subsection">
         <h4 class="subsection-title">游戏实体索引 (系统.扩展.游戏实体索引)</h4>
@@ -57,6 +70,7 @@
 import { computed } from 'vue'
 import { toast } from '@/utils/toast'
 import { useI18n } from '@/i18n'
+import GameEntityGraph from './GameEntityGraph.vue'
 
 const { t } = useI18n()
 
@@ -65,10 +79,14 @@ interface Props {
     gameEntityIndex?: { entities?: unknown[]; relationships?: unknown[] } | null
     semanticMemory?: { triples?: unknown[] } | null
   } | null
+  socialRelations?: Record<string, { 出生?: unknown } | unknown>
+  playerName?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  gameIndexData: () => null
+  gameIndexData: () => null,
+  socialRelations: () => ({}),
+  playerName: ''
 })
 
 const entities = computed(() => {

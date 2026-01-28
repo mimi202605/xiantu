@@ -52,6 +52,7 @@ interface Props {
   worldInfo: Record<string, GameVariableValue>
   memoryData: Record<string, GameVariableValue>
   gameIndexData?: { gameEntityIndex?: unknown; semanticMemory?: unknown } | null
+  socialRelations?: Record<string, unknown>
   allGameData: Record<string, GameVariableValue>
   filteredCoreDataViews: Record<string, GameVariableValue>
   filteredCustomOptions: Record<string, GameVariableValue>
@@ -133,6 +134,8 @@ const getCurrentDataProps = (): any => {
     case 'gameIndex':
       return {
         gameIndexData: props.gameIndexData ?? null,
+        socialRelations: props.socialRelations ?? {},
+        playerName: String((props.characterData as Record<string, unknown>)?.名字 ?? ''),
       }
     case 'worldInfo':
       return {

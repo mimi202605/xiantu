@@ -29,6 +29,7 @@
       :worldInfo="worldInfo"
       :memoryData="memoryData"
       :gameIndexData="gameIndexData"
+      :socialRelations="socialRelations"
       :allGameData="allGameData"
       :filteredCoreDataViews="filteredCoreDataViews"
       :filteredCustomOptions="filteredCustomOptions"
@@ -183,6 +184,8 @@ const gameIndexData = computed(() => ({
   gameEntityIndex: gameStateStore.gameEntityIndex ?? { entities: [], relationships: [] },
   semanticMemory: gameStateStore.semanticMemory ?? { triples: [] },
 }))
+
+const socialRelations = computed(() => gameStateStore.relationships ?? {})
 
 const allGameData = computed(() => ({
   ...coreDataViews.value,
