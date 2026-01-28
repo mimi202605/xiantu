@@ -80,52 +80,11 @@
               </div>
             </section>
 
-            <!-- 三千大道 -->
-            <section id="dao" class="format-section">
-              <h4 class="section-title">2. 大道</h4>
-              <div class="section-content">
-                <pre class="code-block">大道列表: {道名: DaoData对象}
-  - 道名: string
-  - 描述: string
-  - 阶段列表: [{名称, 描述, 突破经验}]
-  - 是否解锁: boolean
-  - 当前阶段: number
-  - 当前经验: number
-  - 总经验: number</pre>
-
-                <div class="example-box">
-                  <strong>示例：</strong>
-                  <pre class="code-block">// 解锁并初始化大道
-{
-  "action": "set",
-  "key": "大道.大道列表.剑道",
-  "value": {
-    "道名": "剑道",
-    "描述": "以剑入道，剑气纵横",
-    "是否解锁": true,
-    "当前阶段": 0,
-    "当前经验": 0,
-    "总经验": 0,
-    "阶段列表": [
-      {"名称": "初窥门径", "描述": "...", "突破经验": 100},
-      {"名称": "小有所成", "描述": "...", "突破经验": 500}
-    ]
-  }
-}
-
-// 增加经验
-{
-  "action": "add",
-  "key": "大道.大道列表.剑道.当前经验",
-  "value": 50
-}</pre>
-                </div>
-              </div>
-            </section>
+            <!-- [MING] 三千大道 section 已移除 -->
 
             <!-- 背包与物品 -->
             <section id="inventory" class="format-section">
-              <h4 class="section-title">3. 背包与物品</h4>
+              <h4 class="section-title">2. 背包与物品</h4>
               <div class="section-content">
                 <pre class="code-block">背包:
   - 灵石: {下品, 中品, 上品, 极品} (用add增减)
@@ -168,7 +127,7 @@
 
             <!-- 人物关系 -->
             <section id="relationships" class="format-section">
-              <h4 class="section-title">4. 关系</h4>
+              <h4 class="section-title">3. 关系</h4>
               <div class="section-content">
                 <pre class="code-block">关系: {NPC名字: NPC档案对象}
   - 名字: string
@@ -216,7 +175,7 @@
 
             <!-- 世界信息 -->
             <section id="world" class="format-section">
-              <h4 class="section-title">5. 世界</h4>
+              <h4 class="section-title">4. 世界</h4>
               <div class="section-content">
                 <pre class="code-block">世界:
   - 势力信息: [{名称, 类型, 等级, 位置, 与玩家关系, 声望值, ...}]
@@ -266,7 +225,7 @@
 
             <!-- 世界事件系统 -->
             <section id="event" class="format-section">
-              <h4 class="section-title">6. 事件</h4>
+              <h4 class="section-title">5. 事件</h4>
               <div class="section-content">
                 <pre class="code-block">社交.事件:
   - 配置: {启用随机事件, 最小间隔年, 最大间隔年, 事件提示词}
@@ -340,7 +299,6 @@ const saveDataStructure = getSaveDataStructureForEnv(isTavernEnv())
 
 const sections = [
   { id: 'character', title: '角色/状态' },
-  { id: 'dao', title: '大道' },
   { id: 'inventory', title: '背包物品' },
   { id: 'relationships', title: '关系' },
   { id: 'world', title: '世界' },

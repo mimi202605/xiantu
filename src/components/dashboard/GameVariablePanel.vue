@@ -392,7 +392,6 @@ const saveVariable = async (item: EditingItem) => {
         { from: '角色.装备', to: 'equipment' },
         { from: '角色.功法', to: 'techniqueSystem' },
         { from: '角色.修炼', to: 'cultivation' },
-        { from: '角色.大道', to: 'thousandDao' },
         { from: '角色.技能', to: 'skillState' },
 
         // 社交

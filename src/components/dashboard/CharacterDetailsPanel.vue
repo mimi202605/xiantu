@@ -372,7 +372,7 @@ import { calculateAgeFromBirthdate, type GameTime as LifespanGameTime } from '@/
 // [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils';
 const formatRealmWithStage = (_realm: any): string => '';
 import { isTavernEnv } from '@/utils/tavern';
-import type { DaoData, InnateAttributes, Inventory, Item, ItemQuality, MasteredSkill, NpcProfile, SaveData, TechniqueItem } from '@/types/game';
+import type { InnateAttributes, Inventory, Item, ItemQuality, MasteredSkill, NpcProfile, SaveData, TechniqueItem } from '@/types/game';
 import type { Origin, TalentTier, SpiritRoot } from '@/types';
 import {
   AlertCircle,
@@ -438,7 +438,6 @@ const baseInfo = computed(() => gameStateStore.character);
 const playerStatus = computed(() => gameStateStore.attributes);
 const playerLocation = computed(() => gameStateStore.location);
 const playerSectInfo = computed(() => gameStateStore.sectMemberInfo);
-const daoData = computed(() => gameStateStore.thousandDao);
 const bodyStats = computed(() => gameStateStore.body || null);
 const gameTime = computed(() => gameStateStore.gameTime);
 const inventory = computed<Inventory | null>(() => gameStateStore.inventory);
@@ -447,13 +446,10 @@ const relationships = computed<Record<string, NpcProfile> | null>(() => gameStat
 // UI State
 const activeTab = ref<string>('character');
 const showSkillModal = ref(false);
-const showDaoModal = ref(false);
 const showSpiritRootModal = ref(false);
 const showOriginModal = ref(false);
 const showTechniqueDetails = ref(false);
-const showDaoDetails = ref(false);
 const selectedSkill = ref<LearnedSkillDisplay | null>(null);
-const selectedDao = ref<string | null>(null);
 const selectedOrigin = ref<Origin | string | Record<string, unknown> | null>(null);
 
 // Tabs configuration
@@ -547,20 +543,6 @@ const allLearnedSkills = computed((): LearnedSkillDisplay[] => {
 });
 
 const totalSkillsCount = computed(() => allLearnedSkills.value.length);
-
-const daoList = computed<Record<string, DaoData>>(() => {
-  const raw = daoData.value as unknown;
-  if (!raw || typeof raw !== 'object') return {};
-  const list = (raw as { 大道列表?: unknown }).大道列表;
-  if (!list || typeof list !== 'object') return {};
-  return list as Record<string, DaoData>;
-});
-
-const unlockedDaoList = computed((): DaoData[] => {
-  return Object.values(daoList.value)
-    .filter((d) => Boolean(d?.是否解锁))
-    .sort((a, b) => getDaoProgress(b.道名) - getDaoProgress(a.道名));
-});
 
 const inventoryItemCount = computed(() => {
   const items = inventory.value?.物品;
@@ -903,54 +885,8 @@ const getSkillModalContent = () => {
   return selectedSkill.value;
 };
 
-const toggleDaoDetails = () => {
-  showDaoDetails.value = !showDaoDetails.value;
-};
-
-const showDaoInfo = (daoName: string) => {
-  selectedDao.value = daoName;
-  showDaoModal.value = true;
-};
-
-const getDaoProgress = (daoName: string): number => {
-  const dao = daoList.value[daoName];
-  if (!dao) return 0;
-  const current = Number(dao.当前经验 ?? 0);
-  const total = Number(dao.总经验 ?? 0);
-  if (!total) return 0;
-  return Math.max(0, Math.min(100, Math.round((current / total) * 100)));
-};
-
-const getDaoModalContent = () => {
-  if (!selectedDao.value) return null;
-  const dao = daoList.value[selectedDao.value];
-  if (!dao) return null;
-
-  const stageIndex = Number(dao.当前阶段 ?? 0);
-  const stageList = dao.阶段列表;
-  let stageName = t('入门');
-
-  if (Array.isArray(stageList) && stageList.length > 0 && stageList[stageIndex]) {
-    stageName = stageList[stageIndex]?.名称 || t('入门');
-  } else if (typeof dao.当前阶段 === 'string') {
-    stageName = dao.当前阶段;
-  }
-
-  const current = Number(dao.当前经验 ?? 0);
-  const total = Number(dao.总经验 ?? 0);
-
-  return {
-    name: dao.道名 as string,
-    progressPercent: getDaoProgress(dao.道名 as string),
-    description: String(dao.描述 ?? t('此道奥妙无穷')),
-    stage: String(stageName),
-    exp: total ? `${current} / ${total}` : String(current),
-  };
-};
-
 const closeModals = () => {
   showSkillModal.value = false;
-  showDaoModal.value = false;
   showSpiritRootModal.value = false;
   showOriginModal.value = false;
 };
@@ -1759,18 +1695,9 @@ const closeModals = () => {
 .skill-meta { font-size: 0.75rem; color: var(--color-text-secondary); }
 .skill-prof { font-weight: bold; color: var(--color-primary); font-size: 0.9rem; }
 
-/* 大道 */
 .toggle-header { cursor: pointer; display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .flex-row { display: flex; align-items: center; gap: 0.8rem; }
 .header-actions { display: flex; align-items: center; gap: 0.5rem; color: var(--color-text-secondary); }
-.dao-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.8rem; padding-top: 1rem; }
-.dao-pill { display: flex; align-items: center; gap: 0.6rem; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
-.dao-pill:hover { border-color: var(--color-primary); }
-.dao-char { width: 28px; height: 28px; border-radius: 50%; background: var(--color-text); color: var(--color-background); display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Kaiti', serif; }
-.dao-content { flex: 1; min-width: 0; }
-.dao-name { font-size: 0.9rem; margin-bottom: 2px; }
-.dao-progress-mini { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; }
-.dao-progress-mini .fill { height: 100%; background: var(--color-text); }
 
 /* 通用交互类 */
 .clickable { cursor: pointer; user-select: none; }

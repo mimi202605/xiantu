@@ -1,12 +1,6 @@
 import type { CharacterBaseInfo, SaveData, PlayerStatus } from '@/types/game';
 import type { World } from '@/types';
-// [MING] Removed: import { createEmptyThousandDaoSystem } from '@/data/thousandDaoData';
 import { calculateInitialAttributes } from './characterInitialization';
-
-// [MING] Stub for removed thousandDaoSystem
-function createEmptyThousandDaoSystem() {
-  return { 大道列表: {} };
-}
 
 /**
  * 单机模式下的本地初始化（不依赖酒馆/AI）
@@ -87,7 +81,6 @@ export async function initializeCharacterOffline(
       装备: { 装备1: null, 装备2: null, 装备3: null, 装备4: null, 装备5: null, 装备6: null },
       功法: { 当前功法ID: null, 功法进度: {}, 功法套装: { 主修: null, 辅修: [] } },
       修炼: { 修炼功法: null, 修炼状态: { 模式: '未修炼' } },
-      大道: createEmptyThousandDaoSystem(),
       技能: { 掌握技能: [], 装备栏: [], 冷却: {} },
     },
     社交: {

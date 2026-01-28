@@ -61,8 +61,7 @@ interface GameState {
   narrativeHistory: GameMessage[] | null;
   isGameLoaded: boolean;
 
-  // 三千大道系统
-  thousandDao: any | null;
+  // [MING] 三千大道系统已移除
   // 事件系统
   eventSystem: EventSystem;
   // 修炼功法
@@ -118,7 +117,6 @@ export const useGameStateStore = defineStore('gameState', {
     isGameLoaded: false,
 
     // 其他游戏系统
-    thousandDao: null,
     eventSystem: {
       配置: {
         启用随机事件: true,
@@ -260,7 +258,6 @@ export const useGameStateStore = defineStore('gameState', {
 
       const narrativeHistory: GameMessage[] = Array.isArray(v3?.系统?.历史?.叙事) ? deepCopy(v3.系统.历史.叙事) : [];
 
-      const daoSystem = v3?.角色?.大道 ? deepCopy(v3.角色.大道) : null;
       const eventSystem: EventSystem | null = v3?.社交?.事件 ? deepCopy(v3.社交.事件) : null;
       const cultivation = v3?.角色?.修炼 ? deepCopy(v3.角色.修炼) : null;
       const techniqueSystem = v3?.角色?.功法 ? deepCopy(v3.角色.功法) : null;
@@ -299,7 +296,6 @@ export const useGameStateStore = defineStore('gameState', {
       this.narrativeHistory = narrativeHistory;
 
       // 系统模块
-      this.thousandDao = daoSystem ? deepCopy(daoSystem) : null;
       this.eventSystem = eventSystem
         ? deepCopy(eventSystem)
         : {
@@ -427,11 +423,6 @@ export const useGameStateStore = defineStore('gameState', {
         时间: this.gameTime,
       };
 
-      const daoNormalized =
-        this.thousandDao && typeof this.thousandDao === 'object' && (this.thousandDao as any).大道列表
-          ? this.thousandDao
-          : { 大道列表: {} };
-
       const sectNormalized =
         this.sectSystem || this.sectMemberInfo
           ? { ...(this.sectSystem || {}), ...(this.sectMemberInfo ? { 成员信息: this.sectMemberInfo } : {}) }
@@ -481,7 +472,6 @@ export const useGameStateStore = defineStore('gameState', {
           装备: this.equipment,
           功法: techniqueSystem,
           修炼: cultivation,
-          大道: daoNormalized,
           技能: skillState,
         },
         社交: {
@@ -611,7 +601,6 @@ export const useGameStateStore = defineStore('gameState', {
       this.isGameLoaded = false;
 
       // 重置其他系统数据
-      this.thousandDao = null;
       this.eventSystem = {
         配置: {
           启用随机事件: true,

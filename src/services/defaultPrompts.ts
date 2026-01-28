@@ -201,7 +201,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
       name: '2.5 扩展规则',
       content: EXTENDED_BUSINESS_RULES,
       category: 'coreRequest',
-      description: '大道、宗门等扩展',
+      description: '宗门等扩展',
       order: 2.5,
       weight: 5
     },

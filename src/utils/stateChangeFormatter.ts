@@ -516,7 +516,7 @@ export function formatStateChanges(log: StateChangeLog): FormattedStateChangeLog
     if (!parsedChange) {
       parsedChange = parseRelationshipChange(change);
     }
-    // ... 可以继续添加更多专用解析器（大道、技能等）
+    // ... 可以继续添加更多专用解析器（技能等）
 
     // 如果所有特殊解析器都失败了，使用通用解析器
     if (!parsedChange) {

@@ -550,7 +550,7 @@ const parsedText = computed(() => {
               } else if (key.includes('剩余气血')) {
                 judgement.remainingHp = value
               } else {
-                // 通用字段处理：自动识别所有加成字段（先天、后天、境界、装备、功法、状态、天赋、大道、阵法、法宝等）
+                // 通用字段处理：自动识别所有加成字段（先天、后天、境界、装备、功法、状态、天赋、阵法、法宝等）
                 judgement.details?.push(`${key}:${value}`)
               }
             }

@@ -325,10 +325,7 @@ const getTalentData = (talent: string): any => {
     }
   }
 
-  // 向后兼容：从三千大道系统中查找
-  const daoDataValue = gameStateStore.thousandDao;
-  const daoProgress = daoDataValue?.大道列表?.[talent];
-  return daoProgress;
+  return undefined;
 };
 
 // 显示天赋详情

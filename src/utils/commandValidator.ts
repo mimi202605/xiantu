@@ -218,10 +218,7 @@ function validateValueType(key: string, value: unknown, action: string): string[
       }
     }
 
-    // 大道对象（角色.大道.大道列表.<道名>）
-    if (key.startsWith('角色.大道.大道列表.') && action === 'set' && (key.match(/\./g) || []).length === 3) {
-      if (typeof value !== 'object' || value === null) errors.push('大道对象必须是对象类型');
-    }
+    // [MING] 大道对象验证已移除
 
     // 任务对象（社交.任务.当前任务列表 push）
     if (key === '社交.任务.当前任务列表' && action === 'push') {

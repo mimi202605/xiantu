@@ -40,9 +40,7 @@ import MemoryCenterPanel from '../components/dashboard/MemoryCenterPanel.vue';
 import CharacterDetailsPanel from '../components/dashboard/CharacterDetailsPanel.vue';
 import InventoryPanel from '../components/dashboard/InventoryPanel.vue';
 import RelationshipNetworkPanel from '../components/dashboard/RelationshipNetworkPanel.vue';
-// [MING] Removed deleted panels
-// import SkillsPanel from '../components/dashboard/SkillsPanel.vue';
-// import ThousandDaoPanel from '../components/dashboard/ThousandDaoPanel.vue';
+// [MING] Removed deleted panels: SkillsPanel, ThousandDaoPanel
 import SettingsPanel from '../components/dashboard/SettingsPanel.vue';
 import SavePanel from '../components/dashboard/SavePanel.vue';
 // import WorldMapRoute from '../components/dashboard/WorldMapRoute.vue';
@@ -125,17 +123,7 @@ const routes = [
         name: 'Relationships',
         component: RelationshipNetworkPanel,
       },
-      // [MING] Removed deleted routes
-      // {
-      //   path: 'techniques',
-      //   name: 'Techniques',
-      //   component: SkillsPanel,
-      // },
-      // {
-      //   path: 'thousand-dao',
-      //   name: 'ThousandDao',
-      //   component: ThousandDaoPanel,
-      // },
+      // [MING] Removed: techniques, thousand-dao
       {
         path: 'settings',
         name: 'Settings',

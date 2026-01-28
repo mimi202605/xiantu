@@ -64,7 +64,7 @@
             </div>
             <div class="gate-info">
               <h2 class="gate-title">{{ $t('联机共修') }}</h2>
-              <p class="gate-desc">{{ backendReady ? '道友相伴 · 共证大道' : '仙门未启 · 暂不可入' }}</p>
+              <p class="gate-desc">{{ backendReady ? '与友共游 · 一起冒险' : '仙门未启 · 暂不可入' }}</p>
               <p class="gate-detail">云端存档，多端同步，与道友共闯仙途</p>
               <div class="gate-tags">
                 <span class="tag-cloud">云端同步</span>

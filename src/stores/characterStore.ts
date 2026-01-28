@@ -1010,44 +1010,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
 
       debug.log('角色商店', '✅ 从 IndexedDB 加载存档数据');
 
-      // 修复大道数据：确保经验值不是undefined
-      if (saveData.大道) {
-        const daoSystem = saveData.大道;
-
-        // 修复大道数据（新结构：数据+进度合并）
-        if (daoSystem.大道列表) {
-          Object.keys(daoSystem.大道列表).forEach(daoName => {
-            const daoData = daoSystem.大道列表[daoName];
-            if (daoData) {
-              // 确保所有数值字段都是数字
-              if (daoData.当前经验 === undefined || daoData.当前经验 === null) {
-                daoData.当前经验 = 0;
-              }
-              if (daoData.总经验 === undefined || daoData.总经验 === null) {
-                daoData.总经验 = 0;
-              }
-              if (daoData.当前阶段 === undefined || daoData.当前阶段 === null) {
-                daoData.当前阶段 = 0;
-              }
-              if (daoData.是否解锁 === undefined) {
-                daoData.是否解锁 = true;
-              }
-              if (!daoData.道名) {
-                daoData.道名 = daoName;
-              }
-              if (!daoData.阶段列表) {
-                daoData.阶段列表 = [];
-              }
-              if (!daoData.描述) {
-                daoData.描述 = '神秘的大道';
-              }
-            }
-          });
-        } else {
-          // 兼容旧数据结构
-          daoSystem.大道列表 = {};
-        }
-      }
+      // [MING] 大道修复逻辑已移除（三千大道系统已退役）
 
       // 根据时间自动更新寿命（年龄）- 用于实时显示
       try {

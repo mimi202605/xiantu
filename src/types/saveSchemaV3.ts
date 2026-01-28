@@ -98,7 +98,7 @@ export interface SaveDataV3 {
     装备: Equipment;
     功法: TechniqueSystemV3;
     修炼: CultivationStateV3;
-    大道: DaoSystemV3;
+    大道?: DaoSystemV3; // [MING] 可选，三千大道已退役
     技能: SkillStateV3;
   };
   社交: {

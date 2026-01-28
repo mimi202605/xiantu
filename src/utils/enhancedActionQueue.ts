@@ -38,7 +38,7 @@ export interface UndoAction {
 export class EnhancedActionQueueManager {
   private static instance: EnhancedActionQueueManager | null = null;
   private undoActions: UndoAction[] = [];
-  private readonly storageKey = 'dao_undo_actions';
+  private readonly storageKey = 'gm_undo_actions';
 
   constructor() {
     this.loadUndoHistoryFromStorage();

@@ -175,7 +175,7 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     if (!Array.isArray(repaired.系统.历史.叙事)) repaired.系统.历史.叙事 = [];
 
     // --- 角色子模块最小化补全 ---
-    if (!repaired.角色.大道 || typeof repaired.角色.大道 !== 'object') repaired.角色.大道 = { 大道列表: {} };
+    // [MING] 角色.大道 补全已移除（三千大道系统已退役）
     if (!repaired.角色.功法 || typeof repaired.角色.功法 !== 'object') repaired.角色.功法 = { 当前功法ID: null, 功法进度: {}, 功法套装: { 主修: null, 辅修: [] } };
     if (!repaired.角色.修炼 || typeof repaired.角色.修炼 !== 'object') repaired.角色.修炼 = { 修炼功法: null, 修炼状态: { 模式: '未修炼' } };
     if (!repaired.角色.技能 || typeof repaired.角色.技能 !== 'object') repaired.角色.技能 = { 掌握技能: [], 装备栏: [], 冷却: {} };
@@ -562,7 +562,6 @@ function createMinimalSaveDataV3(): SaveData {
       装备: { 装备1: null, 装备2: null, 装备3: null, 装备4: null, 装备5: null, 装备6: null },
       功法: { 当前功法ID: null, 功法进度: {}, 功法套装: { 主修: null, 辅修: [] } },
       修炼: { 修炼功法: null, 修炼状态: { 模式: '未修炼' } },
-      大道: { 大道列表: {} },
       技能: { 掌握技能: [], 装备栏: [], 冷却: {} },
     },
     社交: {

@@ -50,11 +50,7 @@ export const useActionQueueStore = defineStore('actionQueue', () => {
       pendingActions.value = pendingActions.value.filter(a => a.type !== 'cultivate');
     }
 
-    // 确保任何时候只有一个感悟大道操作
-    // 如果添加新的感悟操作，则移除所有旧的
-    if (newAction.type === 'comprehend') {
-      pendingActions.value = pendingActions.value.filter(a => a.type !== 'comprehend');
-    }
+    // [MING] 感悟大道 (comprehend) 冲突逻辑已移除
     // --- 冲突解决逻辑结束 ---
 
     // 检查是否已经有相同类型的操作，如果有则替换
@@ -109,11 +105,7 @@ export const useActionQueueStore = defineStore('actionQueue', () => {
     const actionTexts = pendingActions.value.map(action => {
       switch (action.type) {
         case 'cultivate':
-          if (action.itemType === '大道') {
-            return `感悟了《${action.itemName}》大道`;
-          } else {
-            return `修炼了《${action.itemName}》功法`;
-          }
+          return `修炼了《${action.itemName}》功法`;
         case 'equip':
           return `装备了《${action.itemName}》${action.itemType || '法宝'}`;
         case 'use':

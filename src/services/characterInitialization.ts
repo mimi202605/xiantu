@@ -13,17 +13,11 @@ import type { GM_Response, TavernCommand } from '@/types/AIGameMaster';
 import { AIBidirectionalSystem } from '@/utils/AIBidirectionalSystem';
 import { isTavernEnv } from '@/utils/tavern';
 import { getNsfwSettingsFromStorage, ensureSystemConfigHasNsfw } from '@/utils/nsfw';
-// [MING] Removed: import { createEmptyThousandDaoSystem } from '@/data/thousandDaoData';
 import { buildCharacterInitializationPrompt, buildCharacterSelectionsSummary } from '@/utils/prompts/tasks/characterInitializationPrompts';
 import { validateGameData } from '@/utils/dataValidation';
 import { migrateSaveDataToLatest } from '@/utils/saveMigration';
 // [MING] Removed enhanced world generator - using simplified world generation
 // import { EnhancedWorldGenerator } from '@/utils/worldGeneration/enhancedWorldGenerator';
-
-// [MING] Stub for removed thousandDaoSystem
-function createEmptyThousandDaoSystem() {
-  return { 大道列表: {} };
-}
 
 // [MING] Stub for EnhancedWorldGenerator - simplified world generation
 // Returns WorldInfo-shaped object with 势力信息 and 地点信息 (required by initializeCharacter)
@@ -290,7 +284,6 @@ function prepareInitialData(baseInfo: CharacterBaseInfo, age: number): { saveDat
     修炼: {
       修炼功法: null,
     },
-    大道: createEmptyThousandDaoSystem(),
     技能: { 掌握技能: [], 装备栏: [], 冷却: {} },
     宗门: undefined,
     事件: {

@@ -413,32 +413,7 @@ export interface SectShopItemExtended {
   稀有度?: '普通' | '稀有' | '珍贵' | '极品';
 }
 
-// --- 三千大道系统 ---
-
-/** 大道阶段定义 */
-export interface DaoStage {
-  名称: string;
-  描述: string;
-  突破经验: number;
-}
-
-/** 大道数据（大道定义+进度合并） */
-export interface DaoData {
-  道名: string;
-  描述: string;
-  阶段列表: DaoStage[]; // 大道的所有阶段定义
-
-  // 进度数据（与大道数据合并）
-  是否解锁: boolean;
-  当前阶段: number; // 阶段索引，0为"入门"
-  当前经验: number;
-  总经验: number;
-}
-
-/** 三千大道系统数据 */
-export interface ThousandDaoSystem extends AIMetadata {
-  大道列表: Record<string, DaoData>; // 以大道名称为key，数据+进度合并
-}
+// [MING] 三千大道系统已移除
 
 // --- 装备 ---
 
@@ -952,7 +927,7 @@ export interface CharacterBaseInfo extends AIMetadata {
   灵根: SpiritRoot | string;
   天赋: Talent[];
   先天六司: InnateAttributes;
-  后天六司: InnateAttributes; // 后天获得的六司加成（装备、大道等），开局默认全为0
+  后天六司: InnateAttributes; // 后天获得的六司加成（装备、天赋等），开局默认全为0
   创建时间?: string; // 添加创建时间字段
   描述?: string; // 添加描述字段
 }
@@ -1087,7 +1062,7 @@ export interface SixSiConstraints {
     单次增加上限: 3;       // 每次最多增加1-3点（极稀有机缘可达5点）
     单次减少上限: 5;       // 每次最多减少1-5点（惩罚）
     对加成权重: 0.3;       // 占总加成的30%
-    获取方式: string[];    // ['装备', '天赋', '丹药', '机缘', '大道感悟']
+    获取方式: string[];    // ['装备', '天赋', '丹药', '机缘']
   };
 }
 

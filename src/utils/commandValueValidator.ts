@@ -116,13 +116,7 @@ export function validateAndRepairCommandValue(command: TavernCommand): Validatio
       errors.push(...result.errors);
     }
 
-    // 8. 大道对象
-    if (key.startsWith('角色.大道.大道列表.') && action === 'set' && (key.match(/\./g) || []).length === 3) {
-      // 从 key 中提取道名（如 "角色.大道.大道列表.剑道" -> "剑道"）
-      const daoName = key.split('.')[3];
-      const result = validateDaoObject(value, daoName);
-      errors.push(...result.errors);
-    }
+    // 8. [MING] 大道对象验证已移除
 
     // 9. 任务对象
     if (key === '社交.任务.当前任务列表' && action === 'push') {
@@ -319,64 +313,6 @@ function validateNPCObject(value: any): ValidationResult {
   if (value.记忆 !== undefined && !Array.isArray(value.记忆)) {
     const coerced = coerceStringArray(value.记忆);
     if (coerced) value.记忆 = coerced;
-  }
-
-  return { valid: errors.length === 0, errors };
-}
-
-/**
- * 验证大道对象
- * 支持自动补全缺失字段
- * @param value 大道对象
- * @param daoNameFromKey 从 key 中提取的道名（如 "剑道"）
- */
-function validateDaoObject(value: any, daoNameFromKey?: string): ValidationResult {
-  const errors: string[] = [];
-
-  if (typeof value !== 'object' || value === null) {
-    errors.push('大道对象必须是对象类型');
-    return { valid: false, errors };
-  }
-
-  // 🔥 自动补全缺失字段，而不是直接拒绝
-  // 优先使用 key 中提取的道名
-  if (!value.道名) {
-    const possibleName = daoNameFromKey || value.name || value.名称;
-    if (possibleName) {
-      value.道名 = possibleName;
-    } else {
-      errors.push('大道对象缺少"道名"字段');
-    }
-  }
-
-  if (value.描述 === undefined) {
-    value.描述 = value.description || '修行之道';
-  }
-
-  if (!Array.isArray(value.阶段列表)) {
-    // 提供默认阶段列表
-    value.阶段列表 = [
-      { 阶段名: '入门', 需求经验: 100 },
-      { 阶段名: '小成', 需求经验: 500 },
-      { 阶段名: '大成', 需求经验: 2000 },
-      { 阶段名: '圆满', 需求经验: 10000 }
-    ];
-  }
-
-  if (typeof value.是否解锁 !== 'boolean') {
-    value.是否解锁 = true; // 默认解锁
-  }
-
-  if (typeof value.当前阶段 !== 'number') {
-    value.当前阶段 = 0; // 默认入门阶段
-  }
-
-  if (typeof value.当前经验 !== 'number') {
-    value.当前经验 = 0;
-  }
-
-  if (typeof value.总经验 !== 'number') {
-    value.总经验 = 0;
   }
 
   return { valid: errors.length === 0, errors };

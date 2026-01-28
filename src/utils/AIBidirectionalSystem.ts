@@ -580,7 +580,6 @@ class AIBidirectionalSystemClass {
             装备: stateForAI.角色?.装备,
             功法: stateForAI.角色?.功法,
             修炼: stateForAI.角色?.修炼,
-            大道: stateForAI.角色?.大道,
             技能: stateForAI.角色?.技能,
           },
           社交: {

@@ -4,6 +4,27 @@
 
 ---
 
+## [0.2.4] - 2026-01-28
+
+### 三千大道系统移除（Thousand Dao 退役）
+
+三千大道系统已从 MING 中完全移除，相关类型、Store、校验、初始化、迁移、UI、队列与 i18n 均做清理。
+
+#### 变更摘要
+
+- **类型与 Store**：`game.d.ts` 移除 `DaoStage`、`DaoData`、`ThousandDaoSystem`；`gameStateStore` 移除 `thousandDao` 及 load/toSaveData/reset 中的 大道 读写；`saveSchemaV3` 中 `角色.大道` 改为可选。
+- **校验与 AI**：`commandValueValidator`、`commandValidator` 移除 大道 对象校验；`AIBidirectionalSystem` 构建给 AI 的 角色 不再包含 大道。
+- **角色与存档**：`characterInitialization`、`offlineInitialization` 不再初始化 `角色.大道`；`characterStore` 移除 大道 修复；`saveMigration` 迁移时不再写入 大道；`dataRepair` 不再补全 大道。
+- **UI 与路由**：`CharacterDetailsPanel` 移除 大道 相关 computed、ref、方法、样式；`GameVariablePanel` 移除 `角色.大道` 映射；`GameVariableFormatGuideModal` 移除「2. 大道」章节及导航；`RightSidebar` 的 `getTalentData` 不再从 大道 查找；`router` 移除 ThousandDao 相关注释与路由。
+- **组合式、队列与文案**：`useCharacterData` 移除 `daoData`；`actionQueueStore` 移除 感悟大道 (comprehend) 冲突逻辑及 cultivate 中的 大道 分支；`defaultPrompts`、`FormattedText`、`stateChangeFormatter` 注释去 大道；`ModeSelection`「共证大道」改为「与友共游 · 一起冒险」；`enhancedActionQueue` 的 `storageKey` 由 `dao_undo_actions` 改为 `gm_undo_actions`。
+- **i18n**：删除 大道 面板专用 key（如 加载三千大道、已解锁大道、条大道 等）；`天道感应中...` 改为「生成中...」。保留 大道五十、道法受阻、三千大道 等叙事/品质用词。
+
+#### 涉及文件
+
+- `game.d.ts`、`gameStateStore.ts`、`saveSchemaV3.ts`、`commandValueValidator.ts`、`commandValidator.ts`、`AIBidirectionalSystem.ts`、`characterInitialization.ts`、`offlineInitialization.ts`、`characterStore.ts`、`saveMigration.ts`、`dataRepair.ts`、`CharacterDetailsPanel.vue`、`GameVariablePanel.vue`、`GameVariableFormatGuideModal.vue`、`RightSidebar.vue`、`router/index.ts`、`useCharacterData.ts`、`actionQueueStore.ts`、`defaultPrompts.ts`、`FormattedText.vue`、`stateChangeFormatter.ts`、`ModeSelection.vue`、`enhancedActionQueue.ts`、`i18n/index.ts`
+
+---
+
 ## [0.2.3] - 2026-01-28
 
 ### 世界事件·事件类型（对齐通用版）

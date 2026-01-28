@@ -262,7 +262,7 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
   const flatCultivation =
     source.修炼 ?? (source.修炼功法 !== undefined ? { 修炼功法: source.修炼功法 } : { 修炼功法: null });
 
-  const flatDao = source.大道 ?? source.三千大道 ?? { 大道列表: {} };
+  // [MING] 大道迁移已移除（三千大道系统已退役）
   const flatSkills =
     source.技能 ??
     (source.掌握技能
@@ -322,7 +322,6 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       装备: flatEquipment,
       功法: flatTechniqueSystem,
       修炼: flatCultivation,
-      大道: flatDao,
       技能: flatSkills,
     },
     社交: {
