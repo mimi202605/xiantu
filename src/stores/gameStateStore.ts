@@ -13,8 +13,6 @@ import type {
   Equipment,
   GameMessage,
   EventSystem,
-  SectMemberInfo,
-  SectSystemV2,
   StatusEffect,
 } from '@/types/game';
 // [MING] Removed attribute calculation - simplified attributes
@@ -54,8 +52,7 @@ interface GameState {
   equipment: Equipment | null;
   relationships: Record<string, NpcProfile> | null;
   worldInfo: WorldInfo | null;
-  sectSystem: SectSystemV2 | null;
-  sectMemberInfo: SectMemberInfo | null;
+  // [MING] sectSystem, sectMemberInfo 已移除（宗门系统已退役）
   memory: Memory | null;
   gameTime: GameTime | null;
   narrativeHistory: GameMessage[] | null;
@@ -109,8 +106,6 @@ export const useGameStateStore = defineStore('gameState', {
     equipment: null,
     relationships: null,
     worldInfo: null,
-    sectSystem: null,
-    sectMemberInfo: null,
     memory: null,
     gameTime: null,
     narrativeHistory: [],
@@ -240,8 +235,6 @@ export const useGameStateStore = defineStore('gameState', {
       const equipment: Equipment | null = v3?.角色?.装备 ? deepCopy(v3.角色.装备) : null;
       const relationships: Record<string, NpcProfile> | null = v3?.社交?.关系 ? deepCopy(v3.社交.关系) : null;
       const worldInfo: WorldInfo | null = v3?.世界?.信息 ? deepCopy(v3.世界.信息) : null;
-      const sectSystem: SectSystemV2 | null = v3?.社交?.宗门 ? deepCopy(v3.社交.宗门) : null;
-      const sectMemberInfo: SectMemberInfo | null = (v3?.社交?.宗门 as any)?.成员信息 ? deepCopy((v3.社交.宗门 as any).成员信息) : null;
       const coerceMemoryArray = (value: unknown): string[] => {
         if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
         if (typeof value === 'string' && value.trim().length > 0) return [value.trim()];
@@ -289,8 +282,6 @@ export const useGameStateStore = defineStore('gameState', {
       this.equipment = equipment;
       this.relationships = relationships;
       this.worldInfo = worldInfo;
-      this.sectSystem = sectSystem;
-      this.sectMemberInfo = sectMemberInfo;
       this.memory = memory;
       this.gameTime = gameTime;
       this.narrativeHistory = narrativeHistory;
@@ -423,11 +414,6 @@ export const useGameStateStore = defineStore('gameState', {
         时间: this.gameTime,
       };
 
-      const sectNormalized =
-        this.sectSystem || this.sectMemberInfo
-          ? { ...(this.sectSystem || {}), ...(this.sectMemberInfo ? { 成员信息: this.sectMemberInfo } : {}) }
-          : null;
-
       const settings =
         this.userSettings ?? {
           timeBasedSaveEnabled: this.timeBasedSaveEnabled,
@@ -476,7 +462,6 @@ export const useGameStateStore = defineStore('gameState', {
         },
         社交: {
           关系: this.relationships ?? {},
-          宗门: sectNormalized,
           事件: this.eventSystem,
           记忆: this.memory,
         },
@@ -593,8 +578,6 @@ export const useGameStateStore = defineStore('gameState', {
       this.equipment = null;
       this.relationships = null;
       this.worldInfo = null;
-      this.sectSystem = null;
-      this.sectMemberInfo = null;
       this.memory = null;
       this.gameTime = null;
       this.narrativeHistory = [];

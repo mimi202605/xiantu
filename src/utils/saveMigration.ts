@@ -269,7 +269,7 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       ? { 掌握技能: source.掌握技能, 装备栏: [], 冷却: {} }
       : { 掌握技能: [], 装备栏: [], 冷却: {} });
 
-  const flatSect = source.宗门 ?? source.宗门系统 ?? undefined;
+  // [MING] 宗门迁移已移除（宗门系统已退役）
   const flatRelationships = source.关系 ?? source.人物关系 ?? {};
   const flatMemory = normalizeMemory(source.记忆 ?? source.社交?.记忆);
 
@@ -326,7 +326,6 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
     },
     社交: {
       关系: flatRelationships,
-      宗门: flatSect ?? null,
       事件: flatEvent,
       记忆: flatMemory,
     },

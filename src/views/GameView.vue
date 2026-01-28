@@ -145,21 +145,12 @@ import { useUIStore } from '@/stores/uiStore';
 import { useRouter, useRoute } from 'vue-router';
 import { X, Package, User, Brain, Users, Settings, Save, Bell, Box, Users2, Database, RefreshCw, FlaskConical, Trash2, BarChart3, FileText, Plug } from 'lucide-vue-next';
 import { panelBus, type PanelAction } from '@/utils/panelBus';
-// [MING] Removed: import { detectSectMigration } from '@/utils/sectMigration';
-const detectSectMigration = (_saveData: any): { needed: boolean; reasons: string[]; fromVersion: string; toVersion: string } => ({
-  needed: false,
-  reasons: [],
-  fromVersion: '',
-  toVersion: ''
-});
+// [MING] Sect system retired: detectSectMigration, SectMigrationModal removed
 import TopBar from '@/components/dashboard/TopBar.vue'
 import LeftSidebar from '@/components/dashboard/LeftSidebar.vue'
 import RightSidebar from '@/components/dashboard/RightSidebar.vue'
 import CharacterManagement from '@/components/character-creation/CharacterManagement.vue';
 import ErrorBoundary from '@/components/common/ErrorBoundary.vue';
-// [MING] Removed: import SectMigrationModal from '@/components/dashboard/components/SectMigrationModal.vue';
-const SectMigrationModal = { name: 'SectMigrationModal', template: '<div></div>' };
-
 const characterStore = useCharacterStore();
 const gameStateStore = useGameStateStore();
 const uiStore = useUIStore();
@@ -187,37 +178,6 @@ const checkDeviceAndSetup = () => {
 const closeSidebars = () => {
   leftSidebarCollapsed.value = true;
   rightSidebarCollapsed.value = true;
-};
-
-const lastMigrationPromptKey = ref<string | null>(null);
-
-const getActiveSaveKey = () => {
-  const active = characterStore.rootState.当前激活存档;
-  if (!active) return null;
-  return `${active.角色ID}::${active.存档槽位}`;
-};
-
-const maybePromptSectMigration = () => {
-  if (!gameStateStore.isGameLoaded) return;
-  const saveKey = getActiveSaveKey();
-  if (!saveKey || lastMigrationPromptKey.value === saveKey) return;
-
-  const saveData = gameStateStore.getCurrentSaveData();
-  const check = detectSectMigration(saveData);
-  if (!check.needed) {
-    return;
-  }
-
-  lastMigrationPromptKey.value = saveKey;
-  uiStore.showDetailModal({
-    title: '宗门存档迁移',
-    component: SectMigrationModal,
-    props: {
-      reasons: check.reasons,
-      fromVersion: check.fromVersion,
-      toVersion: check.toVersion,
-    }
-  });
 };
 
 // 面板状态管理
@@ -372,17 +332,7 @@ onBeforeUnmount(() => {
   // 🔴 停止定期授权验证
 });
 
-watch(
-  () => [gameStateStore.isGameLoaded, characterStore.rootState.当前激活存档?.角色ID, characterStore.rootState.当前激活存档?.存档槽位],
-  ([isLoaded]) => {
-    if (!isLoaded) {
-      lastMigrationPromptKey.value = null;
-      return;
-    }
-    maybePromptSectMigration();
-  },
-  { immediate: true }
-);
+// [MING] Sect migration watch removed (sect system retired)
 
 // 监听面板状态变化，智能调整布局
 watch(isPanelOpen, (isOpen) => {

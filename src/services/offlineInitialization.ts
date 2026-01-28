@@ -85,7 +85,6 @@ export async function initializeCharacterOffline(
     },
     社交: {
       关系: {},
-      宗门: null,
       事件: {
         配置: {
           启用随机事件: true,

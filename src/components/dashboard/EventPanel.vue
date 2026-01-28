@@ -105,7 +105,7 @@
           <textarea
             v-model="config.prompt"
             class="config-textarea"
-            placeholder="例如：更偏向宗门大战、秘境现世、好友遭遇，并尽量让事件影响玩家..."
+            placeholder="例如：更偏向势力冲突、人物风波，并尽量让事件影响玩家..."
             rows="3"
             @change="saveConfig"
           ></textarea>

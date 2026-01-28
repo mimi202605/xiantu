@@ -566,7 +566,6 @@ function createMinimalSaveDataV3(): SaveData {
     },
     社交: {
       关系: {},
-      宗门: null,
       事件: {
         配置: { 启用随机事件: true, 最小间隔年: 1, 最大间隔年: 10, 事件提示词: '' },
         下次事件时间: null,

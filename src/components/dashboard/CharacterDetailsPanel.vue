@@ -437,7 +437,6 @@ const saveData = computed(() => gameStateStore.toSaveData());
 const baseInfo = computed(() => gameStateStore.character);
 const playerStatus = computed(() => gameStateStore.attributes);
 const playerLocation = computed(() => gameStateStore.location);
-const playerSectInfo = computed(() => gameStateStore.sectMemberInfo);
 const bodyStats = computed(() => gameStateStore.body || null);
 const gameTime = computed(() => gameStateStore.gameTime);
 const inventory = computed<Inventory | null>(() => gameStateStore.inventory);
@@ -1520,7 +1519,6 @@ const closeModals = () => {
 .fav-neutral { color: var(--color-text); opacity: 0.85; }
 .fav-low { color: #fb7185; }
 
-.sect-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
 .kv { display: flex; justify-content: space-between; gap: 0.8rem; padding: 0.6rem 0.75rem; border-radius: 12px; background: rgba(0,0,0,0.14); border: 1px solid rgba(255,255,255,0.05); }
 .kv .k { color: var(--color-text-secondary); font-size: 0.85rem; }
 .kv .v { font-weight: 700; }
@@ -1743,7 +1741,6 @@ const closeModals = () => {
   .pane-grid { grid-template-columns: 1fr; }
   .attr-group.final { grid-template-columns: repeat(2, 1fr); }
   .spirit-stones-grid { grid-template-columns: repeat(2, 1fr); }
-  .sect-grid { grid-template-columns: 1fr; }
   .core-stats-grid { grid-template-columns: 1fr; }
 }
 

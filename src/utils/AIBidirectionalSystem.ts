@@ -584,7 +584,6 @@ class AIBidirectionalSystemClass {
           },
           社交: {
             关系: stateForAI.社交?.关系,
-            宗门: stateForAI.社交?.宗门,
             任务: stateForAI.社交?.任务,
             事件: stateForAI.社交?.事件,
             记忆: {
@@ -796,7 +795,7 @@ ${stateJsonString}
           agentPrompt += `\n该角色信息：`;
           if (ownerInfo.name) agentPrompt += `\n- 名称：${ownerInfo.name}`;
           if (ownerInfo.cultivation_level) agentPrompt += `\n- 境界：${ownerInfo.cultivation_level}`;
-          if (ownerInfo.sect) agentPrompt += `\n- 宗门：${ownerInfo.sect}`;
+          // [MING] 宗门已移除
           if (ownerInfo.personality) agentPrompt += `\n- 性格：${ownerInfo.personality}`;
         }
         agentPrompt += `\n\n该玩家设定的行为指南：\n${travelTarget.离线代理提示词}`;

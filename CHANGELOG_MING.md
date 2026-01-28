@@ -4,6 +4,23 @@
 
 ---
 
+## [0.2.5] - 2026-01-27
+
+### 宗门系统移除（Sect 退役）
+
+宗门系统已从 MING 中完全退役，相关 API 分配、迁移提示与 UI 已清理。
+
+#### 变更摘要
+
+- **API 管理**：`apiManagementStore` 移除 `sect_generation` 类型及 `DEFAULT_API_ASSIGNMENTS`、`DEFAULT_FUNCTION_MODES`、`DEFAULT_FUNCTION_ENABLED` 中的宗门生成项；`APIManagementPanel` 从功能分配列表、`getFunctionName`、`getFunctionDesc` 中移除宗门生成。
+- **GameView**：移除 `maybePromptSectMigration`、`getActiveSaveKey`、`lastMigrationPromptKey` 及对 `detectSectMigration`、`SectMigrationModal` 的引用（该迁移逻辑与组件此前已删除，此处清理残留调用）。
+
+#### 涉及文件
+
+- `apiManagementStore.ts`、`APIManagementPanel.vue`、`GameView.vue`
+
+---
+
 ## [0.2.4] - 2026-01-28
 
 ### 三千大道系统移除（Thousand Dao 退役）

@@ -281,136 +281,18 @@ export interface SkillInfo {
   unlocked: boolean;
 }
 
-// --- 宗门系统相关类型 ---
-
-/** 宗门类型 */
-export type SectType = '正道宗门' | '魔道宗门' | '中立宗门' | '商会' | '世家' | '散修联盟';
-
-/** 宗门职位 */
-export type SectPosition = '散修' | '外门弟子' | '内门弟子' | '核心弟子' | '传承弟子' | '执事' | '长老' | '太上长老' | '副掌门' | '掌门';
-
-/** 宗门关系 */
-export type SectRelationship = '仇敌' | '敌对' | '冷淡' | '中立' | '友好' | '盟友' | '附庸';
+// [MING] 宗门系统相关类型已移除（SectType, SectPosition, SectRelationship, SectMemberInfo, SectInfo, SectSystemData, SectMigrationRecord, SectSystemV2, SectContentStatus, SectLibraryTechniqueExtended, SectShopItemExtended）
 
 /** 修为境界等级 */
 export type RealmLevel = '练气' | '筑基' | '金丹' | '元婴' | '化神' | '炼虚' | '合体' | '渡劫';
 
-/** 宗门成员信息 */
-export interface SectMemberInfo {
-  宗门名称: string;
-  宗门类型: SectType;
-  职位: SectPosition;
-  贡献: number;
-  关系: SectRelationship;
-  声望: number;
-  加入日期: string;
-  描述?: string;
-}
-
-/** 宗门基础信息 */
-export interface SectInfo {
-  名称: string; // 宗门名称
-  类型: SectType; // 宗门类型
-  等级: '一流' | '二流' | '三流' | '末流'; // 宗门等级
-  位置?: string; // 总部位置
-  描述: string; // 宗门描述
-  特色: string[]; // 宗门特色
-  成员数量: SectMemberCount; // 成员数量统计
-  与玩家关系: SectRelationship; // 与玩家的关系
-  声望: number; // 玩家在该宗门的声望
-  可否加入: boolean; // 是否可以加入
-  加入条件?: string[]; // 加入条件
-  加入好处?: string[]; // 加入后的好处
-  // 新增：宗门领导和实力展示
-  领导层?: {
-    宗主: string; // 宗主姓名
-    宗主修为: string; // 如"元婴后期"
-    副宗主?: string; // 副宗主姓名（如有）
-    长老数量: number; // 长老总数
-    最强修为: string; // 宗门内最强修为
-  };
-  // 新增：简化的势力范围信息
-  势力范围?: {
-    控制区域: string[]; // 控制的区域，如：["主城", "附属镇", "资源点"]
-    影响范围: string; // 影响范围的简单描述，如："方圆百里"
-    战略价值: number; // 战略价值 (1-10)
-  };
-}
-
-/** 宗门成员数量统计 */
+/** 成员数量统计（用于世界势力 WorldFaction 等） */
 export interface SectMemberCount {
-  总数?: number; // 总成员数
-  total?: number; // 英文字段名兼容
-  按境界?: Record<RealmLevel, number>; // 按境界统计
-  byRealm?: Record<string, number>; // 英文字段名兼容
-  按职位?: Record<SectPosition, number>; // 按职位统计
-  byPosition?: Record<string, number>; // 英文字段名兼容
-}
-
-/** 宗门系统数据 */
-export interface SectSystemData extends AIMetadata {
-  availableSects: SectInfo[]; // 可用的宗门列表
-  sectRelationships: Record<string, number>; // 与各宗门的关系值
-  sectHistory: string[]; // 宗门历史记录 (修复拼写错误)
-}
-
-/** 宗门系统迁移记录 */
-export interface SectMigrationRecord {
-  来源版本: number;
-  目标版本: number;
-  时间: string;
-  说明?: string;
-}
-
-/** 宗门系统数据 - V2 */
-export interface SectSystemV2 extends AIMetadata {
-  版本: number;
-  当前宗门?: string | null;
-  宗门档案: Record<string, WorldFaction>;
-  宗门成员?: Record<string, string[]>;
-  宗门藏经阁?: Record<string, any[]>;
-  宗门贡献商店?: Record<string, any[]>;
-  迁移记录?: SectMigrationRecord;
-  内容状态?: Record<string, SectContentStatus>; // 宗门内容初始化状态
-}
-
-/** 宗门内容初始化状态 */
-export interface SectContentStatus {
-  藏经阁已初始化: boolean;
-  贡献商店已初始化: boolean;
-  最后更新时间?: string;
-  演变次数: number; // AI随机增加内容的次数
-}
-
-/** 宗门藏经阁功法 - 扩展版本 */
-export interface SectLibraryTechniqueExtended {
-  id: string;
-  name: string;
-  quality: string;
-  qualityTier: string;
-  cost: number;
-  description: string;
-  功法效果?: string;
-  境界要求?: string;
-  职位要求?: string; // 外门弟子/内门弟子/核心弟子等
-  已被兑换?: boolean;
-  剩余数量?: number;
-}
-
-/** 宗门贡献商店物品 - 扩展版本 */
-export interface SectShopItemExtended {
-  id: string;
-  name: string;
-  icon: string;
-  type: string;
-  quality: string;
-  description: string;
-  cost: number;
-  stock?: number;
-  使用效果?: string;
-  限购数量?: number;
-  职位要求?: string;
-  稀有度?: '普通' | '稀有' | '珍贵' | '极品';
+  总数?: number;
+  total?: number;
+  按境界?: Record<RealmLevel, number>;
+  byRealm?: Record<string, number>;
+  按职位?: Record<string, number>;
 }
 
 // [MING] 三千大道系统已移除
@@ -513,7 +395,6 @@ export interface PlayerStatus extends AIMetadata {
   神识: ValuePair<number>;
   寿命: ValuePair<number>;
   状态效果?: StatusEffect[];
-  宗门信息?: SectMemberInfo;
   事件系统?: EventSystem;
   身体部位开发?: Record<string, PlayerBodyPart>; // NSFW: 玩家身体部位开发数据 (V3路径: 角色.身体部位开发)
 }

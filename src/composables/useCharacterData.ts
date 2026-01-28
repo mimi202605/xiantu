@@ -21,7 +21,6 @@ export function useCharacterData() {
   const inventory = computed(() => saveData.value?.角色?.背包 ?? null);
   const relationships = computed(() => saveData.value?.社交?.关系 ?? null);
   const skills = computed(() => saveData.value?.角色?.技能?.掌握技能 ?? []);
-  const sect = computed(() => saveData.value?.社交?.宗门 ?? null);
   const world = computed(() => saveData.value?.世界?.信息 ?? null);
   const gameTime = computed(() => saveData.value?.元数据?.时间 ?? null);
 
@@ -34,7 +33,6 @@ export function useCharacterData() {
     inventory,
     relationships,
     skills,
-    sect,
     world,
     gameTime,
   };

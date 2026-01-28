@@ -201,7 +201,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
       name: '2.5 扩展规则',
       content: EXTENDED_BUSINESS_RULES,
       category: 'coreRequest',
-      description: '宗门等扩展',
+      description: '状态效果、地点更新等扩展',
       order: 2.5,
       weight: 5
     },
@@ -329,7 +329,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
 
 ### 当玩家寻找世界主人时
 正确示例：
-- "你说的是XXX？他是我们宗门的长老，现在不在宗内。"
+- "你说的是XXX？他是我们这里的长老/首领，现在不在这儿。"
 - 【你打听到，XXX最近在闭关修炼，不见外人】
 - "世界的主人？你是说天道吗？"那名修士疑惑地看着你。
 
@@ -548,7 +548,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
 ## 必须执行的命令（tavern_commands）
 1. 时间：set \`元数据.时间\` + set \`角色.身份.出生日期\`
 2. 位置：set \`角色.位置\` {描述,x,y}
-3. 声望：set \`角色.属性.声望\`（普通0-10/宗门10-50/名门50-100）
+3. 声望：set \`角色.属性.声望\`（普通0-10/势力10-50/名门50-100）
 4. 资源：set \`角色.背包.灵石\`（贫困0-10/普通10-50/世家100-300）
 5. NPC：set \`社交.关系.{NPC名}\`（0-3个重要人物）
 
@@ -604,7 +604,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
       name: '事件生成',
       content: USE_MING_PROMPTS ? InlineMing.EVENT_GENERATION_MING : `生成修仙世界"刚刚发生"的世界事件（用于影响玩家与世界演变）。要求：
 - 必须让玩家受到影响（危险/资源/关系/位置/修炼环境/势力格局至少一项）
-- 事件可以是宗门大战、世界变化、异宝降世、秘境现世、好友出事/突破等
+- 事件可以是势力冲突、世界变化、人物风波、好友出事/突破等
 - 涉及好友时，需参考关系/好感度与境界，不能无端超规格
 - 不要公告式总结，要有现场感（刚发生）
 输出JSON（不要代码块/解释/额外文本）：
