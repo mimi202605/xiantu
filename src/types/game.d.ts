@@ -676,15 +676,12 @@ export interface WorldInfo {
 
 // --- 事件系统 ---
 
-/** 事件类型（可扩展） */
+/** 事件类型（可扩展，ming 通用：势力冲突/局势变化/重大发现/人物风波） */
 export type EventType =
-  | '宗门大战'
-  | '世界变革'
-  | '异宝降世'
-  | '秘境现世'
+  | '势力冲突'
+  | '局势变化'
+  | '重大发现'
   | '人物风波'
-  | '势力变动'
-  | '天灾人祸'
   | string;
 
 /** 事件记录 */
@@ -717,15 +714,12 @@ export interface EventSystemConfig {
   最小间隔年: number;
   最大间隔年: number;
   事件提示词: string;
-  // 事件类型开关
+  // 事件类型开关（ming 通用）
   启用事件类型?: {
-    宗门大战?: boolean;
-    世界变革?: boolean;
-    异宝降世?: boolean;
-    秘境现世?: boolean;
+    势力冲突?: boolean;
+    局势变化?: boolean;
+    重大发现?: boolean;
     人物风波?: boolean;
-    势力变动?: boolean;
-    天灾人祸?: boolean;
     特殊NPC?: boolean;
   };
   // 特殊NPC事件触发概率 (0-100)

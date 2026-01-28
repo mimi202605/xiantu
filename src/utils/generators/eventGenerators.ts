@@ -124,7 +124,7 @@ export async function generateSpecialNpcEvent(args: {
   "selected_id": "string",
   "event_story": "string",
   "event_name": "string (可选)",
-  "event_type": "人物风波|势力变动|世界变革|string (可选)"
+  "event_type": "人物风波|势力冲突|局势变化|重大发现|string (可选)"
 }
 
 ---
@@ -245,7 +245,7 @@ ${relationList.length ? relationList.map(r => `- ${r.名字} | 关系:${r.与玩
     const normalized: GameEvent = {
       事件ID: String((event as any).事件ID || buildEventId()),
       事件名称: String((event as any).事件名称 || '无名事件'),
-      事件类型: String((event as any).事件类型 || '世界变革'),
+      事件类型: String((event as any).事件类型 || '局势变化'),
       事件描述: String((event as any).事件描述 || prompt_addition),
       影响等级: (event as any).影响等级 ? String((event as any).影响等级) : undefined,
       影响范围: (event as any).影响范围 ? String((event as any).影响范围) : undefined,

@@ -165,13 +165,10 @@
           <div class="form-item">
             <label>事件类型</label>
             <select v-model="customEventForm.类型">
-              <option value="宗门大战">宗门大战</option>
-              <option value="世界变革">世界变革</option>
-              <option value="异宝降世">异宝降世</option>
-              <option value="秘境现世">秘境现世</option>
+              <option value="势力冲突">势力冲突</option>
+              <option value="局势变化">局势变化</option>
+              <option value="重大发现">重大发现</option>
               <option value="人物风波">人物风波</option>
-              <option value="势力变动">势力变动</option>
-              <option value="天灾人祸">天灾人祸</option>
             </select>
           </div>
           <div class="form-item">
@@ -187,7 +184,7 @@
             <label>事件描述模板</label>
             <textarea
               v-model="customEventForm.描述模板"
-              placeholder="支持占位符：{玩家名}、{位置}、{境界}&#10;例如：{玩家名}在{位置}发现了一处神秘洞府..."
+              placeholder="支持占位符：{玩家名}、{位置}&#10;例如：{玩家名}在{位置}遭遇了……"
               rows="4"
             ></textarea>
           </div>
@@ -253,13 +250,10 @@ const config = reactive({
   maxYears: 10,
   prompt: '',
   eventTypes: {
-    '宗门大战': true,
-    '世界变革': true,
-    '异宝降世': true,
-    '秘境现世': true,
+    '势力冲突': true,
+    '局势变化': true,
+    '重大发现': true,
     '人物风波': true,
-    '势力变动': true,
-    '天灾人祸': true,
     '特殊NPC': true,
   } as Record<string, boolean>,
   specialNpcProbability: 20,
@@ -353,13 +347,13 @@ const deleteCustomEvent = async (index: number) => {
 
 // 关闭自定义事件弹窗
 const closeCustomEventModal = () => {
-  showAddCustomEvent.value = false;
-  editingEventIndex.value = null;
-  customEventForm.名称 = '';
-  customEventForm.类型 = '世界变革';
-  customEventForm.描述模板 = '';
-  customEventForm.影响等级 = '中等';
-};
+    showAddCustomEvent.value = false;
+    editingEventIndex.value = null;
+    customEventForm.名称 = '';
+    customEventForm.类型 = '人物风波';
+    customEventForm.描述模板 = '';
+    customEventForm.影响等级 = '中等';
+  };
 
 // 保存自定义事件
 const saveCustomEvent = async () => {
