@@ -21,13 +21,18 @@ import { migrateSaveDataToLatest } from '@/utils/saveMigration';
 
 // [MING] Stub for EnhancedWorldGenerator - simplified world generation
 // Returns WorldInfo-shaped object with 势力信息 and 地点信息 (required by initializeCharacter)
+// Uses creation-screen world info (name, era, description) so 游戏变量->世界信息 is populated correctly
 class EnhancedWorldGenerator {
-  constructor(_config?: any) {}
-  
+  private config?: { worldName?: string; worldBackground?: string; worldEra?: string };
+
+  constructor(config?: { worldName?: string; worldBackground?: string; worldEra?: string }) {
+    this.config = config;
+  }
+
   async generateWorldInfo(_prompt: string, _options?: any): Promise<any> {
     return this.buildStubWorldInfo();
   }
-  
+
   async generateValidatedWorld(): Promise<{ success: boolean; worldInfo?: any; errors?: string[] }> {
     return {
       success: true,
@@ -36,17 +41,20 @@ class EnhancedWorldGenerator {
   }
 
   private buildStubWorldInfo() {
+    const name = (this.config?.worldName?.trim() || '') || '默认世界';
+    const background = (this.config?.worldBackground?.trim() || '') || '默认背景';
+    const era = (this.config?.worldEra?.trim() || '') || '默认纪元';
     return {
-      世界名称: '默认世界',
-      世界描述: '一个充满可能的世界',
-      世界观: '自由探索的世界',
+      世界名称: name,
+      世界描述: background || '一个充满可能的世界',
+      世界观: background || '自由探索的世界',
       大陆信息: [] as any[],
       continents: [] as any[],
       势力信息: [] as any[],  // Required: initializeCharacter calls .find() on this
       地点信息: [] as any[],
       生成时间: new Date().toISOString(),
-      世界背景: '默认背景',
-      世界纪元: '默认纪元',
+      世界背景: background,
+      世界纪元: era,
       特殊设定: [] as string[],
       版本: '1.0'
     };

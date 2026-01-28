@@ -1,5 +1,11 @@
 # 更新日志
 
+## [MING] 通用版 0.2.6 (2026-01-28)
+
+修复创角时世界信息未写入 游戏变量→世界信息：`EnhancedWorldGenerator` stub 现使用创角界面所选世界的 name / era / description 填入 世界.信息，不再固定为默认占位。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.4 (2026-01-28)
 
 三千大道系统移除：类型、Store、校验、初始化、迁移、UI、队列与 i18n 中与 Dao 相关逻辑均已清理。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。

@@ -4,6 +4,23 @@
 
 ---
 
+## [0.2.6] - 2026-01-28
+
+### 🐛 修复：创角时世界信息未写入 游戏变量→世界信息
+
+创角界面填写的世界名称、时代背景、世界描述此前未写入 `世界.信息`，游戏变量中的「世界信息」始终为默认占位。
+
+#### 变更摘要
+
+- **原因**：`characterInitialization` 中的 `EnhancedWorldGenerator`  stub 接收 `enhancedConfig`（来自 `characterCreationStore.selectedWorld` 的 name / era / description）但未使用，`buildStubWorldInfo()` 固定返回 世界名称/世界背景/世界纪元 的默认值。
+- **修改**：`EnhancedWorldGenerator` 构造函数保存 `config`，`buildStubWorldInfo()` 从 `config.worldName`、`config.worldBackground`、`config.worldEra` 填入 世界名称、世界背景、世界纪元、世界描述、世界观；缺省时仍回退默认值。
+
+#### 涉及文件
+
+- `src/services/characterInitialization.ts`
+
+---
+
 ## [0.2.5] - 2026-01-27
 
 ### 宗门系统移除（Sect 退役）
