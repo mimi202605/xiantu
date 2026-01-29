@@ -1046,7 +1046,6 @@ ${step1Text}
           mid_term_memory: parsedStep2.mid_term_memory || '',
           tavern_commands: parsedStep2.tavern_commands || [],
           action_options: uiStore.enableActionOptions ? this.sanitizeActionOptionsForDisplay(parsedStep2.action_options || []) : [],
-          game_entities: (parsedStep2 as any).game_entities,
           semantic_memory: (parsedStep2 as any).semantic_memory,
         };
       } else if (tavernHelper) {
@@ -1416,7 +1415,6 @@ ${step1Text}
           action_options: uiStore.enableActionOptions
             ? this.sanitizeActionOptionsForDisplay(parsedStep2.action_options?.length ? parsedStep2.action_options : defaultInitialActionOptions)
             : [],
-          game_entities: (parsedStep2 as any).game_entities,
           semantic_memory: (parsedStep2 as any).semantic_memory,
         };
 
@@ -1734,9 +1732,8 @@ ${step1Text}
       console.warn('[AI双向系统] 检查自动总结阈值时出错:', error);
     }
 
-    // [MING] 合并 game_entities / semantic_memory 到 系统.扩展（LLM 在 step2 或单步输出）
+    // [MING] 合并 semantic_memory 到 系统.扩展（game_entities 已移除，关系图由 社交.关系 派生）
     mergeInto扩展(saveData as Record<string, unknown>, {
-      game_entities: (response as any).game_entities,
       semantic_memory: (response as any).semantic_memory,
     });
 
@@ -2292,6 +2289,14 @@ ${saveDataJson}`;
           return;
         }
       }
+      // 社交.关系.{npc}.关系 且 value 为 plain object：合并进既有 关系，不整体替换
+      const is关系Merge = segments.length === 4 && segments[0] === '社交' && segments[1] === '关系' && segments[3] === '关系' && isPlainObject(value);
+      if (is关系Merge) {
+        const existing = get(saveData, path);
+        const base = isPlainObject(existing) ? existing : {};
+        set(saveData, path, { ...base, ...value });
+        return;
+      }
     }
     switch (action) {
       case 'set':
@@ -2579,7 +2584,6 @@ ${saveDataJson}`;
         tavern_commands: tavernCommands,
         action_options: this.sanitizeActionOptionsForDisplay(actionOptions)
       };
-      if (obj.game_entities != null && typeof obj.game_entities === 'object') gm.game_entities = obj.game_entities as GM_Response['game_entities'];
       if (obj.semantic_memory != null && typeof obj.semantic_memory === 'object') gm.semantic_memory = obj.semantic_memory as GM_Response['semantic_memory'];
       return gm;
     };

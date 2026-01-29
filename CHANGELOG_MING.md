@@ -4,6 +4,37 @@
 
 ---
 
+## [0.2.7] - 2026-01-28
+
+### 移除 game_entities，关系图仅由 社交.关系 派生
+
+实体与 NPC–NPC 关系不再使用 `game_entities` / `系统.扩展.游戏实体索引`；关系图**全部**由 **`社交.关系`**（含 与玩家关系、关系）+ **角色** 派生，写入**统一**经 **tavern_commands**。
+
+#### 变更摘要
+
+- **NpcProfile**：新增 **`关系?: Record<string, string>`**（本 NPC 对其他 NPC；key=对方名字，value=关系标签）。仅经 tavern_commands 写：`set 社交.关系.{npc}.关系.{其他}` 或 `set 社交.关系.{npc}.关系` 对象**合并**。
+- **gameStateIndexer**：`mergeInto扩展` **删除**对 `game_entities` 的处理，**仅**处理 **semantic_memory**；`readFrom扩展` 只返回 `semanticMemory`。不再读写 `游戏实体索引`。
+- **memoryRetrievalService**：不再从 `readFrom扩展` 取 `gameEntityIndex`；新增 **`deriveFrom社交关系(社交关系, 角色身份)`**，从 `社交.关系` 与 `角色.身份` 派生 `entities`、`relationships`（Player–NPC 从 与玩家关系，NPC–NPC 从 关系）。`retrieve()` 使用派生结果与 `readFrom扩展` 的 `semanticMemory`。
+- **AIBidirectionalSystem**：不再向 `mergeInto扩展` 传入 `game_entities`；**移除** `gmResponse.game_entities` 及 `parseAIResponse` 对 `game_entities` 的提取。**`executeCommand`**：当 `set 社交.关系.{npc}.关系` 且 value 为 **plain object** 时，**合并**进既有 `关系`（`{ ...existing, ...value }`），不整体替换。
+- **Step2 / Init Step2**：从输出格式中**移除 `game_entities`**；Step2 格式改为 `{"mid_term_memory","tavern_commands","action_options","semantic_memory"}`。inlinePromptsMing、dataDefinitionsMing 说明 NPC–NPC 关系**仅**经 tavern_commands（`set 社交.关系.{npc}.关系.{其他}` 或 `set 社交.关系.{npc}.关系` 对象合并）。
+- **gameStateStore**：**移除** `gameEntityIndex`；`loadFromSaveData` / `toSaveData` 仅读写 `语义记忆`（`系统.扩展.语义记忆`）。**迁移**：若存在 `系统.扩展.游戏实体索引.relationships`，在 load 时迁移到 `社交.关系[fromId].关系[toId]`（仅 NPC–NPC，fromId/toId 均在 社交.关系）。
+- **GameVariablePanel / GameVariableGameIndexSection**：实体与关系由 **`deriveFrom社交关系(relationships, character)`** 派生，不再使用 `gameEntityIndex`；`mapSavePathToStorePath` 删除 `系统.扩展.游戏实体索引` → `gameEntityIndex`。
+- **类型**：`AIGameMaster.d.ts` 删除 `GM_Response.game_entities`；`gameStateIndex.ts` 删除 `GameEntityIndex`、`GameEntitiesOutput`；`GameEntityType` 增加 `'player'`（派生用）。
+
+#### 涉及文件
+
+- `game.d.ts`、`gameStateIndexer.ts`、`memoryRetrievalService.ts`、`AIBidirectionalSystem.ts`、`inlinePromptsMing.ts`、`dataDefinitionsMing.ts`、`gameStateStore.ts`、`GameVariablePanel.vue`、`GameVariableGameIndexSection.vue`、`GameVariableDataDisplay.vue`、`gameStateIndex.ts`、`AIGameMaster.d.ts`
+
+### 语义记忆：排序、检索与可视化
+
+- **合并时自动补 timestamp**：`gameStateIndexer` 在合并 `semantic_memory.triples` 时，对缺 `timestamp` 的项自动补（`元数据.时间` → `gameTimeToSortable` 或 `new Date().toISOString()`）。
+- **检索**：`querySemanticTriples` 替代 `queryByTimeImportance`；**真实时间衰减**（解析 timestamp，`decay(age)=1/(1+age/halflife)`）、**contextBoost**（subject/object ∈ 玩家、recentNpcNames 时加权），`score = contextBoost × importance × recency`，取 top N。
+- **排序工具**：`sortTriples(triples, by, order)`、`parseTripleTimestamp(t)` 供检索与 UI 复用；`by` 支持 subject / predicate / object / importance / timestamp / category。
+- **可视化**：`GameVariableGameIndexSection` 语义记忆块展示 **timestamp**；支持**排序**（默认 timestamp 降序）、**筛选**（subject 包含、category、importance ≥）、**按 subject 分组**。
+- **时间**：`time.ts` 新增 `gameTimeToSortable`、`gameTimeToMinutes`、`gameTimeStringToMinutes`；prompts/dataDefinitions 建议填 `timestamp`、`importance`，未填 timestamp 时合并自动补。
+
+---
+
 ## [0.2.6] - 2026-01-28
 
 ### 🐛 修复：创角时世界信息未写入 游戏变量→世界信息

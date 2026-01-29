@@ -688,6 +688,8 @@ export interface NpcProfile {
 
   // === 社交关系 ===
   与玩家关系: string; // 如：道侣、师徒、朋友、敌人、陌生人
+  /** 本 NPC 对其他 NPC 的关系；key=对方名字，value=关系标签；仅经 tavern_commands 写：set 社交.关系.{npc}.关系.{其他} 或 set 社交.关系.{npc}.关系 对象合并 */
+  关系?: Record<string, string>;
   好感度: number; // -100 到 100
   当前位置: {
     描述: string;

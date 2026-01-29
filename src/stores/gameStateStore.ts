@@ -88,8 +88,7 @@ interface GameState {
   // 对话后自动存档配置
   conversationAutoSaveEnabled: boolean; // 是否启用对话后自动存档
 
-  // [MING] 游戏实体索引与语义记忆（来自 系统.扩展，用于 token 高效检索）
-  gameEntityIndex: import('@/types/gameStateIndex').GameEntityIndex | null;
+  // [MING] 语义记忆（来自 系统.扩展.语义记忆）；实体与关系由 社交.关系+角色 派生
   semanticMemory: import('@/types/gameStateIndex').SemanticMemoryStore | null;
 }
 
@@ -140,7 +139,6 @@ export const useGameStateStore = defineStore('gameState', {
     // 对话后自动存档配置（默认开启）
     conversationAutoSaveEnabled: true,
 
-    gameEntityIndex: null,
     semanticMemory: null,
   }),
 
@@ -233,7 +231,22 @@ export const useGameStateStore = defineStore('gameState', {
       }
       const inventory: Inventory | null = v3?.角色?.背包 ? deepCopy(v3.角色.背包) : null;
       const equipment: Equipment | null = v3?.角色?.装备 ? deepCopy(v3.角色.装备) : null;
-      const relationships: Record<string, NpcProfile> | null = v3?.社交?.关系 ? deepCopy(v3.社交.关系) : null;
+      let relationships: Record<string, NpcProfile> | null = v3?.社交?.关系 ? deepCopy(v3.社交.关系) : null;
+      // 迁移：游戏实体索引.relationships → 社交.关系[fromId].关系[toId]（仅 NPC–NPC，fromId/toId 均在 社交.关系）
+      const 扩展 = v3?.系统?.扩展;
+      const oldRels = 扩展 && typeof 扩展 === 'object' ? (扩展 as any).游戏实体索引?.relationships : null;
+      if (relationships && Array.isArray(oldRels)) {
+        for (const r of oldRels) {
+          if (!r || typeof r !== 'object' || !r.fromId || !r.toId || typeof r.relationship !== 'string') continue;
+          const { fromId, toId, relationship } = r;
+          if (fromId === 'player' || toId === 'player') continue;
+          if (!(fromId in relationships) || !(toId in relationships)) continue;
+          const npc = relationships[fromId];
+          if (!npc || typeof npc !== 'object') continue;
+          (npc as any).关系 = (npc as any).关系 || {};
+          (npc as any).关系[toId] = relationship;
+        }
+      }
       const worldInfo: WorldInfo | null = v3?.世界?.信息 ? deepCopy(v3.世界.信息) : null;
       const coerceMemoryArray = (value: unknown): string[] => {
         if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
@@ -315,11 +328,7 @@ export const useGameStateStore = defineStore('gameState', {
         this.systemConfig = ensureSystemConfigHasNsfw(this.systemConfig) as any;
       }
 
-      // [MING] 游戏实体索引与语义记忆（系统.扩展）
-      const 扩展 = v3?.系统?.扩展;
-      this.gameEntityIndex = 扩展 && typeof 扩展 === 'object' && 扩展.游戏实体索引
-        ? deepCopy(扩展.游戏实体索引)
-        : null;
+      // [MING] 语义记忆（系统.扩展.语义记忆）；游戏实体索引已移除，实体与关系由 社交.关系 派生
       this.semanticMemory = 扩展 && typeof 扩展 === 'object' && 扩展.语义记忆
         ? deepCopy(扩展.语义记忆)
         : null;
@@ -472,7 +481,6 @@ export const useGameStateStore = defineStore('gameState', {
           缓存: { 掌握技能: this.masteredSkills ?? (skillState as any)?.掌握技能 ?? [] },
           历史: { 叙事: this.narrativeHistory || [] },
           扩展: {
-            游戏实体索引: this.gameEntityIndex ?? { entities: [], relationships: [] },
             语义记忆: this.semanticMemory ?? { triples: [] },
           },
           联机: online,

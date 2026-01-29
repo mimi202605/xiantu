@@ -43,7 +43,7 @@ export const SPLIT_GENERATION_STEP1_MING = `# 分步生成 1/2：仅正文
 export const SPLIT_GENERATION_STEP2_MING = `# 分步生成 2/2：仅指令
 
 ## 输出格式（必须严格遵守）
-{"mid_term_memory":"50-100字摘要","tavern_commands":[{"action":"add","key":"元数据.时间.分钟","value":30}],"action_options":["选项1","选项2","选项3","选项4","选项5"],"game_entities":{...},"semantic_memory":{...}}
+{"mid_term_memory":"50-100字摘要","tavern_commands":[{"action":"add","key":"元数据.时间.分钟","value":30}],"action_options":["选项1","选项2","选项3","选项4","选项5"],"semantic_memory":{...}}
 
 ## JSON 与 key 规则（重要）
 - 只输出一个 JSON 对象，禁止任何前后缀文字、禁止 \`\`\` 代码块
@@ -61,22 +61,19 @@ export const SPLIT_GENERATION_STEP2_MING = `# 分步生成 2/2：仅指令
 - mid_term_memory：摘要
 - tavern_commands：数据更新指令
 - action_options：行动选项（如启用）
-- **game_entities**（可选但推荐）：本回合新增或更新的**重要**游戏实体与关系，用于长期索引
 - **semantic_memory**（可选但推荐）：本回合的**重要事实**三元组，用于语义检索
 
-## game_entities 结构（可选）
-\`\`\`json
-{"entities":[{"id":"npc_张三","type":"npc","name":"张三","metadata":{},"tags":["重要NPC"]}],"relationships":[{"fromId":"npc_张三","toId":"player","relationship":"师徒"}]}
-\`\`\`
-- entities: 本回合新出现或状态变化的重要 NPC/地点/物品/事件；id 建议 \`类型_名称\` 或 \`类型_名称_后缀\`
-- relationships: 实体间关系，如 NPC-玩家、NPC-NPC、玩家-地点；toId 可为 \`player\` 表示玩家
+## NPC 与关系（仅经 tavern_commands）
+- 创建/更新 NPC：\`set 社交.关系.{NPC名}\` 完整对象；创建时可在 value 中带 \`关系\`。
+- **NPC–NPC 关系** 仅经 tavern_commands：\`set 社交.关系.张三.关系.李四\` \`"师徒"\`；或 \`set 社交.关系.张三.关系\` \`{ "李四":"徒弟", "王五":"仇敌" }\`（与既有 关系 **合并**，不整体替换）。\`delete 社交.关系.张三.关系.李四\` 可删除一条。
 
 ## semantic_memory 结构（可选）
 \`\`\`json
-{"triples":[{"subject":"张三","predicate":"是","object":"玩家的师父"},{"subject":"玩家","predicate":"在","object":"青城山获得玉佩"},{"subject":"李四","predicate":"仇恨","object":"玩家"}]}
+{"triples":[{"subject":"张三","predicate":"是","object":"玩家的师父","timestamp":"1050-01-15-08-30","importance":8},{"subject":"玩家","predicate":"在","object":"青城山获得玉佩"},{"subject":"李四","predicate":"仇恨","object":"玩家"}]}
 \`\`\`
 - subject/predicate/object: 主、谓、宾
-- importance: 1-10，越高越重要（可省略，默认 5）
+- **timestamp**（建议）：ISO 或与 元数据.时间 同形的可排序串（如 YYYY-MM-DD-HH-mm），便于检索与可视化；**若未填，系统在合并时会自动补**
+- **importance**（建议）：1–10，越高越重要（可省略，默认 5），用于选择性抽取
 - category: "关系"|"行动"|"地点"|"物品" 等（可省略）
 
 只提取**对后续剧情有影响**的事实，避免琐碎（如「我种了一棵树」通常不取）。
@@ -85,8 +82,8 @@ export const SPLIT_GENERATION_STEP2_MING = `# 分步生成 2/2：仅指令
 若有 NPC 的 \`实时关注\` 为 true，即使不在玩家身边，也要根据第 1 步正文推演其动态并更新
 
 ## 再次强调输出格式
-只输出：\`{"mid_term_memory":"...","tavern_commands":[...],"action_options":[...],"game_entities":{...},"semantic_memory":{...}}\`
-禁止输出 text 字段！game_entities / semantic_memory 可给空对象 \`{}\` 若本回合无重要实体或事实。`.trim();
+只输出：\`{"mid_term_memory":"...","tavern_commands":[...],"action_options":[...],"semantic_memory":{...}}\`
+禁止输出 text 字段！semantic_memory 可给空对象 \`{"triples":[]}\` 若本回合无重要事实。`.trim();
 
 export const SPLIT_INIT_STEP1_MING = `# 开局生成 1/2：仅开局叙事
 
@@ -127,7 +124,7 @@ export const SPLIT_INIT_STEP1_MING = `# 开局生成 1/2：仅开局叙事
 export const SPLIT_INIT_STEP2_MING = `# 开局生成 2/2：初始化数据
 
 ## 输出格式（必须严格遵守）
-{"mid_term_memory":"50-100字摘要","tavern_commands":[...],"action_options":["选项1","选项2","选项3","选项4","选项5"],"game_entities":{...},"semantic_memory":{...}}
+{"mid_term_memory":"50-100字摘要","tavern_commands":[...],"action_options":["选项1","选项2","选项3","选项4","选项5"],"semantic_memory":{...}}
 
 ## JSON 与 key 规则（重要）
 - 只输出一个 JSON 对象，禁止任何前后缀文字、禁止 \`\`\` 代码块
@@ -152,7 +149,7 @@ export const SPLIT_INIT_STEP2_MING = `# 开局生成 2/2：初始化数据
 - ❌ 任何叙事/正文内容
 
 ## 再次强调输出格式
-只输出：\`{"mid_term_memory":"...","tavern_commands":[...],"action_options":[...],"game_entities":{...},"semantic_memory":{...}}\`
+只输出：\`{"mid_term_memory":"...","tavern_commands":[...],"action_options":[...],"semantic_memory":{...}}\`
 禁止输出 text 字段！`.trim();
 
 export const MEMORY_SUMMARY_MING = `记忆总结助手。第一人称"我"，250-400 字，保留人名/地名/事件/物品，忽略对话/情绪/细节。

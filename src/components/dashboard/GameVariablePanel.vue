@@ -66,6 +66,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { deriveFrom社交关系 } from '@/services/memoryRetrievalService'
 import { useGameStateStore } from '@/stores/gameStateStore'
 import { useCharacterStore } from '@/stores/characterStore'
 import { toast } from '@/utils/toast'
@@ -180,10 +181,14 @@ const saveData = computed(() => {
 const worldInfo = computed(() => gameStateStore.worldInfo || {})
 const memoryData = computed(() => gameStateStore.memory || {})
 
-const gameIndexData = computed(() => ({
-  gameEntityIndex: gameStateStore.gameEntityIndex ?? { entities: [], relationships: [] },
-  semanticMemory: gameStateStore.semanticMemory ?? { triples: [] },
-}))
+const gameIndexData = computed(() => {
+  const derived = deriveFrom社交关系(gameStateStore.relationships ?? null, gameStateStore.character ?? null)
+  return {
+    entities: derived.entities,
+    relationships: derived.relationships,
+    semanticMemory: gameStateStore.semanticMemory ?? { triples: [] },
+  }
+})
 
 const socialRelations = computed(() => gameStateStore.relationships ?? {})
 
@@ -229,11 +234,9 @@ const getDataCount = (type: string) => {
 }
 
 const getGameIndexCount = () => {
-  const idx = gameIndexData.value.gameEntityIndex
-  const sm = gameIndexData.value.semanticMemory
-  const e = Array.isArray(idx?.entities) ? idx.entities.length : 0
-  const r = Array.isArray(idx?.relationships) ? idx.relationships.length : 0
-  const t = Array.isArray(sm?.triples) ? sm.triples.length : 0
+  const e = Array.isArray(gameIndexData.value.entities) ? gameIndexData.value.entities.length : 0
+  const r = Array.isArray(gameIndexData.value.relationships) ? gameIndexData.value.relationships.length : 0
+  const t = Array.isArray(gameIndexData.value.semanticMemory?.triples) ? gameIndexData.value.semanticMemory.triples.length : 0
   return e + r + t
 }
 
@@ -408,7 +411,6 @@ const saveVariable = async (item: EditingItem) => {
         { from: '系统.缓存.掌握技能', to: 'masteredSkills' },
         { from: '系统.历史.叙事', to: 'narrativeHistory' },
         { from: '系统.联机', to: 'onlineState' },
-        { from: '系统.扩展.游戏实体索引', to: 'gameEntityIndex' },
         { from: '系统.扩展.语义记忆', to: 'semanticMemory' },
       ]
 

@@ -6,7 +6,7 @@
  */
 
 /** Entity type for the game world */
-export type GameEntityType = 'npc' | 'location' | 'item' | 'event' | 'faction' | 'other';
+export type GameEntityType = 'npc' | 'location' | 'item' | 'event' | 'faction' | 'player' | 'other';
 
 /** A single game entity (NPC, location, item, event) with metadata and tags */
 export interface GameEntity {
@@ -34,34 +34,26 @@ export interface EntityRelationship {
   metadata?: Record<string, unknown>;
 }
 
-/** Stored game entity index (lives in 系统.扩展.游戏实体索引) */
-export interface GameEntityIndex {
-  entities: GameEntity[];
-  relationships: EntityRelationship[];
-}
-
-/** A (subject, predicate, object) fact with metadata */
+/**
+ * A (subject, predicate, object) fact with metadata.
+ * timestamp/importance/category are used for sorting and selective retrieval;
+ * if timestamp is missing, it is filled on merge (from 元数据.时间 or ISO now).
+ */
 export interface SemanticTriple {
   subject: string;
   predicate: string;
   object: string;
-  /** ISO or game-time string */
+  /** ISO or game-time sortable string (e.g. YYYY-MM-DD-HH-mm); filled on merge if absent */
   timestamp?: string;
-  /** 1-10, higher = more important for retrieval */
+  /** 1–10, higher = more important for retrieval; default 5 when missing */
   importance?: number;
-  /** e.g. "关系", "行动", "地点", "物品" */
+  /** e.g. "关系", "行动", "地点", "物品"; used for sorting and filtering */
   category?: string;
 }
 
 /** Stored semantic memory (lives in 系统.扩展.语义记忆) */
 export interface SemanticMemoryStore {
   triples: SemanticTriple[];
-}
-
-/** LLM-generated chunk for game_entities in step-2 JSON */
-export interface GameEntitiesOutput {
-  entities?: GameEntity[];
-  relationships?: EntityRelationship[];
 }
 
 /** LLM-generated chunk for semantic_memory in step-2 JSON */

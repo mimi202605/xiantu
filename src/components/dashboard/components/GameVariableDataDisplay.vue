@@ -51,7 +51,7 @@ interface Props {
   saveData: Record<string, GameVariableValue>
   worldInfo: Record<string, GameVariableValue>
   memoryData: Record<string, GameVariableValue>
-  gameIndexData?: { gameEntityIndex?: unknown; semanticMemory?: unknown } | null
+  gameIndexData?: { entities?: unknown[]; relationships?: unknown[]; semanticMemory?: unknown } | null
   socialRelations?: Record<string, unknown>
   allGameData: Record<string, GameVariableValue>
   filteredCoreDataViews: Record<string, GameVariableValue>
