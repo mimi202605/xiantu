@@ -24,7 +24,7 @@ import { normalizeGameTime } from './time';
 import { updateStatusEffects } from './statusEffectManager';
 import { sanitizeAITextForDisplay } from '@/utils/textSanitizer';
 import { validateAndRepairNpcProfile } from '@/utils/dataValidation';
-import { stripNsfwContent } from '@/utils/prompts/definitions/dataDefinitions';
+import { stripNsfwContentMing } from '@/utils/prompts/definitions/ming/dataDefinitionsMing';
 import { isSaveDataV3, migrateSaveDataToLatest } from './saveMigration';
 import { mergeInto扩展 } from '@/services/gameStateIndexer';
 import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
@@ -902,7 +902,7 @@ ${narrativeStateJson}
             getPrompt('worldStandards')
           ]);
 
-          const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContent(dataDefinitionsPrompt);
+          const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContentMing(dataDefinitionsPrompt);
 
           // 第2步：COT + 指令生成（合并）
           const stepRules = (await getPrompt('splitGenerationStep2')).trim();
@@ -924,7 +924,7 @@ ${cotPrompt}
 `.trim());
           }
 
-          const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContent(businessRulesPrompt);
+          const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContentMing(businessRulesPrompt);
           sections.push(sanitizedBusinessRulesPrompt, sanitizedDataDefinitionsPrompt, textFormatsPrompt, worldStandardsPrompt);
 
           if (uiStore.enableActionOptions) {
@@ -1292,8 +1292,8 @@ ${userPrompt}
             getPrompt('textFormatRules'),
             getPrompt('worldStandards')
           ]);
-          const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContent(dataDefinitionsPrompt);
-          const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContent(businessRulesPrompt);
+          const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContentMing(dataDefinitionsPrompt);
+          const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContentMing(businessRulesPrompt);
 
           const sections: string[] = [stepRules];
 

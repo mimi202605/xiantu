@@ -4,6 +4,25 @@
 
 ---
 
+## [0.2.8] - 2026-01-31
+
+### Ming 模式清理：统一使用 Ming 提示词
+
+逐步移除与 Ming 模式无关的逻辑和提示词，保持项目精简。采用非激进、分阶段方式。
+
+#### 变更摘要
+
+- **Phase 1 - 角色初始化**：`characterInitializationPromptsMing.ts` 新增 `buildCharacterInitializationPromptMing`、`buildCharacterSelectionsSummaryMing`；`characterInitialization.ts` 根据 `USE_MING_PROMPTS` 选择 Ming 版本；术语调整：灵根 → 特质。
+- **Phase 2 - defaultPrompts**：移除非 Ming 的 imports（coreRules、businessRules、textFormats、worldStandards、actionOptions、eventSystemRules、dataDefinitions、characterInitializationPrompts）；所有提示词直接使用 Ming 版本，移除 `USE_MING_PROMPTS ?` 三元分支。
+- **Phase 3 - 其他模块**：`promptAssembler.ts` 使用 `stripNsfwContentMing`、`SAVE_DATA_STRUCTURE_MING`；`AIBidirectionalSystem.ts` 使用 `stripNsfwContentMing`；`GameVariableFormatGuideModal.vue` 使用 `getSaveDataStructureMingForEnv`；`cotCore.ts` 从 `textFormatsMing` 导入 `DICE_ROLLING_RULES`。
+- **Phase 4 - 文档**：新增 `docs/plan-ming-cleanup.md`，列出后续可删除的修仙版定义文件及检查清单。
+
+#### 涉及文件
+
+- `defaultPrompts.ts`、`characterInitialization.ts`、`characterInitializationPromptsMing.ts`、`promptAssembler.ts`、`AIBidirectionalSystem.ts`、`GameVariableFormatGuideModal.vue`、`cotCore.ts`、`docs/plan-ming-cleanup.md`
+
+---
+
 ## [0.2.7] - 2026-01-28
 
 ### 移除 game_entities，关系图仅由 社交.关系 派生

@@ -1,10 +1,10 @@
 import { getPrompt } from '@/services/defaultPrompts';
-import { SAVE_DATA_STRUCTURE, stripNsfwContent } from './definitions/dataDefinitions';
+import { SAVE_DATA_STRUCTURE_MING, stripNsfwContentMing } from './definitions/ming/dataDefinitionsMing';
 import { isTavernEnv } from '@/utils/tavern';
 import { getNsfwSettingsFromStorage } from '@/utils/nsfw';
 
-// 导出常用的规则常量
-export { SAVE_DATA_STRUCTURE as DATA_STRUCTURE_DEFINITIONS };
+// 导出常用的规则常量（Ming 通用版）
+export { SAVE_DATA_STRUCTURE_MING as DATA_STRUCTURE_DEFINITIONS };
 
 /**
  * 组装最终的系统Prompt（异步版本，支持自定义提示词）
@@ -35,8 +35,8 @@ export async function assembleSystemPrompt(
   ]);
 
   const tavernEnv = isTavernEnv();
-  const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContent(dataDefinitionsPrompt);
-  const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContent(businessRulesPrompt);
+  const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContentMing(dataDefinitionsPrompt);
+  const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContentMing(businessRulesPrompt);
 
   const promptSections = [
     // 1. 核心规则（JSON格式、响应格式、数据结构严格性）

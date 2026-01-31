@@ -14,6 +14,8 @@ import { AIBidirectionalSystem } from '@/utils/AIBidirectionalSystem';
 import { isTavernEnv } from '@/utils/tavern';
 import { getNsfwSettingsFromStorage, ensureSystemConfigHasNsfw } from '@/utils/nsfw';
 import { buildCharacterInitializationPrompt, buildCharacterSelectionsSummary } from '@/utils/prompts/tasks/characterInitializationPrompts';
+import { buildCharacterInitializationPromptMing, buildCharacterSelectionsSummaryMing } from '@/utils/prompts/tasks/characterInitializationPromptsMing';
+import { USE_MING_PROMPTS } from '@/services/defaultPrompts';
 import { validateGameData } from '@/utils/dataValidation';
 import { migrateSaveDataToLatest } from '@/utils/saveMigration';
 // [MING] Removed enhanced world generator - using simplified world generation
@@ -492,8 +494,12 @@ async function generateOpeningScene(saveData: SaveData, baseInfo: CharacterBaseI
   console.log('  - 大陆数量:', worldContext.availableContinents.length);
   console.log('  - 地点数量:', worldContext.availableLocations.length);
 
-  const systemPrompt = await buildCharacterInitializationPrompt();
-  const selectionsSummary = buildCharacterSelectionsSummary(userSelections, worldContext);
+  const systemPrompt = USE_MING_PROMPTS
+    ? await buildCharacterInitializationPromptMing()
+    : await buildCharacterInitializationPrompt();
+  const selectionsSummary = USE_MING_PROMPTS
+    ? buildCharacterSelectionsSummaryMing(userSelections, worldContext)
+    : buildCharacterSelectionsSummary(userSelections, worldContext);
 
   const userPrompt = `我创建了角色"${baseInfo.名字}"，请根据我的选择生成开局故事和初始数据。
 
@@ -501,7 +507,7 @@ ${selectionsSummary}
 
 **重要提示**：
 - 严格按照我的角色设定来生成内容
-- 我选择的是什么样的出身、天赋、灵根，你就如实展现
+- 我选择的是什么样的出身、天赋${USE_MING_PROMPTS ? '、特质' : '、灵根'}，你就如实展现
 - 不要强加任何预设的剧情方向或生活方式
 - 这只是一个开始，我的人生我做主`;
 

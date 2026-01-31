@@ -1,4 +1,4 @@
-import { DICE_ROLLING_RULES } from '../definitions/textFormats';
+import { DICE_ROLLING_RULES } from '../definitions/ming/textFormatsMing';
 
 /**
  * @fileoverview CoT 核心提示词 v5.2.0

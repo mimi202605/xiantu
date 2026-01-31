@@ -3,7 +3,11 @@
  * 适用于各类故事，不包含修仙、境界、灵根、大道、功法等。
  */
 
+import type { World, TalentTier, Origin, SpiritRoot, Talent } from '@/types';
+import type { WorldInfo, WorldMapConfig, SystemConfig } from '@/types/game';
 import { SAVE_DATA_STRUCTURE_MING, stripNsfwContentMing } from '../definitions/ming/dataDefinitionsMing';
+import { assembleSystemPrompt } from '../promptAssembler';
+import { isTavernEnv } from '@/utils/tavern';
 
 // =====================================================================
 // 响应格式定义
@@ -175,4 +179,156 @@ ${SAVE_DATA_STRUCTURE_MING}
 export function getCharacterInitializationPromptMingForEnv(isTavern: boolean): string {
   if (isTavern) return CHARACTER_INITIALIZATION_PROMPT_MING;
   return stripNsfwContentMing(CHARACTER_INITIALIZATION_PROMPT_MING);
+}
+
+// =====================================================================
+// 构建函数（与 characterInitializationPrompts 接口一致）
+// =====================================================================
+
+interface ContextItem {
+  name?: string;
+  名称?: string;
+  description?: string;
+  描述?: string;
+  type?: string;
+  类型?: string;
+}
+
+/**
+ * 构建玩家选择摘要（通用版，不含修仙专有术语）
+ */
+export function buildCharacterSelectionsSummaryMing(
+  userSelections: {
+    name: string;
+    gender: string;
+    race: string;
+    age: number;
+    world: World;
+    talentTier: TalentTier;
+    origin: Origin | string;
+    spiritRoot: SpiritRoot | string;
+    talents: Talent[];
+    attributes: Record<string, number>;
+    difficultyPrompt?: string;
+  },
+  worldContext?: {
+    worldInfo?: WorldInfo;
+    availableContinents?: ContextItem[];
+    availableLocations?: ContextItem[];
+    mapConfig?: WorldMapConfig;
+    systemSettings?: SystemConfig;
+  }
+): string {
+  const { name, gender, race, age, world, talentTier, origin, spiritRoot, talents, attributes, difficultyPrompt } = userSelections;
+  const originIsObj = typeof origin === 'object' && origin !== null;
+  const spiritRootIsObj = typeof spiritRoot === 'object' && spiritRoot !== null;
+
+  const talentsList = talents.length > 0
+    ? talents.map(t => `- ${t.name}: ${t.description}`).join('\n')
+    : '无';
+  const attrList = Object.entries(attributes).map(([k, v]) => `${k}:${v}`).join(', ');
+  const continents = worldContext?.availableContinents
+    ?.map(c => `- ${c.name || c.名称}`)
+    .join('\n') || '(未生成)';
+  const locations = worldContext?.availableLocations
+    ?.slice(0, 8)
+    .map(l => `- ${l.name || l.名称} (${l.type || l.类型})`)
+    .join('\n') || '(未生成)';
+
+  return `
+# 玩家角色数据
+
+## 基础信息
+姓名: ${name} | 性别: ${gender} | 种族: ${race} | 年龄: ${age}岁
+
+## 世界
+${world.name} (${world.era})
+${world.description}
+
+## 天资
+${talentTier.name}: ${talentTier.description}
+
+## 出身
+${originIsObj ? (origin as Origin).name : origin}: ${originIsObj ? (origin as Origin).description : '(随机，需AI生成)'}
+
+## 特质
+${spiritRootIsObj ? `${(spiritRoot as SpiritRoot).name}: ${(spiritRoot as SpiritRoot).description}` : `${spiritRoot}: (随机，需AI生成)`}
+
+## 天赋
+${talentsList}
+
+## 先天属性
+${attrList}
+
+---
+
+## 可用地点
+**大陆**:
+${continents}
+
+**地点**:
+${locations}
+
+⚠️ 位置必须从上述地点选择，坐标范围: x:0-10000, y:0-10000
+
+---
+
+## 难度设置
+${difficultyPrompt || '【难度模式：普通】\n- 世界遵循正常规则，机缘与危险并存'}
+
+---
+
+## 系统设置
+${worldContext?.systemSettings?.nsfwMode ? `- **NSFW模式**: 已开启
+- **私密信息生成范围**: ${worldContext?.systemSettings?.nsfwGenderFilter === 'all' ? '所有NPC' : worldContext?.systemSettings?.nsfwGenderFilter === 'female' ? '仅女性NPC' : '仅男性NPC'}
+⚠️ 创建NPC时，若NPC性别符合上述范围，必须生成完整的"私密信息(PrivacyProfile)"字段
+⚠️ NSFW：玩家法身（仅酒馆端）：必须生成并用 tavern_commands 写入 \`角色.身体\`（不要填"待AI生成"）` : '- **NSFW模式**: 已关闭（不生成私密信息/法身）'}
+
+---
+
+## 输出要求
+严格遵循系统的JSON输出规则：
+- 不要输出 \`<thinking>\` / 思维链 / 任何推理过程标签
+- 正文写入 JSON 的 "text" 字段（不要再输出 "<narrative>" 等标签）
+- 行动选项写入 JSON 的 "action_options" 字段（5个）
+`.trim();
+}
+
+/**
+ * 构建角色初始化系统提示词（通用版）
+ */
+export async function buildCharacterInitializationPromptMing(): Promise<string> {
+  const basePrompt = await assembleSystemPrompt([]);
+
+  const prompt = `${basePrompt}
+
+---
+
+# 当前任务：角色初始化
+
+你现在需要执行角色初始化任务。用户将提供角色的基础信息（姓名、性别、年龄、天赋、出身等），你需要：
+1. 根据用户选择生成1200-2500字的开局叙事
+2. 通过tavern_commands设置初始数据（时间、位置、资源、NPC等）
+3. 输出5个行动选项
+
+**立即执行任务，输出JSON格式的角色初始化数据。**
+
+---
+
+${RESPONSE_FORMAT_MING}
+
+---
+
+${COMMANDS_RULES_MING}
+
+---
+
+${NARRATIVE_RULES_MING}
+
+---
+
+${RESOURCE_RANGES_MING}
+`.trim();
+
+  return isTavernEnv() ? prompt : stripNsfwContentMing(prompt);
 }

@@ -1,5 +1,11 @@
 # 更新日志
 
+## [MING] 通用版 0.2.8 (2026-01-31)
+
+Ming 模式清理：defaultPrompts、promptAssembler、AIBidirectionalSystem、characterInitialization 等统一使用 Ming 提示词；移除非 Ming 的 imports 与三元分支。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.7 (2026-01-28)
 
 移除 game_entities，关系图仅由 社交.关系 派生；确保 NpcProfile.关系 在创角/加载时初始化，游戏变量与人物关系→原始数据可正确展示。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。

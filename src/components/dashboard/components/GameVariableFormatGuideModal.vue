@@ -287,7 +287,7 @@
 import { ref } from 'vue'
 import { BookOpen, X, Copy } from 'lucide-vue-next'
 import { toast } from '@/utils/toast'
-import { getSaveDataStructureForEnv } from '@/utils/prompts/definitions/dataDefinitions'
+import { getSaveDataStructureMingForEnv } from '@/utils/prompts/definitions/ming/dataDefinitionsMing'
 import { isTavernEnv } from '@/utils/tavern'
 
 defineEmits<{
@@ -295,7 +295,7 @@ defineEmits<{
 }>()
 
 const activeSection = ref('character')
-const saveDataStructure = getSaveDataStructureForEnv(isTavernEnv())
+const saveDataStructure = getSaveDataStructureMingForEnv(isTavernEnv())
 
 const sections = [
   { id: 'character', title: '角色/状态' },
