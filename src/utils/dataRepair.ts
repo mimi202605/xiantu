@@ -186,6 +186,9 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     if (!repaired.世界 || typeof repaired.世界 !== 'object') repaired.世界 = createMinimalSaveDataV3().世界;
     if (!repaired.世界.状态 || typeof repaired.世界.状态 !== 'object') repaired.世界.状态 = {};
     if (!Array.isArray(repaired.世界.状态.探索记录)) repaired.世界.状态.探索记录 = [];
+    // 确保 世界.信息 及 地点信息 存在，否则 push 世界.信息.地点信息 会失败
+    if (!repaired.世界.信息 || typeof repaired.世界.信息 !== 'object') repaired.世界.信息 = {};
+    if (!Array.isArray(repaired.世界.信息.地点信息)) repaired.世界.信息.地点信息 = [];
 
     // --- 修炼 已退役，不再校验 ---
 

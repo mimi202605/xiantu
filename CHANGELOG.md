@@ -1,5 +1,11 @@
 # 更新日志
 
+## [MING] 通用版 0.2.11 (2026-02-01)
+
+修复 push 世界.信息.地点信息 不生效：dataRepair 确保 世界.信息.地点信息 存在；executeCommand 为 地点信息 push 增加特殊处理，显式初始化路径后再写入。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.9 (2026-01-31)
 
 地图系统与 NPC 类型（Phase 1）：递归地点结构、探索记录、地点 NPC 存于各地点内、重点/普通 NPC 区分与升级逻辑、坤舆图 UI；修复地点信息生成 prompt（开局与更换地点时主动 push）。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。

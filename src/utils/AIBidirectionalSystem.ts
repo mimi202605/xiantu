@@ -2405,6 +2405,20 @@ ${saveDataJson}`;
           }
           break;
         }
+        // 世界.信息.地点信息：需确保 世界.信息 及 地点信息 存在，否则 get 返回默认 [] 导致写入失败
+        const is地点信息 = path === '世界.信息.地点信息';
+        if (is地点信息) {
+          const 世界 = get(saveData, '世界', {}) as any;
+          if (!世界.信息 || typeof 世界.信息 !== 'object') 世界.信息 = {};
+          if (!Array.isArray(世界.信息.地点信息)) 世界.信息.地点信息 = [];
+          const valueToPush = value ?? null;
+          if (valueToPush && typeof valueToPush === 'object') {
+            世界.信息.地点信息.push(valueToPush);
+            set(saveData, '世界', 世界);
+            console.log('[AI双向系统] push 世界.信息.地点信息 成功:', (valueToPush as any)?.名称);
+          }
+          break;
+        }
         const array = get(saveData, path, []) as unknown[];
         if (!Array.isArray(array)) {
           throw new Error(`PUSH操作要求数组类型，但 ${path} 是 ${typeof array}`);
