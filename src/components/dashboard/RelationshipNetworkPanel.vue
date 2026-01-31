@@ -1265,6 +1265,7 @@ const relationshipStats = computed(() => {
     }
 
     const npc = value as any;
+    if (npc.类型 === '普通') continue;
     const nameFromValue = typeof npc.名字 === 'string' ? npc.名字.trim() : '';
     const nameFromKey = typeof key === 'string' ? key.trim() : '';
     const finalName = nameFromValue || nameFromKey;

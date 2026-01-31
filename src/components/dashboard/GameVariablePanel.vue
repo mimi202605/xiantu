@@ -404,6 +404,7 @@ const saveVariable = async (item: EditingItem) => {
 
         // 世界
         { from: '世界.信息', to: 'worldInfo' },
+        { from: '世界.状态.探索记录', to: 'explorationRecord' },
 
         // 系统
         { from: '系统.配置', to: 'systemConfig' },

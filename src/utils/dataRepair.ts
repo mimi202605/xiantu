@@ -197,6 +197,11 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
       }
     }
 
+    // --- 世界.状态、世界.信息 ---
+    if (!repaired.世界 || typeof repaired.世界 !== 'object') repaired.世界 = createMinimalSaveDataV3().世界;
+    if (!repaired.世界.状态 || typeof repaired.世界.状态 !== 'object') repaired.世界.状态 = {};
+    if (!Array.isArray(repaired.世界.状态.探索记录)) repaired.世界.状态.探索记录 = [];
+
     // --- 修炼.修炼功法引用校验 ---
     if (repaired.角色.修炼?.修炼功法 && typeof repaired.角色.修炼.修炼功法 === 'object') {
       const technique = repaired.角色.修炼.修炼功法 as any;
@@ -479,6 +484,11 @@ function repairNpc(npc: NpcProfile): NpcProfile {
   // 修复 NPC-NPC 关系（NpcProfile.关系）
   repaired.关系 = repaired.关系 && typeof repaired.关系 === 'object' ? repaired.关系 : {};
 
+  // 修复 类型（重点/普通）；缺省视为重点
+  if (repaired.类型 !== '重点' && repaired.类型 !== '普通') {
+    repaired.类型 = '重点';
+  }
+
   return repaired;
 }
 
@@ -588,7 +598,7 @@ function createMinimalSaveDataV3(): SaveData {
         特殊设定: [],
         版本: 'v1',
       },
-      状态: { 环境: {}, 事件: [], 历史: [], NPC状态: {} },
+      状态: { 探索记录: [] },
     },
     系统: {
       配置: {},

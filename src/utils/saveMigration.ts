@@ -204,6 +204,36 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
     const normalized = deepClone(source) as any;
     if (!isPlainObject(normalized.社交)) normalized.社交 = {};
     normalized.社交.记忆 = normalizeMemory(normalized.社交.记忆);
+    // 世界.状态.探索记录、NPC 类型 默认值（地点NPC 存于各地点内）
+    if (!isPlainObject(normalized.世界)) normalized.世界 = {};
+    if (!isPlainObject(normalized.世界.状态)) normalized.世界.状态 = {};
+    if (!Array.isArray(normalized.世界.状态.探索记录)) normalized.世界.状态.探索记录 = [];
+    // 迁移旧 世界.信息.地点NPC（Record）到各地点内的 地点NPC
+    const old地点NPC = normalized.世界?.信息?.地点NPC;
+    if (isPlainObject(old地点NPC) && Array.isArray(normalized.世界?.信息?.地点信息)) {
+      const migrateNpcIntoLocation = (entries: any[]) => {
+        for (let i = 0; i < entries.length; i++) {
+          const e = entries[i];
+          if (!e || typeof e !== 'object' || typeof e.名称 !== 'string') continue;
+          const name = e.名称;
+          const npcList = old地点NPC[name];
+          if (Array.isArray(npcList) && npcList.length > 0) {
+            e.地点NPC = npcList;
+          }
+          if (Array.isArray(e.内部)) migrateNpcIntoLocation(e.内部);
+        }
+      };
+      migrateNpcIntoLocation(normalized.世界.信息.地点信息);
+      delete normalized.世界.信息.地点NPC;
+    }
+    const rels = normalized.社交?.关系;
+    if (isPlainObject(rels)) {
+      for (const npc of Object.values(rels) as any[]) {
+        if (npc && typeof npc === 'object' && npc.类型 !== '重点' && npc.类型 !== '普通') {
+          npc.类型 = '重点';
+        }
+      }
+    }
     return { migrated: normalized as SaveDataV3, report };
   }
 

@@ -44,6 +44,16 @@
       <div class="function-section">
         <div class="section-title">{{ t('事件探索') }}</div>
         <div class="function-group">
+          <button class="function-btn quest" @click="handleMap">
+            <div class="btn-icon">
+              <Map :size="18" />
+            </div>
+            <div class="btn-content">
+              <span class="btn-text">{{ t('坤舆图') }}</span>
+              <span class="btn-desc">{{ t('地点与探索记录') }}</span>
+            </div>
+            <ChevronRight :size="14" class="btn-arrow" />
+          </button>
           <button class="function-btn quest" @click="handleEvents">
             <div class="btn-icon">
               <Bell :size="18" />
@@ -200,7 +210,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Package, User, Users, Brain, Save, Settings, LogOut, Bell, ChevronRight, Database, Clock, FileText, Plug, LayoutGrid, Heart } from 'lucide-vue-next';
+import { Package, User, Users, Brain, Save, Settings, LogOut, Bell, ChevronRight, Database, Clock, FileText, Plug, LayoutGrid, Heart, Map } from 'lucide-vue-next';
 import { useCharacterStore } from '@/stores/characterStore';
 import { toast } from '@/utils/toast';
 import { useUIStore } from '@/stores/uiStore';
@@ -270,6 +280,10 @@ const handleInventory = () => {
 
 const handleCharacterDetails = () => {
   router.push('/game/character-details');
+};
+
+const handleMap = () => {
+  router.push('/game/map');
 };
 
 const handleEvents = () => {

@@ -52,11 +52,27 @@ const displaySaveData = computed(() => {
   const raw = props.saveData ?? {}
   const v3 = isSaveDataV3(raw) ? raw : migrateSaveDataToLatest(raw as any).migrated
 
-  // 只展示 V3 五域（彻底隐藏旧顶层 key）
+  const 社交 = (v3 as any).社交
+  let 社交WithSorted关系 = 社交
+  if (社交 && typeof 社交 === 'object' && 社交.关系 && typeof 社交.关系 === 'object') {
+    const 关系 = 社交.关系
+    const keys = Object.keys(关系)
+    const sortedKeys = keys.sort((a, b) => {
+      const ta = (关系[a] as any)?.类型
+      const tb = (关系[b] as any)?.类型
+      if (ta === '普通' && tb !== '普通') return 1
+      if (ta !== '普通' && tb === '普通') return -1
+      return ((关系[b] as any)?.好感度 ?? 0) - ((关系[a] as any)?.好感度 ?? 0)
+    })
+    const sorted关系: Record<string, unknown> = {}
+    for (const k of sortedKeys) sorted关系[k] = 关系[k]
+    社交WithSorted关系 = { ...社交, 关系: sorted关系 }
+  }
+
   return {
     元数据: (v3 as any).元数据,
     角色: (v3 as any).角色,
-    社交: (v3 as any).社交,
+    社交: 社交WithSorted关系,
     世界: (v3 as any).世界,
     系统: (v3 as any).系统,
   }

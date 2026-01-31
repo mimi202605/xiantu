@@ -118,6 +118,12 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
     }
 
     try {
+      if (repairedNpc.类型 !== '重点' && repairedNpc.类型 !== '普通') repairedNpc.类型 = '重点';
+    } catch (e) {
+      repairedNpc.类型 = '重点';
+    }
+
+    try {
       if (typeof repairedNpc.好感度 !== 'number' || isNaN(repairedNpc.好感度)) repairedNpc.好感度 = 0;
     } catch (e) {
       repairedNpc.好感度 = 0;

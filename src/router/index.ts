@@ -45,6 +45,7 @@ import SettingsPanel from '../components/dashboard/SettingsPanel.vue';
 import SavePanel from '../components/dashboard/SavePanel.vue';
 // import WorldMapRoute from '../components/dashboard/WorldMapRoute.vue';
 import EventPanel from '../components/dashboard/EventPanel.vue';
+import MapPanel from '../components/dashboard/MapPanel.vue';
 // [MING] SectPanel, SectSystemPanel, Sect*Content removed (sect system retired)
 import GameVariablePanel from '../components/dashboard/GameVariablePanel.vue';
 import PromptManagementPanel from '../components/dashboard/PromptManagementPanel.vue';
@@ -135,6 +136,11 @@ const routes = [
       //   name: 'WorldMap',
       //   component: WorldMapRoute,
       // },
+      {
+        path: 'map',
+        name: 'Map',
+        component: MapPanel,
+      },
       {
         path: 'events',
         name: 'Events',

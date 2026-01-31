@@ -22,9 +22,10 @@ export interface DerivedEntityIndex {
 /**
  * Derive entities and relationships from 社交.关系 and 角色.身份.
  * Replaces 游戏实体索引: player from 角色.身份.名字; NPCs from 社交.关系 keys; edges from 与玩家关系 and 关系.
+ * [MING] 仅包含 类型==="重点" 的 NPC；普通 NPC 不作为实体或边。
  */
 export function deriveFrom社交关系(
-  社交关系: Record<string, { 名字?: string; 与玩家关系?: string; 关系?: Record<string, string> }> | null | undefined,
+  社交关系: Record<string, { 名字?: string; 与玩家关系?: string; 关系?: Record<string, string>; 类型?: string }> | null | undefined,
   角色身份: { 名字?: string } | null | undefined
 ): DerivedEntityIndex {
   const entities: GameEntity[] = [];
@@ -32,7 +33,20 @@ export function deriveFrom社交关系(
   const rels = 社交关系 && typeof 社交关系 === 'object' ? 社交关系 : {};
   const playerName = 角色身份?.名字 || '玩家';
   entities.push({ id: 'player', name: playerName, type: 'player' });
+
+  const importantNpcIds = new Set<string>();
   for (const K of Object.keys(rels)) {
+    const npc = rels[K];
+    if (!npc || typeof npc !== 'object') continue;
+    const 类型 = (npc as { 类型?: string }).类型;
+    if (类型 !== '重点' && 类型 !== '普通') {
+      importantNpcIds.add(K);
+    } else if (类型 === '重点') {
+      importantNpcIds.add(K);
+    }
+  }
+
+  for (const K of importantNpcIds) {
     const npc = rels[K];
     if (!npc || typeof npc !== 'object') continue;
     entities.push({ id: K, name: npc.名字 ?? K, type: 'npc' });
@@ -43,7 +57,7 @@ export function deriveFrom社交关系(
     const 关系 = npc.关系;
     if (关系 && typeof 关系 === 'object') {
       for (const B of Object.keys(关系)) {
-        if (!(B in rels)) continue;
+        if (!importantNpcIds.has(B)) continue;
         const lab = 关系[B];
         if (lab != null && typeof lab === 'string') relationships.push({ fromId: K, toId: B, relationship: lab });
       }

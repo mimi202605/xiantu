@@ -4,6 +4,36 @@
 
 ---
 
+## [0.2.9] - 2026-01-31
+
+### 地图系统与 NPC 类型（Phase 1）
+
+实现地图数据结构、探索记录、地点 NPC、NPC 类型（重点/普通）及地图 UI。
+
+#### 变更摘要
+
+- **地图数据结构**：`LocationEntry` 递归结构（`内部` 子地点、`上级` 父地点）；顶层 `地点信息` 并列存储；`地点NPC` 存于各地点内，可追溯各地点的 NPC；玩家离开后重点 NPC 会离开，普通 NPC 留守。
+- **探索记录**：`世界.状态.探索记录`（string[]）；`set 角色.位置` 时自动 push 新地点；`gameStateStore.explorationRecord` 读写。
+- **地点 NPC**：从 `WorldInfo` 移至各 `LocationEntry` 内；`getNpcsAtLocation` 从地点树查找；`onPlayerLeaveLocation` 在玩家离开时移除重点 NPC 并更新其 `当前位置`，普通 NPC 留守。
+- **NPC 类型**：`NpcProfile.类型?: "重点"|"普通"`；`deriveFrom社交关系`、`RelationshipNetworkPanel` 仅展示重点 NPC；`GameVariableSaveDataSection` 排序（重点在前）；`recentNpcNames` 含重点 + 当前地点 NPC；当前地点普通 NPC 单独注入 prompt。
+- **升级逻辑**：与普通 NPC 互动（push 记忆、add 好感度等）后自动升级为重点。
+- **executeCommand**：`push 世界.状态.探索记录` 去重；`set 角色.位置` 时触发探索记录更新与 `onPlayerLeaveLocation`。
+- **数据迁移**：`saveMigration` 补全 探索记录、NPC 类型；旧 `世界.信息.地点NPC`（Record）迁移到各地点内。
+- **地图 UI**：`MapPanel`、`LocationTreeNode` 递归树展示；已探索/未探索/当前位置区分；路由 `/game/map`、侧栏「坤舆图」入口。
+- **worldHeartbeat**：`getNpcUpdatePriority` 预留；`getNpcsAtLocation` 导出。
+
+#### 地点信息 prompt 修复
+
+- **开局**：`characterInitializationPromptsMing` 消除「只用 set」与「必须 push 地点信息」矛盾；明确「唯独地点信息必须用 push」。
+- **主游戏**：`LOCATION_UPDATE_RULES` 加入主业务规则；新增「地点信息同步（必须）」：set 角色.位置 到新地点时**必须**同时 push 世界.信息.地点信息。
+- **分步生成**：`SPLIT_GENERATION_STEP2_MING` 强化「set 角色.位置 到新地点时，必须同时 push 世界.信息.地点信息」。
+
+#### 涉及文件
+
+- `game.d.ts`、`gameStateStore.ts`、`locationUtils.ts`、`worldHeartbeat.ts`、`AIBidirectionalSystem.ts`、`dataRepair.ts`、`saveMigration.ts`、`dataValidation.ts`、`memoryRetrievalService.ts`、`RelationshipNetworkPanel.vue`、`GameVariableSaveDataSection.vue`、`GameVariablePanel.vue`、`MapPanel.vue`、`LocationTreeNode.vue`、`LeftSidebar.vue`、`router/index.ts`、`businessRulesMing.ts`、`dataDefinitionsMing.ts`、`inlinePromptsMing.ts`、`characterInitializationPromptsMing.ts`、`defaultPrompts.ts`、`docs/plan-world-npc-*.md`
+
+---
+
 ## [0.2.8] - 2026-01-31
 
 ### Ming 模式清理：统一使用 Ming 提示词

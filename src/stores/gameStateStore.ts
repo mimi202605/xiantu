@@ -90,6 +90,8 @@ interface GameState {
 
   // [MING] 语义记忆（来自 系统.扩展.语义记忆）；实体与关系由 社交.关系+角色 派生
   semanticMemory: import('@/types/gameStateIndex').SemanticMemoryStore | null;
+  // [MING] 探索记录（世界.状态.探索记录）；用于地图 UI 迷雾显示
+  explorationRecord: string[] | null;
 }
 
 export const useGameStateStore = defineStore('gameState', {
@@ -140,6 +142,7 @@ export const useGameStateStore = defineStore('gameState', {
     conversationAutoSaveEnabled: true,
 
     semanticMemory: null,
+    explorationRecord: null,
   }),
 
   actions: {
@@ -256,6 +259,9 @@ export const useGameStateStore = defineStore('gameState', {
         }
       }
       const worldInfo: WorldInfo | null = v3?.世界?.信息 ? deepCopy(v3.世界.信息) : null;
+      const explorationRecord: string[] = Array.isArray(v3?.世界?.状态?.探索记录)
+        ? deepCopy(v3.世界.状态.探索记录)
+        : [];
       const coerceMemoryArray = (value: unknown): string[] => {
         if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
         if (typeof value === 'string' && value.trim().length > 0) return [value.trim()];
@@ -303,6 +309,7 @@ export const useGameStateStore = defineStore('gameState', {
       this.equipment = equipment;
       this.relationships = relationships;
       this.worldInfo = worldInfo;
+      this.explorationRecord = explorationRecord;
       this.memory = memory;
       this.gameTime = gameTime;
       this.narrativeHistory = narrativeHistory;
@@ -482,7 +489,10 @@ export const useGameStateStore = defineStore('gameState', {
           事件: this.eventSystem,
           记忆: this.memory,
         },
-        世界: { 信息: this.worldInfo ?? {}, 状态: {} },
+        世界: {
+          信息: this.worldInfo ?? {},
+          状态: { 探索记录: this.explorationRecord ?? [] },
+        },
         系统: {
           配置: this.systemConfig ?? {},
           设置: settings,
@@ -500,7 +510,7 @@ export const useGameStateStore = defineStore('gameState', {
       // 否则会导致下次加载时重复叠加天赋/装备加成（基值被污染为总值，再算一遍加成）。
       // character.后天六司 应该只存储永久性的消耗品加成。
       // 天赋/装备加成应在运行时动态计算，不落盘到该字段。
-      
+
       return deepCopy(v3 as any);
     },
 
@@ -619,6 +629,8 @@ export const useGameStateStore = defineStore('gameState', {
       this.systemConfig = null;
       this.body = null;
       this.bodyPartDevelopment = null;
+      this.semanticMemory = null;
+      this.explorationRecord = null;
 
       console.log('[GameState] State has been reset');
     },

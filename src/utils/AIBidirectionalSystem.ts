@@ -28,6 +28,7 @@ import { stripNsfwContentMing } from '@/utils/prompts/definitions/ming/dataDefin
 import { isSaveDataV3, migrateSaveDataToLatest } from './saveMigration';
 import { mergeInto扩展 } from '@/services/gameStateIndexer';
 import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
+import { getNpcsAtLocation, onPlayerLeaveLocation } from '@/utils/locationUtils';
 
 type PlainObject = Record<string, unknown>;
 
@@ -456,16 +457,36 @@ class AIBidirectionalSystemClass {
       // Vector memory service removed in Ming version - using standard memory only
 
       // [MING] 语义记忆与实体索引检索（按相关度/关系/时间·重要性 合并后注入）
+      const playerLocDesc = (stateForAI.角色?.位置 as any)?.描述;
+      const importantNpcNames = Object.entries(stateForAI.社交?.关系 || {})
+        .filter(([, npc]) => (npc as any)?.类型 !== '普通')
+        .map(([k]) => k);
+      const npcsAtLocation = getNpcsAtLocation(stateForAI as Record<string, unknown>, playerLocDesc);
+      const recentNpcNames = [...new Set([...importantNpcNames, ...npcsAtLocation])].slice(0, 10);
+
       let retrievalBlock = '';
       try {
         retrievalBlock = memoryRetrieve(stateForAI as Record<string, unknown>, {
           playerName: (stateForAI.角色?.身份 as any)?.名字,
-          locationDesc: (stateForAI.角色?.位置 as any)?.描述,
-          recentNpcNames: Object.keys(stateForAI.社交?.关系 || {}).slice(0, 10),
+          locationDesc: playerLocDesc,
+          recentNpcNames,
           maxLines: 35,
         });
       } catch (e) {
         console.warn('[AI双向系统] 语义记忆检索失败:', e);
+      }
+
+      if (npcsAtLocation.length > 0) {
+        const npcSummaries = npcsAtLocation
+          .map((name) => {
+            const npc = (stateForAI.社交?.关系 as any)?.[name];
+            if (!npc) return null;
+            return `- ${name}：${npc.与玩家关系 || '路人'}，${npc.当前外貌状态 || ''}`;
+          })
+          .filter((s): s is string => s != null);
+        if (npcSummaries.length > 0) {
+          retrievalBlock += `\n# 当前地点人物\n${npcSummaries.join('\n')}`;
+        }
       }
 
       // 保存短期记忆用于单独发送
@@ -1843,6 +1864,35 @@ ${step1Text}
       }
     }
 
+    // 普通 NPC 升级逻辑：与 NPC 互动后，若该 NPC 为普通则升级为重点
+    const npcInteractionPaths = ['记忆', '好感度', '当前外貌状态', '当前内心想法', '关系'];
+    const upgradedNpcs = new Set<string>();
+    for (const cmd of sortedCommands) {
+      if (!cmd.key.startsWith('社交.关系.')) continue;
+      const parts = cmd.key.split('.');
+      if (parts.length < 3) continue;
+      const npcName = parts[2];
+      const isInteraction =
+        (cmd.action === 'push' && (parts[3] === '记忆' || parts[3] === '记忆总结')) ||
+        (cmd.action === 'add' && parts[3] === '好感度') ||
+        (cmd.action === 'set' && npcInteractionPaths.includes(parts[3]));
+      if (!isInteraction) continue;
+      const npc = get(saveData, `社交.关系.${npcName}`);
+      if (npc && typeof npc === 'object' && (npc as any).类型 === '普通') {
+        upgradedNpcs.add(npcName);
+      }
+    }
+    for (const npcName of upgradedNpcs) {
+      set(saveData, `社交.关系.${npcName}.类型`, '重点');
+      changes.push({
+        key: `社交.关系.${npcName}.类型`,
+        action: 'set',
+        oldValue: '普通',
+        newValue: '重点'
+      });
+      console.log(`[AI双向系统] 普通 NPC "${npcName}" 因互动升级为重点`);
+    }
+
     updateMasteredSkills(saveData);
 
     if ((saveData as any).元数据?.时间) {
@@ -2301,9 +2351,29 @@ ${saveDataJson}`;
       }
     }
     switch (action) {
-      case 'set':
+      case 'set': {
+        const oldLocForLeave = path === '角色.位置' ? (get(saveData, path) as { 描述?: string } | undefined) : undefined;
+        const oldDescForLeave = oldLocForLeave?.描述;
         set(saveData, path, value);
+        if (path === '角色.位置' && value && typeof value === 'object') {
+          const newDesc = (value as { 描述?: string }).描述;
+          if (typeof newDesc === 'string' && newDesc.trim()) {
+            const 世界 = get(saveData, '世界', {}) as Record<string, unknown>;
+            if (!世界.状态) 世界.状态 = {};
+            const 状态 = 世界.状态 as Record<string, unknown>;
+            const 探索记录 = Array.isArray(状态.探索记录) ? 状态.探索记录 : [];
+            if (!探索记录.includes(newDesc)) {
+              探索记录.push(newDesc);
+              状态.探索记录 = 探索记录;
+              set(saveData, '世界', 世界);
+            }
+          }
+          if (typeof oldDescForLeave === 'string' && oldDescForLeave.trim() && oldDescForLeave !== newDesc) {
+            onPlayerLeaveLocation(saveData as Record<string, unknown>, oldDescForLeave, newDesc);
+          }
+        }
         break;
+      }
 
       case 'add': {
         const currentValue = get(saveData, path, 0);
@@ -2324,6 +2394,20 @@ ${saveDataJson}`;
       }
 
       case 'push': {
+        // 世界.状态.探索记录：需确保 世界.状态 存在；地点名称去重
+        const is探索记录 = path === '世界.状态.探索记录';
+        if (is探索记录) {
+          const 世界 = get(saveData, '世界', {}) as any;
+          if (!世界.状态) 世界.状态 = {};
+          const 探索记录 = Array.isArray(世界.状态.探索记录) ? 世界.状态.探索记录 : [];
+          const locName = typeof value === 'string' ? value.trim() : null;
+          if (locName && !探索记录.includes(locName)) {
+            探索记录.push(locName);
+            世界.状态.探索记录 = 探索记录;
+            set(saveData, '世界', 世界);
+          }
+          break;
+        }
         const array = get(saveData, path, []) as unknown[];
         if (!Array.isArray(array)) {
           throw new Error(`PUSH操作要求数组类型，但 ${path} 是 ${typeof array}`);
@@ -2342,7 +2426,6 @@ ${saveDataJson}`;
           valueToPush = `${timePrefix}${valueToPush}`;
         }
         array.push(valueToPush);
-        // 如果路径不存在，set会创建它
         set(saveData, path, array);
         break;
       }

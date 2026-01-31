@@ -91,6 +91,7 @@ const BUSINESS_RULES = [
   BusinessMing.DIFFICULTY_ENHANCEMENT_RULES,
   BusinessMing.NPC_RULES,
   BusinessMing.COMMAND_PATH_CONSTRUCTION_RULES,
+  BusinessMing.LOCATION_UPDATE_RULES,
   BusinessMing.CONFLICT_TURN_RULES,
   BusinessMing.PLAYER_AUTONOMY_RULES,
   BusinessMing.NSFW_CONTENT_RULES
@@ -98,8 +99,7 @@ const BUSINESS_RULES = [
 
 // 扩展业务规则（可选，用户可自定义开启）
 const EXTENDED_BUSINESS_RULES = [
-  BusinessMing.STATUS_EFFECT_RULES,
-  BusinessMing.LOCATION_UPDATE_RULES
+  BusinessMing.STATUS_EFFECT_RULES
 ].join('\n\n');
 
 // 合并文本格式规范

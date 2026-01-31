@@ -491,16 +491,27 @@ export interface WorldFaction {
   加入好处?: string[];
 }
 
-/** 世界地点信息 */
-export interface WorldLocation {
+/**
+ * 地点条目（递归结构，用于地图系统）
+ * 顶层地点在 地点信息 数组中并列存储（parallel）；每个地点的子地点在 内部 中递归嵌套
+ * 地点NPC 存于每个地点内，可追溯各地点的 NPC；玩家离开后重点 NPC 会离开，普通 NPC 留守
+ */
+export interface LocationEntry {
   名称: string;
-  类型: '城池' | '宗门' | '秘境' | '险地' | '商会' | '坊市' | '洞府' | string;
-  位置: string;
+  描述?: string;
+  上级?: string;         // 父地点名称，根节点无；子查父
+  内部?: LocationEntry[]; // 子地点，递归；父查子
+  地点NPC?: string[];    // 本地的 NPC 名列表；与 社交.关系 对耦
+}
+
+/** 世界地点信息（扩展 LocationEntry，兼容旧数据） */
+export interface WorldLocation extends LocationEntry {
+  类型?: '城池' | '宗门' | '秘境' | '险地' | '商会' | '坊市' | '洞府' | string;
+  位置?: string;
   coordinates?: { x: number; y: number }; // 原始坐标数据
-  描述: string;
-  特色: string;
-  安全等级: '安全' | '较安全' | '危险' | '极危险' | string;
-  开放状态: '开放' | '限制' | '封闭' | '未发现' | string;
+  特色?: string;
+  安全等级?: '安全' | '较安全' | '危险' | '极危险' | string;
+  开放状态?: '开放' | '限制' | '封闭' | '未发现' | string;
   相关势力?: string[];
   特殊功能?: string[];
 }
@@ -520,7 +531,7 @@ export interface WorldInfo {
   大陆信息: WorldContinent[];
   continents?: WorldContinent[]; // 兼容旧数据
   势力信息: WorldFaction[];
-  地点信息: WorldLocation[];
+  地点信息: (WorldLocation | LocationEntry)[]; // 顶层并列；每项可有 内部 递归子地点；地点NPC 存于各地点内
   地图配置?: WorldMapConfig; // 新增地图配置
   // 从 WorldGenerationInfo 扁平化
   生成时间: string;
@@ -688,6 +699,8 @@ export interface NpcProfile {
 
   // === 社交关系 ===
   与玩家关系: string; // 如：道侣、师徒、朋友、敌人、陌生人
+  /** 重点/普通；缺省视为重点；普通 NPC 仅在地点、提及、重要 NPC 关系网中出现 */
+  类型?: '重点' | '普通';
   /** 本 NPC 对其他 NPC 的关系；key=对方名字，value=关系标签；仅经 tavern_commands 写：set 社交.关系.{npc}.关系.{其他} 或 set 社交.关系.{npc}.关系 对象合并 */
   关系?: Record<string, string>;
   好感度: number; // -100 到 100
