@@ -25,6 +25,21 @@
 
 - `game.d.ts`、`gameStateIndexer.ts`、`memoryRetrievalService.ts`、`AIBidirectionalSystem.ts`、`inlinePromptsMing.ts`、`dataDefinitionsMing.ts`、`gameStateStore.ts`、`GameVariablePanel.vue`、`GameVariableGameIndexSection.vue`、`GameVariableDataDisplay.vue`、`gameStateIndex.ts`、`AIGameMaster.d.ts`
 
+### 确保 NpcProfile.关系 在创角/加载时初始化并展示
+
+`NpcProfile.关系`（NPC–NPC 关系）需在创角、加载存档、事件引入 NPC 时**始终存在**，以便在 **游戏变量**（存档数据、实体与语义）与 **人物关系→原始数据** 中正确展示。
+
+#### 变更摘要
+
+- **dataRepair.repairNpc**：若 NPC 缺 `关系` 或非对象，补 `关系: {}`。
+- **dataValidation.validateAndRepairNpcProfile**：AI 通过 `set 社交.关系.{npc}` 创建 NPC 时，确保 `关系` 存在。
+- **gameStateStore.loadFromSaveData**：加载存档后，遍历 `社交.关系` 中每个 NPC，确保 `关系` 已初始化。
+- **AIBidirectionalSystem**：事件引入特殊 NPC 时，写入前确保 `npcToAdd.关系` 存在。
+
+#### 涉及文件
+
+- `dataRepair.ts`、`dataValidation.ts`、`gameStateStore.ts`、`AIBidirectionalSystem.ts`
+
 ### 语义记忆：排序、检索与可视化
 
 - **合并时自动补 timestamp**：`gameStateIndexer` 在合并 `semantic_memory.triples` 时，对缺 `timestamp` 的项自动补（`元数据.时间` → `gameTimeToSortable` 或 `new Date().toISOString()`）。

@@ -301,6 +301,13 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
       repairedNpc.实时关注 = false;
     }
 
+    // 6. 确保 NPC-NPC 关系（NpcProfile.关系）存在，用于 游戏变量 / 人物关系->原始数据 展示
+    try {
+      repairedNpc.关系 = repairedNpc.关系 && typeof repairedNpc.关系 === 'object' ? repairedNpc.关系 : {};
+    } catch (e) {
+      repairedNpc.关系 = {};
+    }
+
     return [true, repairedNpc as NpcProfile];
   } catch (error) {
     console.error('[NPC校验] 验证过程发生严重错误:', error);

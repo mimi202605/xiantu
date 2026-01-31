@@ -201,6 +201,8 @@ class AIBidirectionalSystemClass {
 
       // 若本次事件引入了特殊NPC，则写入人物关系（同时更新 stateForAI 与 store，保证提示词/存档同步）
       if (npcToAdd && npcToAdd.名字) {
+        // 确保新 NPC 有 关系 字段（用于 游戏变量 / 人物关系->原始数据 展示）
+        (npcToAdd as any).关系 = (npcToAdd as any).关系 && typeof (npcToAdd as any).关系 === 'object' ? (npcToAdd as any).关系 : {};
         // v3 写入（用于后续提示词 stateForAI 继续携带）
         if (!v3.社交) v3.社交 = {};
         if (!v3.社交.关系 || typeof v3.社交.关系 !== 'object') v3.社交.关系 = {};

@@ -476,6 +476,9 @@ function repairNpc(npc: NpcProfile): NpcProfile {
     };
   }
 
+  // 修复 NPC-NPC 关系（NpcProfile.关系）
+  repaired.关系 = repaired.关系 && typeof repaired.关系 === 'object' ? repaired.关系 : {};
+
   return repaired;
 }
 

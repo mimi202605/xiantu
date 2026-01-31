@@ -1,5 +1,11 @@
 # 更新日志
 
+## [MING] 通用版 0.2.7 (2026-01-28)
+
+移除 game_entities，关系图仅由 社交.关系 派生；确保 NpcProfile.关系 在创角/加载时初始化，游戏变量与人物关系→原始数据可正确展示。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.6 (2026-01-28)
 
 修复创角时世界信息未写入 游戏变量→世界信息：`EnhancedWorldGenerator` stub 现使用创角界面所选世界的 name / era / description 填入 世界.信息，不再固定为默认占位。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。

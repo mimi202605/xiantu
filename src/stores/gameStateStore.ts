@@ -247,6 +247,14 @@ export const useGameStateStore = defineStore('gameState', {
           (npc as any).关系[toId] = relationship;
         }
       }
+      // 确保每个 NPC 都有 关系 字段（用于 游戏变量 / 人物关系->原始数据 展示）
+      if (relationships && typeof relationships === 'object') {
+        for (const npc of Object.values(relationships)) {
+          if (npc && typeof npc === 'object') {
+            (npc as any).关系 = (npc as any).关系 && typeof (npc as any).关系 === 'object' ? (npc as any).关系 : {};
+          }
+        }
+      }
       const worldInfo: WorldInfo | null = v3?.世界?.信息 ? deepCopy(v3.世界.信息) : null;
       const coerceMemoryArray = (value: unknown): string[] => {
         if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
