@@ -21,23 +21,6 @@ import { isTavernEnv } from '@/utils/tavern';
 import { ensureSystemConfigHasNsfw } from '@/utils/nsfw';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 
-function buildTechniqueProgress(inventory: Inventory | null) {
-  const progress: Record<string, { 熟练度: number; 已解锁技能: string[] }> = {};
-  const items = inventory?.物品 || {};
-
-  Object.values(items).forEach((item: any) => {
-    if (item?.类型 !== '功法') return;
-    const itemId = item.物品ID;
-    if (!itemId) return;
-    progress[itemId] = {
-      熟练度: Number(item.修炼进度 ?? item.熟练度 ?? 0),
-      已解锁技能: Array.isArray(item.已解锁技能) ? item.已解锁技能 : []
-    };
-  });
-
-  return progress;
-}
-
 // 定义各个模块的接口
 interface GameState {
   // --- V3 元数据/系统字段（随存档保存）---
@@ -392,7 +375,7 @@ export const useGameStateStore = defineStore('gameState', {
       if (!this.relationships) missingFields.push('relationships');
       if (!this.memory) missingFields.push('memory');
       if (!this.gameTime) missingFields.push('gameTime');
-      if (!this.equipment) missingFields.push('equipment');
+      // equipment 已退役，不再作为必需字段
 
       if (missingFields.length > 0) {
         console.error('[gameStateStore.toSaveData] 存档数据不完整，缺少以下字段:', missingFields.join(', '));
@@ -402,28 +385,6 @@ export const useGameStateStore = defineStore('gameState', {
       }
 
       const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
-
-      const techniqueProgress = buildTechniqueProgress(this.inventory);
-      const currentTechniqueId = (this.cultivationTechnique as any)?.物品ID ?? null;
-
-      const techniqueSystem = {
-        ...(this.techniqueSystem || {}),
-        当前功法ID: (this.techniqueSystem as any)?.当前功法ID ?? currentTechniqueId,
-        功法进度: (this.techniqueSystem as any)?.功法进度 ?? techniqueProgress,
-        功法套装: (this.techniqueSystem as any)?.功法套装 ?? { 主修: null, 辅修: [] },
-      } as any;
-
-      const skillState = {
-        ...(this.skillState || {}),
-        掌握技能: (this.skillState as any)?.掌握技能 ?? this.masteredSkills ?? [],
-        装备栏: (this.skillState as any)?.装备栏 ?? [],
-        冷却: (this.skillState as any)?.冷却 ?? {},
-      } as any;
-
-      const cultivation = {
-        ...(this.cultivation || {}),
-        修炼功法: (this.cultivation as any)?.修炼功法 ?? this.cultivationTechnique ?? null,
-      } as any;
 
       const nowIso = new Date().toISOString();
       const meta = {
@@ -479,10 +440,7 @@ export const useGameStateStore = defineStore('gameState', {
           效果: this.effects ?? [],
           身体: body,
           背包: this.inventory,
-          装备: this.equipment,
-          功法: techniqueSystem,
-          修炼: cultivation,
-          技能: skillState,
+          // 装备/功法/修炼/技能 已退役，不再写入存档
         },
         社交: {
           关系: this.relationships ?? {},
@@ -496,7 +454,7 @@ export const useGameStateStore = defineStore('gameState', {
         系统: {
           配置: this.systemConfig ?? {},
           设置: settings,
-          缓存: { 掌握技能: this.masteredSkills ?? (skillState as any)?.掌握技能 ?? [] },
+          缓存: { 掌握技能: this.masteredSkills ?? [] },
           历史: { 叙事: this.narrativeHistory || [] },
           扩展: {
             语义记忆: this.semanticMemory ?? { triples: [] },

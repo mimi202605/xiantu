@@ -94,18 +94,7 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     // --- 效果 ---
     if (!Array.isArray(repaired.角色.效果)) repaired.角色.效果 = [];
 
-    // --- 装备（槽位只存物品ID）---
-    const defaultEquipment = { 装备1: null, 装备2: null, 装备3: null, 装备4: null, 装备5: null, 装备6: null };
-    if (!repaired.角色.装备 || typeof repaired.角色.装备 !== 'object') repaired.角色.装备 = { ...defaultEquipment };
-    for (let i = 1; i <= 6; i++) {
-      const key = `装备${i}`;
-      const slotValue = repaired.角色.装备[key];
-      if (slotValue == null) repaired.角色.装备[key] = null;
-      else if (typeof slotValue === 'string') repaired.角色.装备[key] = slotValue;
-      else if (typeof slotValue === 'object' && slotValue !== null && '物品ID' in slotValue) {
-        repaired.角色.装备[key] = String((slotValue as any).物品ID || '');
-      } else repaired.角色.装备[key] = null;
-    }
+    // --- 装备 已退役，不再强制补全 ---
 
     // --- 背包 ---
     if (!repaired.角色.背包 || typeof repaired.角色.背包 !== 'object') {
@@ -174,11 +163,7 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     if (!repaired.系统.历史 || typeof repaired.系统.历史 !== 'object') repaired.系统.历史 = { 叙事: [] };
     if (!Array.isArray(repaired.系统.历史.叙事)) repaired.系统.历史.叙事 = [];
 
-    // --- 角色子模块最小化补全 ---
-    // [MING] 角色.大道 补全已移除（三千大道系统已退役）
-    if (!repaired.角色.功法 || typeof repaired.角色.功法 !== 'object') repaired.角色.功法 = { 当前功法ID: null, 功法进度: {}, 功法套装: { 主修: null, 辅修: [] } };
-    if (!repaired.角色.修炼 || typeof repaired.角色.修炼 !== 'object') repaired.角色.修炼 = { 修炼功法: null, 修炼状态: { 模式: '未修炼' } };
-    if (!repaired.角色.技能 || typeof repaired.角色.技能 !== 'object') repaired.角色.技能 = { 掌握技能: [], 装备栏: [], 冷却: {} };
+    // --- 角色子模块：功法/修炼/技能 已退役，不再补全 ---
 
     // --- 社交.事件 ---
     if (!repaired.社交.事件 || typeof repaired.社交.事件 !== 'object') {
@@ -202,20 +187,7 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     if (!repaired.世界.状态 || typeof repaired.世界.状态 !== 'object') repaired.世界.状态 = {};
     if (!Array.isArray(repaired.世界.状态.探索记录)) repaired.世界.状态.探索记录 = [];
 
-    // --- 修炼.修炼功法引用校验 ---
-    if (repaired.角色.修炼?.修炼功法 && typeof repaired.角色.修炼.修炼功法 === 'object') {
-      const technique = repaired.角色.修炼.修炼功法 as any;
-      if (!technique.物品ID) {
-        repaired.角色.修炼.修炼功法 = null;
-      } else {
-        const referencedItem = repaired.角色?.背包?.物品?.[technique.物品ID];
-        if (!referencedItem || referencedItem.类型 !== '功法') {
-          repaired.角色.修炼.修炼功法 = null;
-        } else if (!technique.名称 || technique.名称 !== referencedItem.名称) {
-          technique.名称 = referencedItem.名称;
-        }
-      }
-    }
+    // --- 修炼 已退役，不再校验 ---
 
 
     console.log('[数据修复] ✅ 存档数据修复完成');
@@ -572,10 +544,7 @@ function createMinimalSaveDataV3(): SaveData {
       效果: [],
       身体: { 总体状况: '', 部位: {} },
       背包: { 灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }, 物品: {} },
-      装备: { 装备1: null, 装备2: null, 装备3: null, 装备4: null, 装备5: null, 装备6: null },
-      功法: { 当前功法ID: null, 功法进度: {}, 功法套装: { 主修: null, 辅修: [] } },
-      修炼: { 修炼功法: null, 修炼状态: { 模式: '未修炼' } },
-      技能: { 掌握技能: [], 装备栏: [], 冷却: {} },
+      // 装备/功法/修炼/技能 已退役
     },
     社交: {
       关系: {},

@@ -382,7 +382,7 @@ export interface RealmDefinition {
 
 
 export interface PlayerStatus extends AIMetadata {
-  境界: Realm; // 境界包含了修为进度（当前进度 = 修为当前，下一级所需 = 修为最大）
+  境界?: Realm; // 境界（可选，偏修仙）
   声望: number;
   位置: {
     描述: string;
@@ -390,9 +390,9 @@ export interface PlayerStatus extends AIMetadata {
     y?: number; // 纬度坐标 (Latitude, 通常 25-35)
     灵气浓度?: number; // 当前位置的灵气浓度，1-100，影响修炼速度
   };
-  气血: ValuePair<number>;
-  灵气: ValuePair<number>;
-  神识: ValuePair<number>;
+  气血: ValuePair<number>; // 生命/体力，通用
+  灵气: ValuePair<number>; // 精力/能量，通用
+  神识?: ValuePair<number>; // 精神力（可选，偏修仙）
   寿命: ValuePair<number>;
   状态效果?: StatusEffect[];
   事件系统?: EventSystem;
@@ -400,7 +400,7 @@ export interface PlayerStatus extends AIMetadata {
 }
 
 // --- MECE短路径：拆分“属性/位置/效果” ---
-// 属性：动态数值（境界/气血/灵气/神识/寿命/声望等）
+// 属性：动态数值（气血/灵气/寿命/声望 为通用核心；境界/神识 可选，偏修仙）
 export type PlayerAttributes = Pick<PlayerStatus, '境界' | '声望' | '气血' | '灵气' | '神识' | '寿命'>;
 // 位置：空间信息（从 PlayerStatus.位置 提取）
 export type PlayerLocation = PlayerStatus['位置'];
@@ -683,17 +683,20 @@ export interface NpcProfile {
   外貌描述: string; // AI生成的外貌描述，必填
   性格特征: string[]; // 如：['冷静', '谨慎', '好色']
 
-  // === 修炼属性 ===
-  境界: Realm;
-  灵根: CharacterBaseInfo['灵根'];
-  天赋: CharacterBaseInfo['天赋']; // 天赋列表
-  先天六司: InnateAttributes; // NPC只有一个六司字段，不分先天/最终
+  // === 修炼属性（已退役，保留以兼容旧存档）===
+  /** @deprecated 境界已退役，通用故事不再使用 */
+  境界?: Realm;
+  /** @deprecated 灵根已退役，通用故事不再使用 */
+  灵根?: CharacterBaseInfo['灵根'];
+  天赋?: CharacterBaseInfo['天赋']; // 天赋列表
+  /** @deprecated 先天六司已退役，通用故事不再使用 */
+  先天六司?: InnateAttributes;
 
   // === 核心数值（整合为属性对象）===
   属性: {
-    气血: ValuePair<number>; // HP，生命值
-    灵气: ValuePair<number>; // MP/真元，法力值
-    神识: ValuePair<number>; // 精神力
+    气血: ValuePair<number>; // HP/生命值，通用
+    灵气: ValuePair<number>; // MP/精力/能量，通用
+    神识?: ValuePair<number>; // 精神力（可选，偏修仙）
     寿元上限: number; // 最大寿命（当前年龄由出生日期自动计算）
   };
 

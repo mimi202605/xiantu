@@ -600,10 +600,7 @@ class AIBidirectionalSystemClass {
             效果: stateForAI.角色?.效果,
             身体: stateForAI.角色?.身体,
             背包: stateForAI.角色?.背包,
-            装备: stateForAI.角色?.装备,
-            功法: stateForAI.角色?.功法,
-            修炼: stateForAI.角色?.修炼,
-            技能: stateForAI.角色?.技能,
+            // 装备/功法/修炼/技能 已退役，不再注入叙事判定
           },
           社交: {
             关系: stateForAI.社交?.关系,

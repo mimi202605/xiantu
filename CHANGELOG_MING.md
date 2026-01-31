@@ -4,6 +4,25 @@
 
 ---
 
+## [0.2.10] - 2026-01-31
+
+### 数据结构清理：退役装备/功法/修炼/技能，NPC 灵根/先天六司/境界，属性通用化
+
+移除已退役的数据结构，简化存档与 NPC 定义，使属性更通用。
+
+#### 变更摘要
+
+- **角色数据 - 装备/功法/修炼/技能 已退役**：`SaveDataV3` 中 `角色.装备`、`角色.功法`、`角色.修炼`、`角色.技能` 改为可选；存档展示（`GameVariableSaveDataSection`）过滤不展示；`AIBidirectionalSystem` 叙事判定不再注入；`gameStateStore.toSaveData` 不再写入；`characterInitialization`、`saveMigration`、`dataRepair` 不再创建/补全；`saveValidationV3` 不再校验 `角色.装备`；`GameVariablePanel` 移除对应路径映射。
+- **NPC - 灵根/先天六司/境界 已退役**：`NpcProfile` 中 `境界`、`灵根`、`先天六司` 改为可选；`NpcProfile.属性.神识` 改为可选；`dataValidation` 不再强制补全；`dataDefinitions` / `dataDefinitionsMing` 移除相关字段说明。
+- **属性通用化**：`PlayerStatus` 中 `境界`、`神识` 改为可选；注释补充：气血=生命/体力，灵气=精力/能量；`dataDefinitions` 属性说明增加通用语义。
+- **开局验证修复**：`saveValidationV3` 移除对 `角色.装备` 的必填校验，解决开局「角色.装备 必填且必须是对象」报错。
+
+#### 涉及文件
+
+- `saveSchemaV3.ts`、`game.d.ts`、`gameStateStore.ts`、`saveValidationV3.ts`、`saveMigration.ts`、`dataRepair.ts`、`dataValidation.ts`、`characterInitialization.ts`、`AIBidirectionalSystem.ts`、`GameVariablePanel.vue`、`GameVariableSaveDataSection.vue`、`dataDefinitions.ts`、`dataDefinitionsMing.ts`
+
+---
+
 ## [0.2.9] - 2026-01-31
 
 ### 地图系统与 NPC 类型（Phase 1）

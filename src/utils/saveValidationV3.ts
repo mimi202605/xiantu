@@ -69,24 +69,10 @@ export function validateSaveDataV3(saveData: SaveData): SaveValidationResult {
   if (!isPlainObject(anySave.角色?.位置)) errors.push('角色.位置 必填且必须是对象');
   if (!Array.isArray(anySave.角色?.效果)) errors.push('角色.效果 必填且必须是数组');
   if (!isPlainObject(anySave.角色?.背包)) errors.push('角色.背包 必填且必须是对象');
-  if (!isPlainObject(anySave.角色?.装备)) errors.push('角色.装备 必填且必须是对象');
+  // 角色.装备 已退役，不再校验
 
   const items = anySave.角色?.背包?.物品;
   if (!isPlainObject(items)) errors.push('角色.背包.物品 必填且必须是对象');
-
-  const equipment = anySave.角色?.装备;
-  if (isPlainObject(equipment) && isPlainObject(items)) {
-    for (let i = 1; i <= 6; i++) {
-      const key = `装备${i}`;
-      const v = (equipment as any)[key];
-      if (v == null) continue;
-      if (typeof v !== 'string') {
-        errors.push(`角色.装备.${key} 必须是 string|null`);
-        continue;
-      }
-      if (!(v in (items as any))) warnings.push(`角色.装备.${key} 引用了不存在的物品ID：${v}`);
-    }
-  }
 
   if (!isPlainObject(anySave.社交?.关系)) errors.push('社交.关系 必填且必须是对象');
   if (!isPlainObject(anySave.社交?.事件)) errors.push('社交.事件 必填且必须是对象');

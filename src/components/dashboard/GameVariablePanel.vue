@@ -392,10 +392,7 @@ const saveVariable = async (item: EditingItem) => {
         { from: '角色.效果', to: 'effects' },
         { from: '角色.身体.部位开发', to: 'bodyPartDevelopment' },
         { from: '角色.背包', to: 'inventory' },
-        { from: '角色.装备', to: 'equipment' },
-        { from: '角色.功法', to: 'techniqueSystem' },
-        { from: '角色.修炼', to: 'cultivation' },
-        { from: '角色.技能', to: 'skillState' },
+        // 装备/功法/修炼/技能 已退役，不再支持路径映射
 
         // 社交
         { from: '社交.关系', to: 'relationships' },
@@ -409,7 +406,6 @@ const saveVariable = async (item: EditingItem) => {
         // 系统
         { from: '系统.配置', to: 'systemConfig' },
         { from: '系统.设置', to: 'userSettings' },
-        { from: '系统.缓存.掌握技能', to: 'masteredSkills' },
         { from: '系统.历史.叙事', to: 'narrativeHistory' },
         { from: '系统.联机', to: 'onlineState' },
         { from: '系统.扩展.语义记忆', to: 'semanticMemory' },

@@ -69,9 +69,19 @@ const displaySaveData = computed(() => {
     社交WithSorted关系 = { ...社交, 关系: sorted关系 }
   }
 
+  // 过滤已退役的字段：装备、功法、修炼、技能（不再展示在存档数据中）
+  const 角色 = (v3 as any).角色
+  const 角色Filtered = 角色 && typeof 角色 === 'object'
+    ? Object.fromEntries(
+        Object.entries(角色).filter(
+          ([k]) => !['装备', '功法', '修炼', '技能'].includes(k)
+        )
+      )
+    : 角色
+
   return {
     元数据: (v3 as any).元数据,
-    角色: (v3 as any).角色,
+    角色: 角色Filtered,
     社交: 社交WithSorted关系,
     世界: (v3 as any).世界,
     系统: (v3 as any).系统,

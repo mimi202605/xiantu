@@ -285,16 +285,7 @@ function prepareInitialData(baseInfo: CharacterBaseInfo, age: number): { saveDat
     // 🔥 时间：使用age作为初始年份，AI可以通过tavern_commands修改
     时间: { 年: age, 月: 1, 日: 1, 小时: Math.floor(Math.random() * 12) + 6, 分钟: Math.floor(Math.random() * 60) },
     背包: { 灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }, 物品: {} },
-    装备: { 装备1: null, 装备2: null, 装备3: null, 装备4: null, 装备5: null, 装备6: null },
-    功法: {
-      当前功法ID: null,
-      功法进度: {},
-      功法套装: { 主修: null, 辅修: [] },
-    },
-    修炼: {
-      修炼功法: null,
-    },
-    技能: { 掌握技能: [], 装备栏: [], 冷却: {} },
+    // 装备/功法/修炼/技能 已退役，不再创建
     事件: {
       配置: {
         启用随机事件: true,
@@ -311,13 +302,10 @@ function prepareInitialData(baseInfo: CharacterBaseInfo, age: number): { saveDat
     系统: {
       规则: {
         属性上限: { 先天六司: { 每项上限: 10 } },
-        // 装备系统
-        装备系统: '装备存储引用{物品ID,名称}，完整数据在背包.物品中',
         品质控制: '严格遵守境界对应品质范围，仙品世界上几乎没有，每一个都是令世界动荡的存在，神品不存在'
       },
       提示: [
-        '⚠️ 先创建后修改：修改数据前必须确保数据已存在',
-        '装备字段：装备1-6'
+        '⚠️ 先创建后修改：修改数据前必须确保数据已存在'
       ],
       ...(tavernEnv ? {
         // 🔥 NSFW设置：从localStorage读取用户设置

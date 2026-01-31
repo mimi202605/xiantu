@@ -182,61 +182,20 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
       repairedNpc.外貌描述 = '相貌普通，气质平和。';
     }
 
-    try {
-      if (!repairedNpc.灵根) repairedNpc.灵根 = '五行杂灵根';
-    } catch (e) {
-      repairedNpc.灵根 = '五行杂灵根';
-    }
-
-    try {
-      if (!repairedNpc.先天六司 || typeof repairedNpc.先天六司 !== 'object') {
-        repairedNpc.先天六司 = { 根骨: 5, 灵性: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
-      }
-    } catch (e) {
-      repairedNpc.先天六司 = { 根骨: 5, 灵性: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
-    }
-
-    // 3. 结构检查与修复 (境界) - 防御性处理
-    try {
-      if (typeof repairedNpc.境界 !== 'object' || repairedNpc.境界 === null) {
-        repairedNpc.境界 = {
-          名称: '凡人',
-          阶段: '',
-          当前进度: 0,
-          下一级所需: 100,
-          突破描述: '引气入体，感悟天地灵气，踏上修仙第一步'
-        };
-      } else {
-        if (typeof repairedNpc.境界.名称 !== 'string') repairedNpc.境界.名称 = '凡人';
-        if (typeof repairedNpc.境界.阶段 !== 'string') repairedNpc.境界.阶段 = '';
-        if (typeof repairedNpc.境界.当前进度 !== 'number' || isNaN(repairedNpc.境界.当前进度)) repairedNpc.境界.当前进度 = 0;
-        if (typeof repairedNpc.境界.下一级所需 !== 'number' || isNaN(repairedNpc.境界.下一级所需)) repairedNpc.境界.下一级所需 = 100;
-        if (typeof repairedNpc.境界.突破描述 !== 'string') repairedNpc.境界.突破描述 = '引气入体，感悟天地灵气，踏上修仙第一步';
-      }
-    } catch (e) {
-      console.warn('[NPC校验] 境界字段修复失败，使用默认值:', e);
-      repairedNpc.境界 = {
-        名称: '凡人',
-        阶段: '',
-        当前进度: 0,
-        下一级所需: 100,
-        突破描述: '引气入体，感悟天地灵气，踏上修仙第一步'
-      };
-    }
+    // 灵根/先天六司/境界 已退役，不再强制补全
 
     try {
       if (!repairedNpc.属性 || typeof repairedNpc.属性 !== 'object') {
         repairedNpc.属性 = {
           气血: { 当前: 100, 上限: 100 },
           灵气: { 当前: 50, 上限: 50 },
-          神识: { 当前: 30, 上限: 30 },
           寿元上限: 100
         };
       } else {
         const attrs = repairedNpc.属性 as any;
         if (!attrs.气血 || typeof attrs.气血 !== 'object') attrs.气血 = { 当前: 100, 上限: 100 };
         if (!attrs.灵气 || typeof attrs.灵气 !== 'object') attrs.灵气 = { 当前: 50, 上限: 50 };
-        if (!attrs.神识 || typeof attrs.神识 !== 'object') attrs.神识 = { 当前: 30, 上限: 30 };
+        // 神识 已退役，不再强制补全
         if (typeof attrs.寿元上限 !== 'number' || !Number.isFinite(attrs.寿元上限)) attrs.寿元上限 = 100;
         repairedNpc.属性 = attrs;
       }
@@ -244,7 +203,6 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
       repairedNpc.属性 = {
         气血: { 当前: 100, 上限: 100 },
         灵气: { 当前: 50, 上限: 50 },
-        神识: { 当前: 30, 上限: 30 },
         寿元上限: 100
       };
     }

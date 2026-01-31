@@ -93,11 +93,15 @@ export interface SaveDataV3 {
     效果: StatusEffect[];
     身体?: BodyStats;
     背包: Inventory;
-    装备: Equipment;
-    功法: TechniqueSystemV3;
-    修炼: CultivationStateV3;
+    /** @deprecated 装备系统已退役，保留键以兼容旧存档 */
+    装备?: Equipment;
+    /** @deprecated 功法系统已退役，保留键以兼容旧存档 */
+    功法?: TechniqueSystemV3;
+    /** @deprecated 修炼系统已退役，保留键以兼容旧存档 */
+    修炼?: CultivationStateV3;
     大道?: DaoSystemV3; // [MING] 可选，三千大道已退役
-    技能: SkillStateV3;
+    /** @deprecated 技能系统已退役，保留键以兼容旧存档 */
+    技能?: SkillStateV3;
   };
   社交: {
     关系: Record<string, NpcProfile>;

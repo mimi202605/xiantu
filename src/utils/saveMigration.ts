@@ -278,26 +278,7 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
   const flatTime = coerceTime(source.元数据?.时间 ?? source.时间 ?? source.游戏时间);
 
   const flatInventory = source.背包 ?? { 灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }, 物品: {} };
-  const flatEquipment =
-    source.装备 ?? source.装备栏 ?? { 装备1: null, 装备2: null, 装备3: null, 装备4: null, 装备5: null, 装备6: null };
-
-  const flatTechniqueSystem =
-    source.功法 ??
-    {
-      当前功法ID: null,
-      功法进度: {},
-      功法套装: { 主修: null, 辅修: [] },
-    };
-
-  const flatCultivation =
-    source.修炼 ?? (source.修炼功法 !== undefined ? { 修炼功法: source.修炼功法 } : { 修炼功法: null });
-
-  // [MING] 大道迁移已移除（三千大道系统已退役）
-  const flatSkills =
-    source.技能 ??
-    (source.掌握技能
-      ? { 掌握技能: source.掌握技能, 装备栏: [], 冷却: {} }
-      : { 掌握技能: [], 装备栏: [], 冷却: {} });
+  // 装备/功法/修炼/技能 已退役，迁移时不再处理
 
   // [MING] 宗门迁移已移除（宗门系统已退役）
   const flatRelationships = source.关系 ?? source.人物关系 ?? {};
@@ -349,10 +330,7 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       效果: flatEffects,
       身体: source.身体 ?? (source.身体部位开发 ? { 部位开发: source.身体部位开发 } : undefined),
       背包: flatInventory,
-      装备: flatEquipment,
-      功法: flatTechniqueSystem,
-      修炼: flatCultivation,
-      技能: flatSkills,
+      // 装备/功法/修炼/技能 已退役，迁移时不再写入（旧存档中若有则忽略）
     },
     社交: {
       关系: flatRelationships,
