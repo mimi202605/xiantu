@@ -4,6 +4,21 @@
 
 ---
 
+## [0.2.12] - 2026-02-01
+
+### 坤舆图：minimap 展示与 地点NPC 逻辑优化
+
+#### 变更摘要
+
+- **地图 minimap 展示**：`MapPanel` 由树形列表改为 minimap 风格；新增 `MapMinimap.vue`（SVG 画布、缩放/平移、悬停详情）、`locationMapUtils.ts`（地点布局与坐标）；顶层地点围绕中心分布，子地点聚集于父节点附近；悬停显示地点描述与在场 NPC。
+- **getNpcsAtLocation**：回退匹配改为**完全相等**（`当前位置.描述 === locationDesc`）；当 地点NPC 为空且回退找到 NPC 时，支持 `updateStoreOnFallback` 将结果写回该地点的 地点NPC，保持数据同步。
+
+#### 涉及文件
+
+- `MapPanel.vue`、`MapMinimap.vue`、`locationMapUtils.ts`、`locationUtils.ts`
+
+---
+
 ## [0.2.11] - 2026-02-01
 
 ### 修复：push 世界.信息.地点信息 不生效

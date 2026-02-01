@@ -1,5 +1,11 @@
 # 更新日志
 
+## [MING] 通用版 0.2.12 (2026-02-01)
+
+坤舆图 minimap 展示：树形列表改为 minimap 风格，支持缩放/平移与悬停详情；getNpcsAtLocation 回退仅完全相等匹配，支持回退时更新地点的 地点NPC。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.11 (2026-02-01)
 
 修复 push 世界.信息.地点信息 不生效：dataRepair 确保 世界.信息.地点信息 存在；executeCommand 为 地点信息 push 增加特殊处理，显式初始化路径后再写入。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。

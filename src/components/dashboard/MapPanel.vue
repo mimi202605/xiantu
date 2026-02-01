@@ -22,16 +22,7 @@
       <div v-if="!hasLocations" class="map-empty">
         {{ t('尚无地点记录，游历四方后将逐步显现。') }}
       </div>
-      <div v-else class="location-tree">
-        <LocationTreeNode
-          v-for="(loc, idx) in topLevelLocations"
-          :key="loc.名称 || idx"
-          :entry="loc"
-          :explored-set="exploredSet"
-          :current-location-desc="currentLocationDesc"
-          :depth="0"
-        />
-      </div>
+      <MapMinimap v-else :entries="locationEntries" />
     </div>
   </div>
 </template>
@@ -41,25 +32,18 @@ import { computed } from 'vue';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useI18n } from '@/i18n';
 import type { LocationEntry } from '@/types/game';
-import LocationTreeNode from './components/LocationTreeNode.vue';
+import MapMinimap from './components/MapMinimap.vue';
 
 const { t } = useI18n();
 const gameStateStore = useGameStateStore();
 
-const topLevelLocations = computed(() => {
+const locationEntries = computed(() => {
   const info = gameStateStore.worldInfo?.地点信息;
   if (!Array.isArray(info)) return [];
   return info.filter((e): e is LocationEntry => e && typeof e === 'object' && typeof (e as any).名称 === 'string');
 });
 
-const exploredSet = computed(() => {
-  const rec = gameStateStore.explorationRecord;
-  return new Set(Array.isArray(rec) ? rec : []);
-});
-
-const currentLocationDesc = computed(() => gameStateStore.location?.描述 ?? '');
-
-const hasLocations = computed(() => topLevelLocations.value.length > 0);
+const hasLocations = computed(() => locationEntries.value.length > 0);
 </script>
 
 <style scoped>

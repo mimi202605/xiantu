@@ -6,6 +6,7 @@
  */
 
 import type { LocationEntry } from '@/types/game';
+import { useGameStateStore } from '@/stores/gameStateStore';
 
 /**
  * 在递归地点树中按名称查找地点条目
@@ -30,33 +31,59 @@ function findLocationInTree(
 
 /**
  * 获取某地点的 NPC 名列表。
- * 优先从该地点的 地点NPC（存于 地点信息 树内）读取；
- * 若无，则从 社交.关系 中按 当前位置.描述 匹配（精确或包含）。
+ *
+ * 数据来源优先级：
+ * 1. 地点信息.地点信息 树中该地点的 地点NPC 字段（AI 通过 tavern_commands push 时写入）
+ * 2. 回退：社交.关系 中按 NPC.当前位置.描述 与 locationDesc **完全相等** 匹配
+ *
+ * 回退触发条件（满足任一即回退到 社交.关系）：
+ * - 地点不在 地点信息 树中（loc 为 null）
+ * - 地点的 地点NPC 为 undefined 或 null
+ * - 地点的 地点NPC 不是数组
+ * - 地点的 地点NPC 为空数组 []
+ *
+ * 回退逻辑：遍历 社交.关系，仅当 当前位置.描述 === locationDesc（完全相等）时计入。
+ * 若回退找到 NPC 且地点在树中存在，会更新该地点的 地点NPC 到 gameStateStore。
  */
 export function getNpcsAtLocation(
   saveData: Record<string, unknown>,
-  locationDesc?: string
+  locationDesc?: string,
+  options?: { updateStoreOnFallback?: boolean }
 ): string[] {
   if (!locationDesc || typeof locationDesc !== 'string') return [];
 
   const 地点信息 = (saveData?.世界 as Record<string, unknown>)?.信息 as Record<string, unknown> | undefined;
   const entries = 地点信息?.地点信息;
   const loc = findLocationInTree(entries as (LocationEntry | unknown)[] | undefined, locationDesc);
-  if (loc?.地点NPC && Array.isArray(loc.地点NPC)) {
-    return loc.地点NPC;
+
+  // 1. 优先使用 地点信息 内的 地点NPC
+  const 地点NPC = loc?.地点NPC;
+  if (Array.isArray(地点NPC) && 地点NPC.length > 0) {
+    return 地点NPC;
   }
 
+  // 2. 回退：从 社交.关系 按 当前位置.描述 **完全相等** 匹配
   const 关系 = (saveData?.社交 as Record<string, unknown>)?.关系 as Record<string, unknown> | undefined;
   if (!关系 || typeof 关系 !== 'object') return [];
 
   const result: string[] = [];
   for (const [name, npc] of Object.entries(关系)) {
-    const desc = (npc as Record<string, unknown>)?.当前位置 as Record<string, unknown> | undefined;
-    const descStr = desc?.描述;
-    if (typeof descStr === 'string' && (descStr === locationDesc || descStr.includes(locationDesc) || locationDesc.includes(descStr))) {
-      result.push(name);
+    const 当前位置 = (npc as Record<string, unknown>)?.当前位置 as Record<string, unknown> | undefined;
+    const descStr = 当前位置?.描述;
+    if (typeof descStr !== 'string') continue;
+    if (descStr === locationDesc) result.push(name);
+  }
+
+  // 3. 若回退找到 NPC 且地点在树中存在，更新该地点的 地点NPC 到 store
+  if (result.length > 0 && loc && options?.updateStoreOnFallback) {
+    const store = useGameStateStore();
+    const storeEntries = store.worldInfo?.地点信息;
+    const storeLoc = findLocationInTree(storeEntries as (LocationEntry | unknown)[] | undefined, locationDesc);
+    if (storeLoc) {
+      storeLoc.地点NPC = [...result];
     }
   }
+
   return result;
 }
 
