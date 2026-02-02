@@ -72,7 +72,7 @@
             stroke-width="0.5"
           />
         </g>
-        <!-- Location nodes -->
+        <!-- Location nodes：有内部结构用框，无则用圆 -->
         <g
           v-for="node in nodes"
           :key="node.id"
@@ -85,28 +85,60 @@
           :transform="`translate(${node.x}, ${node.y})`"
           @mouseenter="onNodeHover(node, $event)"
           @mouseleave="tooltipNode = null"
+          @dblclick.stop="onNodeDblClick(node)"
         >
-          <circle
-            :r="node.radius"
-            cx="0"
-            cy="0"
-            fill="url(#location-bg-top)"
-            stroke="var(--color-primary)"
-            :stroke-width="isCurrent(node.entry.名称) ? 3 : 1.5"
-            stroke-opacity="0.6"
-            filter="url(#location-glow)"
-            class="location-circle"
-          />
-          <circle
-            v-if="isCurrent(node.entry.名称)"
-            :r="node.radius"
-            cx="0"
-            cy="0"
-            fill="url(#location-bg-current)"
-            stroke="var(--color-success)"
-            stroke-width="2"
-            stroke-opacity="0.8"
-          />
+          <!-- 有子地点：方框 -->
+          <template v-if="node.childIds.length > 0">
+            <rect
+              :x="-node.radius"
+              :y="-node.radius"
+              :width="node.radius * 2"
+              :height="node.radius * 2"
+              rx="6"
+              fill="url(#location-bg-top)"
+              stroke="var(--color-primary)"
+              :stroke-width="isCurrent(node.entry.名称) ? 3 : 1.5"
+              stroke-opacity="0.6"
+              filter="url(#location-glow)"
+              class="location-shape"
+            />
+            <rect
+              v-if="isCurrent(node.entry.名称)"
+              :x="-node.radius"
+              :y="-node.radius"
+              :width="node.radius * 2"
+              :height="node.radius * 2"
+              rx="6"
+              fill="url(#location-bg-current)"
+              stroke="var(--color-success)"
+              stroke-width="2"
+              stroke-opacity="0.8"
+            />
+          </template>
+          <!-- 无子地点：圆 -->
+          <template v-else>
+            <circle
+              :r="node.radius"
+              cx="0"
+              cy="0"
+              fill="url(#location-bg-top)"
+              stroke="var(--color-primary)"
+              :stroke-width="isCurrent(node.entry.名称) ? 3 : 1.5"
+              stroke-opacity="0.6"
+              filter="url(#location-glow)"
+              class="location-shape"
+            />
+            <circle
+              v-if="isCurrent(node.entry.名称)"
+              :r="node.radius"
+              cx="0"
+              cy="0"
+              fill="url(#location-bg-current)"
+              stroke="var(--color-success)"
+              stroke-width="2"
+              stroke-opacity="0.8"
+            />
+          </template>
           <text
             class="location-label"
             x="0"
@@ -142,12 +174,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed } from 'vue';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-vue-next';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useI18n } from '@/i18n';
 import {
   buildLocationMapNodes,
+  ZOOM_THRESHOLD_CHILDREN,
   type MapLocationNode,
 } from '@/utils/locationMapUtils';
 import { getNpcsAtLocation } from '@/utils/locationUtils';
@@ -163,9 +196,23 @@ const props = defineProps<{
 }>();
 
 const mapData = computed(() => buildLocationMapNodes(props.entries));
-const nodes = computed(() => mapData.value.nodes);
 const canvasWidth = computed(() => mapData.value.canvasWidth);
 const canvasHeight = computed(() => mapData.value.canvasHeight);
+
+// Zoom & pan（需在 nodes 之前定义，因 nodes 依赖 scale）
+const scale = ref(1);
+const panX = ref(0);
+const panY = ref(0);
+const MIN_SCALE = 0.3;
+const MAX_SCALE = 8;
+const ZOOM_STEP = 0.25;
+
+/** 缩放时：仅顶层可见；放大后子节点展开 */
+const nodes = computed(() => {
+  const all = mapData.value.nodes;
+  if (scale.value >= ZOOM_THRESHOLD_CHILDREN) return all;
+  return all.filter((n) => n.depth === 0);
+});
 
 const exploredSet = computed(() => {
   const rec = gameStateStore.explorationRecord;
@@ -200,14 +247,6 @@ const tooltipNpcs = computed(() => {
   );
 });
 
-// Zoom & pan
-const scale = ref(1);
-const panX = ref(0);
-const panY = ref(0);
-const MIN_SCALE = 0.3;
-const MAX_SCALE = 3;
-const ZOOM_STEP = 0.2;
-
 const svgViewBox = computed(() => {
   const w = canvasWidth.value;
   const h = canvasHeight.value;
@@ -219,11 +258,29 @@ const svgViewBox = computed(() => {
   return `${x} ${y} ${vw} ${vh}`;
 });
 
+/** 限制拖拽边界，防止画布被拖出视口 */
+function clampPan() {
+  const s = scale.value;
+  const w = canvasWidth.value;
+  const h = canvasHeight.value;
+  if (s <= 1) {
+    panX.value = 0;
+    panY.value = 0;
+    return;
+  }
+  const minPanX = w * (1 - s);
+  const minPanY = h * (1 - s);
+  panX.value = Math.max(minPanX, Math.min(0, panX.value));
+  panY.value = Math.max(minPanY, Math.min(0, panY.value));
+}
+
 function zoomIn() {
   scale.value = Math.min(MAX_SCALE, scale.value + ZOOM_STEP);
+  clampPan();
 }
 function zoomOut() {
   scale.value = Math.max(MIN_SCALE, scale.value - ZOOM_STEP);
+  clampPan();
 }
 function resetView() {
   scale.value = 1;
@@ -237,6 +294,41 @@ function onWheel(e: WheelEvent) {
     MIN_SCALE,
     Math.min(MAX_SCALE, scale.value + delta)
   );
+  clampPan();
+}
+
+/** 双击上级地点：放大至占满屏幕 */
+function onNodeDblClick(node: MapLocationNode) {
+  if (node.childIds.length === 0) return;
+  const all = mapData.value.nodes;
+  const nodeMap = mapData.value.nodeMap;
+  let minX = node.x - node.radius;
+  let maxX = node.x + node.radius;
+  let minY = node.y - node.radius;
+  let maxY = node.y + node.radius;
+  for (const cid of node.childIds) {
+    const c = nodeMap.get(cid);
+    if (!c) continue;
+    minX = Math.min(minX, c.x - c.radius);
+    maxX = Math.max(maxX, c.x + c.radius);
+    minY = Math.min(minY, c.y - c.radius);
+    maxY = Math.max(maxY, c.y + c.radius);
+  }
+  const boxW = maxX - minX;
+  const boxH = maxY - minY;
+  const pad = 40;
+  const targetScale = Math.min(
+    (canvasWidth.value - pad * 2) / boxW,
+    (canvasHeight.value - pad * 2) / boxH,
+    MAX_SCALE
+  );
+  const newScale = Math.max(ZOOM_THRESHOLD_CHILDREN, Math.min(MAX_SCALE, targetScale));
+  scale.value = newScale;
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  panX.value = canvasWidth.value / 2 - cx * newScale;
+  panY.value = canvasHeight.value / 2 - cy * newScale;
+  clampPan();
 }
 
 let isPanning = false;
@@ -256,6 +348,7 @@ function onPanStart(e: MouseEvent) {
     if (!isPanning) return;
     panX.value = startPanX + ev.clientX - startX;
     panY.value = startPanY + ev.clientY - startY;
+    clampPan();
   };
   const onUp = () => {
     isPanning = false;
@@ -351,15 +444,15 @@ function onMouseLeave() {
   transition: opacity 0.15s;
 }
 
-.location-node:hover .location-circle {
+.location-node:hover .location-shape {
   stroke-opacity: 1;
 }
 
-.location-node.explored .location-circle {
+.location-node.explored .location-shape {
   stroke-opacity: 0.8;
 }
 
-.location-node.unexplored .location-circle {
+.location-node.unexplored .location-shape {
   stroke-opacity: 0.35;
   filter: none;
 }

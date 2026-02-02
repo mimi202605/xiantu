@@ -1,5 +1,11 @@
 # 更新日志
 
+## [MING] 通用版 0.2.13 (2026-02-02)
+
+坤舆图：修复有子地点时方框与圆同时显示（v-if/v-else 配对修正）。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.12 (2026-02-01)
 
 坤舆图 minimap 展示：树形列表改为 minimap 风格，支持缩放/平移与悬停详情；getNpcsAtLocation 回退仅完全相等匹配，支持回退时更新地点的 地点NPC。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
