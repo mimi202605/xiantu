@@ -153,7 +153,7 @@ uvicorn server.main:app --reload --port 12345
 
 本项目个人学习、研究免费使用。商业用途请先联系作者。
 
-详见 [LICENSE](./LICENSE) | 联系方式：QQ 1538548527
+详见 [LICENSE](./LICENSE) | 联系方式：QQ 1154424983
 
 ---
 
