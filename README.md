@@ -157,17 +157,6 @@ uvicorn server.main:app --reload --port 12345
 
 ---
 
-## ☕ 支持项目
-
-如果这个项目对你有帮助，欢迎赞助支持~
-
-<p align="center">
-  <img src="https://ddct.top/weixing.jpg" width="200" alt="微信赞助"/>
-  <img src="https://ddct.top/zhifubao.jpg" width="200" alt="支付宝赞助"/>
-</p>
-
----
-
 <p align="center">
   <sub>如果觉得有帮助，请给个 ⭐ Star 支持一下！</sub>
 </p>
