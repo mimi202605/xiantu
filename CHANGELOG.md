@@ -1,5 +1,11 @@
 # 更新日志
 
+## [MING] 通用版 0.2.15 (2026-02-05)
+
+坤舆图：地图页顶部增加返回按钮，与背包、记忆中心等面板一致（将 Map 路由纳入 panelRoutes/panelTitles）。详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.14 (2026-02-04)
 
 NSFW 玩家法身与 NPC 私密档案逻辑统一：  

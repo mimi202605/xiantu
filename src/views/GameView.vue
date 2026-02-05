@@ -143,7 +143,7 @@ import { useCharacterStore } from '@/stores/characterStore';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useRouter, useRoute } from 'vue-router';
-import { X, Package, User, Brain, Users, Settings, Save, Bell, Box, Users2, Database, RefreshCw, FlaskConical, Trash2, BarChart3, FileText, Plug } from 'lucide-vue-next';
+import { X, Package, User, Brain, Users, Settings, Save, Bell, Box, Users2, Database, RefreshCw, FlaskConical, Trash2, BarChart3, FileText, Plug, Map } from 'lucide-vue-next';
 import { panelBus, type PanelAction } from '@/utils/panelBus';
 // [MING] Sect system retired: detectSectMigration, SectMigrationModal removed
 import TopBar from '@/components/dashboard/TopBar.vue'
@@ -183,7 +183,7 @@ const closeSidebars = () => {
 // 面板状态管理
 const panelRoutes = new Set([
   'Inventory', 'CharacterDetails', 'Memory', 'Relationships',
-  'Settings', 'Save', 'Events', 'GameVariables',
+  'Settings', 'Save', 'Map', 'Events', 'GameVariables',
   'Prompts', 'APIManagement'
 ]);
 
@@ -206,6 +206,7 @@ const panelTitles: Record<string, { title: string; icon: IconComponent }> = {
   Relationships: { title: '人物关系', icon: Users },
   Settings: { title: '系统设置', icon: Settings },
   Save: { title: '保存游戏', icon: Save },
+  Map: { title: '坤舆图', icon: Map },
   Events: { title: '世界事件', icon: Bell },
   GameVariables: { title: '游戏变量', icon: Database },
   Prompts: { title: '提示词管理', icon: FileText },
