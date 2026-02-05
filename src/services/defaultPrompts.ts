@@ -8,6 +8,12 @@
  * 4. 角色初始化提示词 - 创建角色时使用
  *
  * [MING] 本项目使用通用版 (ming) 提示词，不绑定修仙。
+ *
+ * 提示词管理显示逻辑：仅展示 ASSEMBLY_PROMPT_KEYS 中的项（参与游戏组装的提示词），
+ * 保证界面“所见即所用”。未在 ASSEMBLY_PROMPT_KEYS 中的 key 仍存在于 getSystemPrompts()
+ * 中（用于导入/导出兼容），但不会在 提示词管理 中显示。
+ *
+ * Legacy（当前未使用）：definitions/ 下非 ming 文件为旧版定义，本模块仅引用 definitions/ming/*。
  */
 import { getCotCorePrompt } from '@/utils/prompts/cot/cotCore';
 import { promptStorage } from './promptStorage';
@@ -75,6 +81,33 @@ export const PROMPT_CATEGORIES = {
     icon: '🌐'
   }
 };
+
+/**
+ * 参与游戏组装的提示词 key 列表（Ming 当前实际使用）
+ * 仅在此列表中的提示词会在 提示词管理 中显示，保证“所见即所用”。
+ * 来源：所有被 getPrompt(key) 引用的 key，不包含未接入的预留项。
+ */
+export const ASSEMBLY_PROMPT_KEYS: readonly string[] = [
+  'coreOutputRules',
+  'businessRules',
+  'dataDefinitions',
+  'textFormatRules',
+  'worldStandards',
+  'cotCore',
+  'actionOptions',
+  'eventSystemRules',
+  'splitGenerationStep1',
+  'splitGenerationStep2',
+  'splitInitStep1',
+  'splitInitStep2',
+  'onlineModeRules',
+  'onlineTravelContext',
+  'onlineWorldSync',
+  'onlineInteraction',
+  'memorySummary',
+  'textOptimization',
+  'eventGeneration'
+];
 
 // 合并核心输出规则
 const CORE_OUTPUT_RULES = [

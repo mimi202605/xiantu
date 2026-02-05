@@ -2,7 +2,7 @@
  * 提示词存储服务 - 使用IndexedDB
  */
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { getSystemPrompts, PROMPT_CATEGORIES, type PromptDefinition } from './defaultPrompts';
+import { getSystemPrompts, PROMPT_CATEGORIES, ASSEMBLY_PROMPT_KEYS, type PromptDefinition } from './defaultPrompts';
 
 interface PromptsDB extends DBSchema {
   prompts: {
@@ -92,6 +92,7 @@ class PromptStorage {
 
   /**
    * 按分类加载所有提示词（支持条件过滤）
+   * 仅显示参与游戏组装的提示词（ASSEMBLY_PROMPT_KEYS），保证界面“所见即所用”。
    * @param filterOptions 过滤选项
    */
   async loadByCategory(filterOptions?: {
@@ -101,6 +102,7 @@ class PromptStorage {
   }): Promise<PromptsByCategory> {
     await this.init();
     const allPrompts = await this.loadAll();
+    const assemblySet = new Set(ASSEMBLY_PROMPT_KEYS);
     const result: PromptsByCategory = {};
 
     // 初始化分类
@@ -111,8 +113,10 @@ class PromptStorage {
       };
     }
 
-    // 按分类整理提示词，并根据条件过滤
+    // 仅处理参与组装的提示词，并按分类整理、条件过滤
     for (const key in allPrompts) {
+      if (!assemblySet.has(key)) continue;
+
       const prompt = allPrompts[key];
 
       // 根据条件过滤提示词
@@ -132,7 +136,6 @@ class PromptStorage {
       if (result[category]) {
         result[category].prompts.push(prompt);
       } else {
-        // 未知分类，放到第一个分类
         const firstCategory = Object.keys(result)[0];
         if (firstCategory) {
           result[firstCategory].prompts.push(prompt);
@@ -143,6 +146,13 @@ class PromptStorage {
     // 按 order 排序
     for (const category in result) {
       result[category].prompts.sort((a, b) => (a.order || 999) - (b.order || 999));
+    }
+
+    // 移除无提示词的分类，避免显示空区块
+    for (const categoryKey of Object.keys(result)) {
+      if (result[categoryKey].prompts.length === 0) {
+        delete result[categoryKey];
+      }
     }
 
     return result;

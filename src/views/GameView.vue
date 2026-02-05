@@ -184,12 +184,12 @@ const closeSidebars = () => {
 const panelRoutes = new Set([
   'Inventory', 'CharacterDetails', 'Memory', 'Relationships',
   'Settings', 'Save', 'Map', 'Events', 'GameVariables',
-  'Prompts', 'APIManagement'
+  'Prompts', 'APIManagement', 'PromptAssembly'
 ]);
 
 // 不需要角色数据就能访问的面板（设置类）
 const noDataRequiredRoutes = new Set([
-  'Settings', 'Prompts', 'APIManagement'
+  'Settings', 'Prompts', 'APIManagement', 'PromptAssembly'
 ]);
 
 // 右侧相关面板（应该影响右侧收缩按钮）
@@ -210,7 +210,8 @@ const panelTitles: Record<string, { title: string; icon: IconComponent }> = {
   Events: { title: '世界事件', icon: Bell },
   GameVariables: { title: '游戏变量', icon: Database },
   Prompts: { title: '提示词管理', icon: FileText },
-  APIManagement: { title: 'API管理', icon: Plug }
+  APIManagement: { title: 'API管理', icon: Plug },
+  PromptAssembly: { title: '提示词组装', icon: Box }
 };
 
 const isPanelOpen = computed(() => {
@@ -533,6 +534,7 @@ watch(isPanelOpen, (isOpen) => {
 
 .panel-header.compact { padding: 6px 10px; position: sticky; top: 0; z-index: 2; background: var(--color-background); }
 .panel-content.compact { padding: 6px 10px 10px 10px; }
+.panel-content.compact > * { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 
 /* 数据加载提示样式 */
 .data-loading {

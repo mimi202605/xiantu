@@ -45,6 +45,13 @@
       <span class="warning-text">联机模式下提示词仅供查看，无法编辑</span>
     </div>
 
+    <!-- 透明度说明：仅显示参与游戏组装的提示词 -->
+    <div class="assembly-transparency">
+      <span class="assembly-icon">📋</span>
+      <span class="assembly-text">以下提示词会在游戏中参与组装，可直接编辑、启用/禁用或调整权重。</span>
+      <span class="assembly-count">当前显示 {{ assemblyPromptCount }} 项</span>
+    </div>
+
     <div class="prompt-list">
       <!-- 分类显示 -->
       <div v-for="(categoryData, categoryKey) in promptsByCategory" :key="categoryKey" class="category-section">
@@ -170,6 +177,15 @@ const isEventSystemEnabled = computed(() => {
 const promptsByCategory = ref<PromptsByCategory>({});
 const expandedPrompts = ref<Record<string, boolean>>({});
 const expandedCategories = ref<Record<string, boolean>>({});
+
+/** 当前显示的参与组装提示词数量（用于透明度说明） */
+const assemblyPromptCount = computed(() => {
+  let n = 0;
+  for (const cat of Object.values(promptsByCategory.value)) {
+    n += cat.prompts.length;
+  }
+  return n;
+});
 
 onMounted(async () => {
   await loadPrompts();
@@ -386,6 +402,33 @@ function downloadJSON(data: any, filename: string) {
 .online-mode-warning .warning-text {
   font-size: 0.85rem;
   font-weight: 500;
+}
+
+/* 参与组装透明度说明 */
+.assembly-transparency {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.assembly-transparency .assembly-icon {
+  font-size: 1rem;
+}
+
+.assembly-transparency .assembly-text {
+  flex: 1;
+  min-width: 200px;
+}
+
+.assembly-transparency .assembly-count {
+  font-weight: 500;
+  color: var(--color-primary);
 }
 
 /* 只读模式样式 */

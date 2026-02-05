@@ -185,6 +185,7 @@
             <div class="setting-info">
               <label class="setting-name">{{ t('调试模式') }}</label>
               <span class="setting-desc">{{ t('启用开发者调试信息和详细日志') }}</span>
+              <span class="setting-hint" v-if="settings.debugMode">{{ t('开启后侧边栏将显示「提示词组装」，可查看最近一次发送给 API 的提示词构成。') }}</span>
             </div>
             <div class="setting-control">
               <label class="setting-switch">
@@ -438,6 +439,7 @@ watch(settings, () => {
 // 监听调试模式变化
 watch(() => settings.debugMode, (newValue) => {
   debug.setMode(newValue);
+  uiStore.setDebugMode(newValue);
   debug.log('设置面板', `调试模式${newValue ? '已启用' : '已禁用'}`);
 });
 
@@ -455,6 +457,7 @@ const loadSettings = async () => {
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
       Object.assign(settings, parsed);
+      uiStore.syncDebugModeFromStorage();
       debug.log('设置面板', '设置加载成功', parsed);
     } else {
       debug.log('设置面板', '使用默认设置');
@@ -544,8 +547,9 @@ const applySettings = async () => {
     // 应用动画设置
     applyAnimationSettings();
 
-    // 应用调试模式
+    // 应用调试模式（同步到 uiStore，侧边栏「提示词组装」等入口据此显示）
     debug.setMode(settings.debugMode);
+    uiStore.setDebugMode(settings.debugMode);
 
     debug.log('设置面板', '所有设置已应用');
   } catch (error) {
@@ -947,6 +951,13 @@ onMounted(() => {
 .setting-desc {
   font-size: 0.875rem;
   color: #64748b;
+}
+
+.setting-hint {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  color: var(--color-primary, #6366f1);
 }
 
 .setting-control {

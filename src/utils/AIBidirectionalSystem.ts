@@ -15,7 +15,8 @@ import type { GM_Response } from '@/types/AIGameMaster';
 import type { CharacterProfile, StateChangeLog, SaveData, GameTime, StateChange, GameMessage, StatusEffect, EventSystem, GameEvent } from '@/types/game';
 // [MING] Removed mastered skills calculator
 // import { updateMasteredSkills } from './masteredSkillsCalculator';
-import {  assembleSystemPrompt } from './prompts/promptAssembler';
+import { assembleSystemPrompt } from './prompts/promptAssembler';
+import { usePromptAssemblyStore } from '@/stores/promptAssemblyStore';
 
 // [MING] Stub for removed mastered skills calculator
 function updateMasteredSkills(_store: any): void { /* no-op */ }
@@ -632,7 +633,14 @@ class AIBidirectionalSystemClass {
       const shortTermMemoryForPrompt = Array.isArray(shortTermMemory) ? [...shortTermMemory] : [];
       await this.maybeTriggerScheduledWorldEvent({ v3, stateForAI, shortTermMemoryForPrompt });
 
-      const assembledPrompt = await assembleSystemPrompt(activePrompts, uiStore.actionOptionsPrompt, stateForAI);
+      const assemblyModules: Array<{ key: string; 构成: string; 生成原因: string; content: string }> = [];
+      const shouldRecordAssembly = uiStore.debugMode;
+      const assembledPrompt = await assembleSystemPrompt(
+        activePrompts,
+        uiStore.actionOptionsPrompt,
+        stateForAI,
+        shouldRecordAssembly ? { onSection: (m) => assemblyModules.push(m) } : undefined
+      );
 
       // 🌐 构建穿越状态提示（直接写入主提示词，确保AI一定能看到）
       const onlineState = stateForAI?.系统?.联机;
@@ -712,6 +720,20 @@ ${retrievalBlock ? `\n# 语义记忆与实体索引\n${retrievalBlock}\n` : ''}
 你正在修仙世界《仙途》中扮演GM。以下是当前完整游戏存档(JSON格式):
 ${stateJsonString}
 `.trim();
+
+      // 调试可视化：仅复制已构建的 systemPrompt 到 store，不修改发送内容
+      if (shouldRecordAssembly && assemblyModules.length > 0) {
+        const promptAssemblyStore = usePromptAssemblyStore();
+        promptAssemblyStore.record({
+          fullPrompt: systemPrompt,
+          modules: assemblyModules.map((m) => ({
+            ...m,
+            flow引用: '主回合'
+          })),
+          flowName: '主回合',
+          timestamp: Date.now()
+        });
+      }
 
       const userActionForAI = (userMessage && userMessage.toString().trim()) || '继续当前活动';
       console.log('[AI双向系统] 用户输入 userMessage:', userMessage);
@@ -1003,6 +1025,14 @@ ${stateJsonString}
         // ========== 第1步：正文生成（失败重试1次） ==========
         options?.onProgressUpdate?.('分步生成：第1步（正文）…');
         const systemPromptStep1 = await buildSplitSystemPrompt(1);
+        if (uiStore.debugMode) {
+          usePromptAssemblyStore().record({
+            fullPrompt: systemPromptStep1,
+            modules: [{ key: 'splitStep1', 构成: '分步正文规则+世界观+状态', 生成原因: '分步第1步仅输出正文', flow引用: '分步第1步', content: systemPromptStep1 }],
+            flowName: '分步第1步',
+            timestamp: Date.now()
+          });
+        }
         const injectsStep1 = buildSplitInjects(systemPromptStep1, true);
         let step1Text = '';
         for (let attempt = 1; attempt <= 2; attempt++) {
@@ -1027,6 +1057,14 @@ ${stateJsonString}
         // ========== 第2步：指令生成（COT已合并到提示词中，可选开启） ==========
         options?.onProgressUpdate?.('分步生成：第2步（指令生成）…');
         const systemPromptStep2 = await buildSplitSystemPrompt(2);
+        if (uiStore.debugMode) {
+          usePromptAssemblyStore().record({
+            fullPrompt: systemPromptStep2,
+            modules: [{ key: 'splitStep2', 构成: '分步指令规则+业务规则+数据结构+状态', 生成原因: '分步第2步输出指令与选项', flow引用: '分步第2步', content: systemPromptStep2 }],
+            flowName: '分步第2步',
+            timestamp: Date.now()
+          });
+        }
         const injectsStep2 = buildSplitInjects(systemPromptStep2, false);
 
         const step2UserInput = `
@@ -1369,9 +1407,18 @@ ${cotPrompt}`.trim());
 
         // ========== 第1步：开局正文生成 ==========
         options?.onProgressUpdate?.('分步生成：第1步（开局正文）…');
+        const initSystemStep1 = await buildInitialSplitSystemPrompt(1);
+        if (uiStore.debugMode) {
+          usePromptAssemblyStore().record({
+            fullPrompt: initSystemStep1,
+            modules: [{ key: 'initStep1', 构成: '开局正文规则+世界观+角色设定', 生成原因: '开局分步第1步仅输出正文', flow引用: '开局第1步', content: initSystemStep1 }],
+            flowName: '开局第1步',
+            timestamp: Date.now()
+          });
+        }
         const step1Raw = await generateOnce({
           step: 1,
-          system: await buildInitialSplitSystemPrompt(1),
+          system: initSystemStep1,
           user: userPrompt,
           should_stream: useStreaming,
           usageType: 'main',
@@ -1386,6 +1433,16 @@ ${cotPrompt}`.trim());
 
         // ========== 第2步：COT + 指令生成（合并） ==========
         options?.onProgressUpdate?.('分步生成：第2步（思维链+指令生成）…');
+
+        const initSystemStep2 = await buildInitialSplitSystemPrompt(2);
+        if (uiStore.debugMode) {
+          usePromptAssemblyStore().record({
+            fullPrompt: initSystemStep2,
+            modules: [{ key: 'initStep2', 构成: '开局指令规则+业务规则+数据结构', 生成原因: '开局分步第2步输出指令与选项', flow引用: '开局第2步', content: initSystemStep2 }],
+            flowName: '开局第2步',
+            timestamp: Date.now()
+          });
+        }
 
         const step2UserPrompt = `
 【开局用户提示】
@@ -1406,7 +1463,7 @@ ${step1Text}
             if (attempt > 1) options?.onProgressUpdate?.(`分步生成：第2步重试…`);
             const step2Response = await generateOnce({
               step: 2,
-              system: await buildInitialSplitSystemPrompt(2),
+              system: initSystemStep2,
               user: step2UserPrompt,
               should_stream: step2StreamingInitial,
               usageType: hasInstructionApi ? 'instruction_generation' : 'main',

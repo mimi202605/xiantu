@@ -145,6 +145,17 @@
             <ChevronRight :size="14" class="btn-arrow" />
           </button>
 
+          <button v-if="uiStore.debugMode" class="function-btn system" @click="handlePromptAssembly">
+            <div class="btn-icon">
+              <Layers :size="18" />
+            </div>
+            <div class="btn-content">
+              <span class="btn-text">{{ t('提示词组装') }}</span>
+              <span class="btn-desc">{{ t('查看发送的提示词构成') }}</span>
+            </div>
+            <ChevronRight :size="14" class="btn-arrow" />
+          </button>
+
           <button class="function-btn system" @click="handleSettings">
             <div class="btn-icon">
               <Settings :size="18" />
@@ -210,7 +221,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Package, User, Users, Brain, Save, Settings, LogOut, Bell, ChevronRight, Database, Clock, FileText, Plug, LayoutGrid, Heart, Map } from 'lucide-vue-next';
+import { Package, User, Users, Brain, Save, Settings, LogOut, Bell, ChevronRight, Database, Clock, FileText, Plug, LayoutGrid, Heart, Map, Layers } from 'lucide-vue-next';
 import { useCharacterStore } from '@/stores/characterStore';
 import { toast } from '@/utils/toast';
 import { useUIStore } from '@/stores/uiStore';
@@ -251,6 +262,7 @@ const updateRealTime = () => {
 onMounted(async () => {
   updateRealTime();
   timeInterval = window.setInterval(updateRealTime, 1000);
+  uiStore.syncDebugModeFromStorage();
 
   // 获取后端版本
   if (isBackendConfigured()) {
@@ -308,6 +320,10 @@ const handleSettings = () => {
 
 const handleAPIManagement = () => {
   router.push('/game/api-management');
+};
+
+const handlePromptAssembly = () => {
+  router.push('/game/prompt-assembly');
 };
 
 const handleGameVariables = () => {
@@ -584,6 +600,8 @@ const exitToMenu = async () => {
 
 .sidebar-content {
   flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
@@ -649,6 +667,7 @@ const exitToMenu = async () => {
   font-family: inherit;
   text-align: left;
   width: 100%;
+  min-width: 0; /* 允许在窄侧边栏内收缩，配合 btn-text/btn-desc 的 ellipsis */
   position: relative;
   overflow: hidden;
 }

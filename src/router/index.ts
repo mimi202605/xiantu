@@ -49,6 +49,7 @@ import MapPanel from '../components/dashboard/MapPanel.vue';
 // [MING] SectPanel, SectSystemPanel, Sect*Content removed (sect system retired)
 import GameVariablePanel from '../components/dashboard/GameVariablePanel.vue';
 import PromptManagementPanel from '../components/dashboard/PromptManagementPanel.vue';
+import PromptAssemblyPanel from '../components/dashboard/PromptAssemblyPanel.vue';
 // import OnlineTravelPanel from '../components/dashboard/OnlineTravelPanel.vue';
 import APIManagementPanel from '../components/dashboard/APIManagementPanel.vue';
 
@@ -166,6 +167,11 @@ const routes = [
         path: 'api-management',
         name: 'APIManagement',
         component: APIManagementPanel,
+      },
+      {
+        path: 'prompt-assembly',
+        name: 'PromptAssembly',
+        component: PromptAssemblyPanel,
       },
     ],
   },

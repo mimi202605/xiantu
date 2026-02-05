@@ -93,6 +93,25 @@ export const useUIStore = defineStore('ui', () => {
   // 🔥 [CoT设置] 控制是否使用系统CoT（默认关闭）
   const useSystemCot = ref(localStorage.getItem('useSystemCot') === 'true');
 
+  // 🔥 [调试模式] 与设置同步，用于侧边栏「提示词组装」等调试入口的显示
+  const debugMode = ref(false);
+
+  function setDebugMode(enabled: boolean) {
+    debugMode.value = enabled;
+  }
+
+  function syncDebugModeFromStorage() {
+    try {
+      const raw = localStorage.getItem('dad_game_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        debugMode.value = !!parsed.debugMode;
+      }
+    } catch {
+      debugMode.value = false;
+    }
+  }
+
   // 🔥 [后端状态管理] 统一管理后端连接状态
   const backendStatus = ref({
     configured: isBackendConfigured(),
@@ -420,6 +439,10 @@ export const useUIStore = defineStore('ui', () => {
         localStorage.setItem('useSystemCot', String(val));
       }
     }),
+
+    debugMode,
+    setDebugMode,
+    syncDebugModeFromStorage,
 
     // 暴露用户输入框内容
     userInputText,

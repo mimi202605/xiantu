@@ -4,6 +4,51 @@
 
 ---
 
+## [0.2.16] - 2026-02-05
+
+### 提示词管理：仅展示参与组装的提示词
+
+- **透明度与显示逻辑**  
+  - 新增 `ASSEMBLY_PROMPT_KEYS`（defaultPrompts.ts），列出当前实际参与游戏组装的 19 个提示词 key。  
+  - 提示词管理面板仅显示上述 key，保证「所见即所用」；未在列表中的 key 仍存在于 `getSystemPrompts()`（导入兼容），但不在面板中展示。  
+  - 面板顶部增加说明：「以下提示词会在游戏中参与组装，可直接编辑、启用/禁用或调整权重」及当前显示数量。  
+  - `promptStorage.loadByCategory()` 按 `ASSEMBLY_PROMPT_KEYS` 过滤，并移除无提示词的分类。
+
+- **Legacy 说明**  
+  - 在 defaultPrompts 注释中标明：`definitions/` 下非 ming 文件为旧版定义，本模块仅引用 `definitions/ming/*`。
+
+#### 涉及文件
+
+- `defaultPrompts.ts`、`promptStorage.ts`、`PromptManagementPanel.vue`
+
+---
+
+### 提示词组装（调试可视化）
+
+- **功能**  
+  - 在系统设置中开启「调试模式」并保存后，侧边栏出现「提示词组装」入口。  
+  - 打开后面板展示**最近一次**发送给 API 的系统提示词：全文 + 各模组的「提示词构成 / 生成原因 / 在那个 flow 引用 / 内容」。  
+  - 支持主回合、分步第 1/2 步、开局第 1/2 步的录制；录制条件与侧栏可见性一致（`uiStore.debugMode`）。  
+  - 纯观察与复制，**不修改实际发送的 prompt**；promptAssembler 的 `onSection` 仅用于收集元数据，返回值与是否传入无关。
+
+- **实现要点**  
+  - `promptAssemblyStore`：存 lastSnapshot（fullPrompt、modules、flowName、timestamp）。  
+  - `promptAssembler`：可选 `options.onSection` 回调，每段 push 时顺带调用，不改变拼接结果。  
+  - `AIBidirectionalSystem`：主流程与分步/开局流程在构建完 systemPrompt 后，若 `uiStore.debugMode` 则 `promptAssemblyStore.record(...)`。  
+  - 设置中调试模式与 `uiStore.debugMode` 同步，便于侧栏与录制一致。
+
+- **UI**  
+  - 路由 `prompt-assembly`，面板 `PromptAssemblyPanel.vue`；无数据时显示说明（开启调试并发送一次请求后可见）。  
+  - 侧栏按钮描述缩短为「查看发送的提示词构成」，并增加 `min-width: 0` / `overflow-x: hidden` 避免横向溢出。
+
+#### 涉及文件
+
+- `stores/promptAssemblyStore.ts`、`stores/uiStore.ts`（debugMode 同步）  
+- `promptAssembler.ts`、`AIBidirectionalSystem.ts`  
+- `PromptAssemblyPanel.vue`、`LeftSidebar.vue`、`GameView.vue`、`SettingsPanel.vue`、`router/index.ts`、`i18n/index.ts`
+
+---
+
 ## [0.2.15] - 2026-02-05
 
 ### 坤舆图：顶部增加返回按钮
