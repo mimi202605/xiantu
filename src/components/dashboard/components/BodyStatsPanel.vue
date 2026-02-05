@@ -8,7 +8,11 @@
     <div v-if="!displayBodyStats" class="empty-stats">
       <div class="empty-icon"><FileQuestion :size="32" /></div>
       <p>{{ t('暂无详细身体数据') }}</p>
-      <p class="sub-text">{{ isTavernEnvFlag ? t('请在酒馆中完善角色设定') : t('网页端不提供法身数据') }}</p>
+      <p class="sub-text">
+        {{ isTavernEnvFlag
+          ? (nsfwMode ? t('成人内容已开启，当前存档尚未生成法身数据，请在酒馆中完善角色设定或重新创建角色') : t('请在酒馆中完善角色设定'))
+          : t('网页端不提供法身数据') }}
+      </p>
     </div>
 
     <div v-else class="stats-container">

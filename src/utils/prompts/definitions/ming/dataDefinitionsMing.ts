@@ -33,8 +33,20 @@ const CHARACTER_STRUCTURE = `
   - 生成时间必填：使用当前 \`元数据.时间\` 的完整对象 {年, 月, 日, 小时, 分钟}
 
 ### 1.5 身体/法身（NSFW/酒馆端；路径：\`角色.身体\`）
-仅当 **系统配置.nsfwMode=true** 且为酒馆端时生成/更新。
-- 身高、体重、体脂率、三围、外观特征、敏感点、开发度、纹身与印记等
+仅当 **系统配置.nsfwMode=true** 且为酒馆端时，才会生成/更新；游戏中可通过 set \`角色.身体\` 或 set \`角色.身体.xxx\` 更新。
+- 身高?: number (cm)
+- 体重?: number (kg)
+- 体脂率?: number (%)
+- 三围?: {胸围:number, 腰围:number, 臀围:number}
+- 外观特征?: string[]
+- 敏感点?: string[]
+- 开发度?: {部位名称: number} (0-100)
+- 纹身与印记?: string[]
+- 胸部描述?: string
+- 私处描述?: string
+- 生殖器描述?: string
+- 部位?: object (预留)
+- 部位开发?: object (预留；用于变量面板/扩展系统写入)
 `;
 
 const INVENTORY_STRUCTURE = `
@@ -183,6 +195,13 @@ ${GAME_STATE_STRUCTURE}
 ${EVENT_SYSTEM_STRUCTURE}
 `.trim();
 
+/** 仅酒馆端：NPC 私密信息（PrivacyProfile）必填字段说明，便于 AI 创建 NPC 时带齐 */
+const PRIVACY_PROFILE_FIELDS_HINT = `
+### 当 系统配置.nsfwMode=true 且 NPC 性别符合 nsfwGenderFilter 时
+创建 NPC 的 value 必须包含 \`私密信息\` 对象，且包含以下必填字段（禁止「待生成/暂无/空对象」）：
+- 是否为处女/处男(boolean)、身体部位(数组，每项含 部位名称/敏感度/开发度/特征描述)、性格倾向、性取向、性癖好(数组)、性渴望程度(0-100)、当前性状态、体液分泌状态、性交总次数(number)、性伴侣名单(数组)、最近一次性行为时间(string)、特殊体质(数组)。逻辑一致：是否为处女/处男=true 时，性交总次数=0、性伴侣名单=[]。
+`.trim();
+
 export function stripNsfwContentMing(input: string): string {
   return input
     .split('\n')
@@ -192,6 +211,6 @@ export function stripNsfwContentMing(input: string): string {
 }
 
 export function getSaveDataStructureMingForEnv(isTavern: boolean): string {
-  if (isTavern) return SAVE_DATA_STRUCTURE_MING;
+  if (isTavern) return SAVE_DATA_STRUCTURE_MING + '\n\n' + PRIVACY_PROFILE_FIELDS_HINT;
   return stripNsfwContentMing(SAVE_DATA_STRUCTURE_MING);
 }

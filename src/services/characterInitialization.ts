@@ -477,6 +477,9 @@ async function generateOpeningScene(saveData: SaveData, baseInfo: CharacterBaseI
       : ((saveData as any).系统?.配置 || {})
   };
 
+  if (tavernEnv) {
+    console.log('[初始化] 🔥 NSFW 配置:', worldContext.systemSettings?.nsfwMode ? '已开启（将要求 AI 生成 角色.身体）' : '未开启');
+  }
   console.log('[初始化] 🔥 世界检查:');
   console.log('  - 世界描述:', (saveData as any).世界?.信息?.世界背景 || '未找到');
   console.log('  - 大陆数量:', worldContext.availableContinents.length);

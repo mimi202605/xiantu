@@ -4,6 +4,40 @@
 
 ---
 
+## [0.2.14] - 2026-02-04
+
+### NSFW：玩家法身与 NPC 私密档案逻辑统一
+
+#### 变更摘要
+
+- **玩家法身（角色.身体）与修仙版对齐**  
+  - 将 MING 版 `1.5 身体/法身` 的数据结构扩展为与修仙版一致：身高、体重、体脂率、三围、外观特征、敏感点、开发度、纹身与印记、胸部描述、私处描述、生殖器描述等字段。  
+  - 明确说明：仅当 `系统配置.nsfwMode=true` 且为酒馆端时，才会生成/更新 `角色.身体`；**游戏过程中可通过 `set 角色.身体` 或 `set 角色.身体.xxx` 更新法身数据**。
+
+- **开局法身生成：强制使用 `角色.身体`**  
+  - 角色初始化提示词（MING 与修仙版）统一约定：  
+    - **唯一合法 key 为 `角色.身体`**，禁止在开局的 `tavern_commands` 中使用 `角色.身体部位开发`。  
+    - 初始 value 至少包含：身高、体重、三围、至少一项描述（胸部/私处/生殖器描述）、以及 **敏感点(string[])、开发度(Record<部位名,0-100>)、纹身与印记(string[])**。  
+  - 业务规则中原有「玩家身体部位开发（存储位置：`角色.身体部位开发`）」的说法改为：  
+    - 开局只写入 `角色.身体`，**`角色.身体部位开发` 仅供变量面板/扩展逻辑使用，不在初始化和常规 AI 指令中写入**。
+
+- **法身 UI 提示优化**  
+  - `BodyStatsPanel` 在酒馆 + NSFW 开启但无法身数据时，会提示「成人内容已开启，当前存档尚未生成法身数据，请在酒馆中完善角色设定或重新创建角色」，避免误以为被“私密模式”隐藏。
+
+- **地点路人 NPC：支持按 NSFW 配置生成私密档案**  
+  - 地点路人 NPC 生成提示词新增 `nsfwMode` 与 `nsfwGenderFilter` 输入：  
+    - 当 NSFW 开启且 NPC 性别符合过滤条件（all / female / male）时，要求为该 NPC 输出完整 `私密信息`（PrivacyProfile），字段包括：是否为处女/处男、身体部位数组（部位名称/敏感度/开发度/特征描述）、性格倾向、性取向、性癖好、性渴望程度、当前性状态、体液分泌状态、性交总次数、性伴侣名单、最近一次性行为时间、特殊体质等。  
+  - 仅在酒馆环境下追加一段 PrivacyProfile 字段说明到数据结构提示词中，帮助模型在 NSFW 模式下正确生成 NPC 私密档案。
+
+#### 涉及文件
+
+- 提示词与数据结构：`businessRules.ts`、`businessRulesMing.ts`、`dataDefinitions.ts`、`dataDefinitionsMing.ts`  
+- 角色初始化：`characterInitializationPrompts.ts`、`characterInitializationPromptsMing.ts`、`characterInitialization.ts`  
+- NPC 生成与执行逻辑：`locationNpcGenerationPromptsMing.ts`、`AIBidirectionalSystem.ts`、`locationUtils.ts`  
+- UI 与文案：`BodyStatsPanel.vue`、`i18n/index.ts`
+
+---
+
 ## [0.2.13] - 2026-02-02
 
 ### 坤舆图：修复有子地点时方框与圆同时显示

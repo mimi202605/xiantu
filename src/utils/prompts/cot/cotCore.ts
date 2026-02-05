@@ -30,7 +30,7 @@ export function getCotCorePrompt(userInput: string, enableActionOptions: boolean
 
  ## 禁止
  - 绝对禁止输出：\`<thinking>\` / 思维链 / 任何推理过程标签
- 
+
 ## 占位符规则（CRITICAL）
 - 本提示词中出现的 [NPC名] / [道名] / [功法ID] 只是占位符说明
 - 输出 tavern_commands.key 时必须替换为真实名称，且不要保留方括号 []

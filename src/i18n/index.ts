@@ -101,6 +101,7 @@ const autoTranslateMap: Record<string, string> = {
   '自定义行动选项提示词': 'Custom Action Prompt', '指导AI生成特定风格的行动选项（可选，留空使用默认）': 'Guide AI action style (optional)',
   '例如：多生成修炼和探索类选项，减少战斗选项...': 'e.g.: More cultivation options, less combat...',
   '🔞 启用成人内容（私密信息）': '🔞 Enable Adult Content', '生成和显示NPC的私密信息模块（包含成人向内容，默认开启）': 'Generate NPC private info (adult content)',
+  '成人内容已开启，当前存档尚未生成法身数据，请在酒馆中完善角色设定或重新创建角色': 'Adult content is on; this save has no body data yet. Complete character setup in Tavern or create a new character.',
   '👥 私密信息生成范围': '👥 Private Info Scope', '选择为哪些性别的NPC生成私密信息': 'Select NPC gender for private info',
   '所有NPC': 'All NPCs', '🔧 高级设置': '🔧 Advanced', '启用开发者调试信息和详细日志': 'Enable debug logs',
   '控制台调试': 'Console Debug', '在浏览器控制台显示详细调试信息': 'Show console debug info',

@@ -121,5 +121,31 @@ export function onPlayerLeaveLocation(
   loc.地点NPC = loc.地点NPC.filter((n) => !toRemove.includes(n));
 }
 
+/**
+ * 在指定地点的 地点NPC 中追加名字（去重、不重复添加已有名字）。
+ * 若地点不在树中则无操作。
+ */
+export function appendNpcsToLocation(
+  saveData: Record<string, unknown>,
+  locationDesc: string,
+  npcNames: string[]
+): void {
+  if (!locationDesc || !Array.isArray(npcNames) || npcNames.length === 0) return;
+
+  const 地点信息 = (saveData?.世界 as Record<string, unknown>)?.信息 as Record<string, unknown> | undefined;
+  const entries = 地点信息?.地点信息 as (LocationEntry & { 地点NPC?: string[] })[] | undefined;
+  const loc = findLocationInTree(entries, locationDesc);
+  if (!loc) return;
+
+  const current = Array.isArray(loc.地点NPC) ? loc.地点NPC : [];
+  const set = new Set(current);
+  for (const name of npcNames) {
+    if (typeof name === 'string' && name.trim() && !set.has(name.trim())) {
+      set.add(name.trim());
+    }
+  }
+  loc.地点NPC = Array.from(set);
+}
+
 /** 导出供其他模块使用 */
 export { findLocationInTree };
