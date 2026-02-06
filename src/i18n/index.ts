@@ -365,6 +365,7 @@ const autoTranslateMap: Record<string, string> = {
   '感悟统计': 'Stats', '突破所需': 'Required', '深入感悟此道': 'Deepen insight',
   '定位到玩家位置': 'Locate Player', '全屏显示': 'Fullscreen',
   '调试地图数据': 'Debug Map', '图例': 'Legend',
+  '返回上一级': 'Back to parent', '放大': 'Zoom in', '缩小': 'Zoom out', '重置视图': 'Reset view',
   '城镇坊市': 'Towns',
   '洞天福地': 'Blessed Lands', '奇珍异地': 'Treasure Lands',
   '凶险之地': 'Dangerous Areas', '其他特殊': 'Special',
