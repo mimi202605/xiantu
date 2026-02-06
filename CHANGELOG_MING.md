@@ -4,6 +4,41 @@
 
 ---
 
+## [0.2.17] - 2026-02-05
+
+### 提示词组装（调试）：多步骤、模组明细、Token 估算、记忆与 API 说明
+
+- **多步骤与模组明细**  
+  - 由「最近一次」改为**最近 20 条**快照列表（`recentSnapshots`），可切换查看分步第 1 步、第 2 步、开局第 1/2 步等任一步骤。  
+  - 分步/开局各步骤在构建时按段收集真实模组（`onSection`），记录每段的 key、构成、生成原因、flow 引用、content；面板展示「本步骤使用的提示词模组」列表及每模组的上述元数据与内容。  
+  - 分步第 1 步模组：splitGenerationStep1、textFormatRules、worldStandards、statusSummary、narrativeState 等；第 2 步：splitGenerationStep2、cotCore（可选）、businessRules、dataDefinitions、textFormatRules、worldStandards、actionOptions（可选）、eventSystemRules、statusSummary、stateJson。开局第 1/2 步同理按段收集并展示。
+
+- **Token 估算**  
+  - 新增 `utils/tokenEstimate.ts`：`estimateTokensForText(text)`（CJK≈1 token/字，非 CJK≈4 字符/token），与 aiService 估算方式一致。  
+  - 提示词全文标题显示「约 N tokens」；每个模组标题显示该模组内容的「约 N tokens」；步骤标签显示「共 X 个模组 · 约 Y tokens」（Y 为全文估算）。
+
+- **本步骤发送的记忆（assistant 角色）**  
+  - `AssemblySnapshot` 新增可选字段 `memoryContent`、`apiCallDescription`。  
+  - 分步第 1 步录制时：将实际发送的短期记忆块（与 `buildSplitInjects` 中 assistant 内容一致）写入 `memoryContent`；面板在「提示词全文」下方增加区块「本步骤发送的记忆（assistant 角色）」，展示该内容并显示约 N tokens。  
+  - 分步第 2 步、开局第 1/2 步无记忆注入，不显示该区块。
+
+- **本步骤对应的 API 调用说明**  
+  - 每条快照可带 `apiCallDescription`，说明该步骤对应哪一次 API 及各 role 内容来源。  
+  - 分步第 1 步：`第1次 API：role: system = 分步第1步；role: assistant = 记忆（如有）；role: user = 玩家输入`。  
+  - 分步第 2 步：`第2次 API：role: system = 分步第2步；role: user = 玩家输入 + 第1步返回正文`。  
+  - 开局第 1 步：`第1次 API：role: system = 开局第1步；role: user = 角色设定`。  
+  - 开局第 2 步：`第2次 API：role: system = 开局第2步；role: user = 开局用户提示 + 第1步正文`。  
+  - 面板在步骤元信息区展示「本步骤对应：……」完整说明。
+
+#### 涉及文件
+
+- `stores/promptAssemblyStore.ts`（AssemblySnapshot 增加 memoryContent、apiCallDescription；recentSnapshots 已存在）  
+- `utils/tokenEstimate.ts`（新增）  
+- `utils/AIBidirectionalSystem.ts`（分步/开局 buildSplit 按段 push 模组；record 时传入 memoryContent / apiCallDescription）  
+- `components/dashboard/PromptAssemblyPanel.vue`（步骤标签、全文/记忆/模组 token、API 说明、记忆区块）
+
+---
+
 ## [0.2.16] - 2026-02-05
 
 ### 提示词管理：仅展示参与组装的提示词

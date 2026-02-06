@@ -17,23 +17,58 @@
     </div>
 
     <div class="assembly-hint" v-if="!hasSnapshot">
-      <p>暂无数据。请开启<strong>调试模式</strong>（系统设置 → 调试模式），并进行一次游戏请求（主回合、分步生成或开局）后，此处将显示最近一次发送给 API 的提示词构成。</p>
+      <p>暂无数据。请开启<strong>调试模式</strong>（系统设置 → 调试模式），并进行一次游戏请求（主回合、分步生成或开局）后，此处将显示发送给 API 的提示词构成（含分步第1步、第2步等）。</p>
     </div>
 
     <template v-else>
-      <div class="assembly-meta">
-        <span class="flow-badge">{{ flowName }}</span>
-        <span class="time-text">{{ timeText }}</span>
+      <!-- 步骤列表：选择要查看的 step -->
+      <div class="step-tabs">
+        <button
+          v-for="(snap, idx) in recentSnapshots"
+          :key="idx"
+          class="step-tab"
+          :class="{ active: selectedIndex === idx }"
+          @click="selectedIndex = idx"
+        >
+          <span class="step-tab-name">{{ snap.flowName }}</span>
+          <span class="step-tab-time">{{ formatTime(snap.timestamp) }}</span>
+          <span class="step-tab-modules">共 {{ snap.modules.length }} 个模组 · 约 {{ tokensForSnapshot(snap) }} tokens</span>
+        </button>
       </div>
 
-      <div class="assembly-content">
+      <!-- 当前选中步骤的详情 -->
+      <div class="assembly-meta" v-if="selectedSnapshot">
+        <span class="flow-badge">{{ selectedSnapshot.flowName }}</span>
+        <span class="time-text">{{ formatTime(selectedSnapshot.timestamp) }}</span>
+        <span class="modules-summary">本步骤使用的提示词模组：{{ selectedSnapshot.modules.map(m => m.key).join('、') }}</span>
+        <span class="api-call-desc" v-if="selectedSnapshot.apiCallDescription" :title="selectedSnapshot.apiCallDescription">
+          本步骤对应：{{ selectedSnapshot.apiCallDescription }}
+        </span>
+      </div>
+
+      <div class="assembly-content" v-if="selectedSnapshot">
         <section class="section-full">
-          <h3 class="section-title">提示词全文</h3>
-          <pre class="block-content full-prompt">{{ fullPrompt }}</pre>
+          <h3 class="section-title">
+            提示词全文
+            <span class="token-badge">约 {{ fullPromptTokens }} tokens</span>
+          </h3>
+          <pre class="block-content full-prompt">{{ selectedSnapshot.fullPrompt }}</pre>
         </section>
 
-        <section v-for="(mod, index) in modules" :key="mod.key + index" class="section-module">
-          <h3 class="section-title">提示词模组{{ index + 1 }}：{{ mod.key }}</h3>
+        <section class="section-memory" v-if="selectedSnapshot.memoryContent">
+          <h3 class="section-title">
+            本步骤发送的记忆（assistant 角色）
+            <span class="token-badge">约 {{ memoryTokens }} tokens</span>
+          </h3>
+          <pre class="block-content memory-content">{{ selectedSnapshot.memoryContent }}</pre>
+        </section>
+
+        <h3 class="section-title modules-heading">本步骤使用的提示词模组（共 {{ selectedSnapshot.modules.length }} 个）</h3>
+        <section v-for="(mod, index) in selectedSnapshot.modules" :key="mod.key + index" class="section-module">
+          <h3 class="section-title">
+            提示词模组{{ index + 1 }}：{{ mod.key }}
+            <span class="token-badge">约 {{ getModuleTokens(mod) }} tokens</span>
+          </h3>
           <dl class="module-meta">
             <dt>提示词构成：</dt>
             <dd>{{ mod.构成 }}</dd>
@@ -52,26 +87,60 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { usePromptAssemblyStore } from '@/stores/promptAssemblyStore';
-import { computed } from 'vue';
+import { estimateTokensForText } from '@/utils/tokenEstimate';
+import { computed, ref, watch } from 'vue';
+import type { AssemblySnapshot, PromptModule } from '@/stores/promptAssemblyStore';
 
 const store = usePromptAssemblyStore();
-const { hasSnapshot, flowName, fullPrompt, modules, timestamp } = storeToRefs(store);
+const { hasSnapshot, recentSnapshots } = storeToRefs(store);
 
-const timeText = computed(() => {
-  if (!timestamp.value) return '';
-  const d = new Date(timestamp.value);
+const selectedIndex = ref(0);
+
+const selectedSnapshot = computed<AssemblySnapshot | null>(() => {
+  const list = recentSnapshots.value;
+  const idx = selectedIndex.value;
+  return list[idx] ?? null;
+});
+
+const fullPromptTokens = computed(() => {
+  const snap = selectedSnapshot.value;
+  return snap ? estimateTokensForText(snap.fullPrompt) : 0;
+});
+
+const memoryTokens = computed(() => {
+  const snap = selectedSnapshot.value;
+  return snap?.memoryContent ? estimateTokensForText(snap.memoryContent) : 0;
+});
+
+function getModuleTokens(mod: PromptModule): number {
+  return estimateTokensForText(mod.content);
+}
+
+function tokensForSnapshot(snap: AssemblySnapshot): number {
+  return estimateTokensForText(snap.fullPrompt);
+}
+
+watch(recentSnapshots, (list) => {
+  if (list.length > 0 && selectedIndex.value >= list.length) {
+    selectedIndex.value = 0;
+  }
+}, { immediate: true });
+
+function formatTime(ts: number) {
+  if (!ts) return '';
+  const d = new Date(ts);
   return d.toLocaleString('zh-CN', {
-    year: 'numeric',
     month: '2-digit',
     day: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
   });
-});
+}
 
 function clearSnapshot() {
   store.clear();
+  selectedIndex.value = 0;
 }
 </script>
 
@@ -143,10 +212,61 @@ function clearSnapshot() {
   color: var(--color-primary);
 }
 
+.step-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.step-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.step-tab:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
+}
+
+.step-tab.active {
+  border-color: var(--color-primary);
+  background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.15);
+  color: var(--color-primary);
+}
+
+.step-tab-name {
+  font-weight: 600;
+}
+
+.step-tab-time {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.step-tab-modules {
+  font-size: 0.7rem;
+  color: var(--color-text-secondary);
+}
+
 .assembly-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem 0.75rem;
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
@@ -165,6 +285,26 @@ function clearSnapshot() {
   color: var(--color-text-secondary);
 }
 
+.modules-summary,
+.api-call-desc {
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.api-call-desc {
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+}
+
+.modules-heading {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 .assembly-content {
   flex: 1;
   min-height: 0;
@@ -173,12 +313,17 @@ function clearSnapshot() {
 }
 
 .section-full,
+.section-memory,
 .section-module {
   margin-bottom: 1.5rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
   background: var(--color-surface);
+}
+
+.memory-content {
+  max-height: 280px;
 }
 
 .section-title {
@@ -189,6 +334,21 @@ function clearSnapshot() {
   color: var(--color-text);
   background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-surface-hover) 100%);
   border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.token-badge {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: var(--color-background);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
 }
 
 .module-meta {

@@ -592,13 +592,42 @@ class AIBidirectionalSystemClass {
 - 环境修正根据判定类型选择对应的值`;
       // --- 结束 ---
 
+      // 世界背景/世界描述/世界观 在存档中常为同源内容，API 只需发送一份，其余用引用避免重复
+      const WORLD_DESCRIPTION_REF = '（世界观与背景描述见本段 世界.信息.世界背景）';
+      const normalizeWorldForPrompt = (世界: unknown): unknown => {
+        if (!世界 || typeof 世界 !== 'object') return 世界;
+        const cloned = cloneDeep(世界) as Record<string, unknown>;
+        const 信息 = cloned.信息 as Record<string, unknown> | undefined;
+        if (信息 && typeof 信息 === 'object') {
+          const 信息Copy = { ...信息 };
+          // 统一只保留 世界背景 作为正文，避免 世界描述/世界观 重复发送相同内容
+          if ('世界背景' in 信息Copy || '世界描述' in 信息Copy || '世界观' in 信息Copy) {
+            信息Copy.世界描述 = WORLD_DESCRIPTION_REF;
+            信息Copy.世界观 = WORLD_DESCRIPTION_REF;
+          }
+          cloned.信息 = 信息Copy;
+        }
+        return cloned;
+      };
+
+      // 角色.身份.世界 来自创角所选世界，其 description 与 世界.信息.世界背景 同源，发 API 时只保留引用
+      const normalizeIdentityForPrompt = (身份: unknown): unknown => {
+        if (!身份 || typeof 身份 !== 'object') return 身份;
+        const cloned = cloneDeep(身份) as Record<string, unknown>;
+        const 世界 = cloned.世界 as Record<string, unknown> | undefined;
+        if (世界 && typeof 世界 === 'object' && ('description' in 世界 || '描述' in 世界)) {
+          cloned.世界 = { ...世界, description: WORLD_DESCRIPTION_REF, 描述: WORLD_DESCRIPTION_REF };
+        }
+        return cloned;
+      };
+
       // 🔥 构建精简版存档数据（用于叙事判定，减少token消耗）
       // 无论单步还是分步模式，都使用精简版存档
       const buildNarrativeState = (): Record<string, unknown> => {
         return {
           元数据: { 时间: stateForAI.元数据?.时间 },
           角色: {
-            身份: stateForAI.角色?.身份,
+            身份: normalizeIdentityForPrompt(stateForAI.角色?.身份),
             属性: stateForAI.角色?.属性,
             位置: stateForAI.角色?.位置,
             效果: stateForAI.角色?.效果,
@@ -615,7 +644,7 @@ class AIBidirectionalSystemClass {
               长期记忆: stateForAI.社交?.记忆?.长期记忆,
             },
           },
-          世界: stateForAI.世界,
+          世界: normalizeWorldForPrompt(stateForAI.世界),
         };
       };
 
@@ -902,18 +931,25 @@ ${stateJsonString}
         // 🔥 分步生成第1步直接复用 buildNarrativeState（已在上方定义）
         const buildNarrativeStateForStep1 = (): string => JSON.stringify(buildNarrativeState());
 
-        const buildSplitSystemPrompt = async (step: 1 | 2): Promise<string> => {
+        type SectionCollector = (m: { key: string; 构成: string; 生成原因: string; flow引用: string; content: string }) => void;
+
+        const buildSplitSystemPrompt = async (step: 1 | 2, opts?: { flowName: string; onSection?: SectionCollector }): Promise<string> => {
           const tavernEnv = !!tavernHelper;
+          const flowRef = opts?.flowName ?? (step === 1 ? '分步第1步' : '分步第2步');
+          const push = opts?.onSection;
 
           if (step === 1) {
             // 第1步：只输出正文纯文本，不需要JSON格式和指令相关的提示词
             const stepRules = (await getPrompt('splitGenerationStep1')).trim();
             const worldStandardsPrompt = await getPrompt('worldStandards');
-            // 🔥 添加判定规则，确保战斗等场景使用判定系统
             const textFormatsPrompt = await getPrompt('textFormatRules');
-            // 🔥 添加精简版存档数据，用于叙事判定（知道玩家装备、状态、NPC关系等）
             const narrativeStateJson = buildNarrativeStateForStep1();
-            // 只给叙事相关的提示词，不给coreOutputRules/dataDefinitions等指令格式提示词
+            const statusBlock = `${coreStatusSummary}${vectorMemorySection ? `\n${vectorMemorySection}\n` : ''}`;
+            push?.({ key: 'splitGenerationStep1', 构成: '分步正文规则', 生成原因: '第1步仅输出正文', flow引用: flowRef, content: stepRules });
+            push?.({ key: 'textFormatRules', 构成: '判定系统', 生成原因: '战斗/探索等场景必须使用判定', flow引用: flowRef, content: textFormatsPrompt });
+            push?.({ key: 'worldStandards', 构成: '世界观设定', 生成原因: '叙事风格一致', flow引用: flowRef, content: worldStandardsPrompt });
+            push?.({ key: 'statusSummary', 构成: '状态摘要与记忆', 生成原因: '上下文注入', flow引用: flowRef, content: statusBlock });
+            push?.({ key: 'narrativeState', 构成: '当前游戏状态JSON', 生成原因: '叙事判定用', flow引用: flowRef, content: `# 当前游戏状态（用于叙事判定，无需输出指令）\n${narrativeStateJson}` });
             return `
 ${stepRules}
 
@@ -946,15 +982,16 @@ ${narrativeStateJson}
           ]);
 
           const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContentMing(dataDefinitionsPrompt);
+          const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContentMing(businessRulesPrompt);
 
-          // 第2步：COT + 指令生成（合并）
           const stepRules = (await getPrompt('splitGenerationStep2')).trim();
           const cotPrompt = enableCot ? await getPrompt('cotCore') : '';
           const sections: string[] = [stepRules];
 
-          // 如果启用COT，添加思维链提示
+          push?.({ key: 'splitGenerationStep2', 构成: '分步指令规则', 生成原因: '第2步输出指令与选项', flow引用: flowRef, content: stepRules });
+
           if (enableCot && cotPrompt) {
-            sections.push(`
+            const cotBlock = `
 # 思维链分析（先分析再生成指令）
 根据第1步正文内容，分析：
 1. 场景变化（位置、时间、环境）
@@ -964,23 +1001,35 @@ ${narrativeStateJson}
 5. 修炼进度变化
 
 ${cotPrompt}
-`.trim());
+`.trim();
+            sections.push(cotBlock);
+            push?.({ key: 'cotCore', 构成: '思维链分析', 生成原因: '先分析再生成指令', flow引用: flowRef, content: cotBlock });
           }
 
-          const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContentMing(businessRulesPrompt);
           sections.push(sanitizedBusinessRulesPrompt, sanitizedDataDefinitionsPrompt, textFormatsPrompt, worldStandardsPrompt);
+          push?.({ key: 'businessRules', 构成: '核心规则', 生成原因: '业务规则', flow引用: flowRef, content: sanitizedBusinessRulesPrompt });
+          push?.({ key: 'dataDefinitions', 构成: '数据结构', 生成原因: '指令 key 规范', flow引用: flowRef, content: sanitizedDataDefinitionsPrompt });
+          push?.({ key: 'textFormatRules', 构成: '文本格式', 生成原因: '判定与命名', flow引用: flowRef, content: textFormatsPrompt });
+          push?.({ key: 'worldStandards', 构成: '世界标准', 生成原因: '境界与品质', flow引用: flowRef, content: worldStandardsPrompt });
 
           if (uiStore.enableActionOptions) {
             const actionOptionsPrompt = await getPrompt('actionOptions');
             const customPromptSection = uiStore.actionOptionsPrompt
               ? `**用户自定义要求**：${uiStore.actionOptionsPrompt}\n\n请严格按以上要求生成行动选项。`
               : '（无特殊要求，按默认规则生成）';
-            sections.push(actionOptionsPrompt.replace('{{CUSTOM_ACTION_PROMPT}}', customPromptSection));
+            const actionContent = actionOptionsPrompt.replace('{{CUSTOM_ACTION_PROMPT}}', customPromptSection);
+            sections.push(actionContent);
+            push?.({ key: 'actionOptions', 构成: '行动选项', 生成原因: '生成玩家可选行动', flow引用: flowRef, content: actionContent });
           }
 
-          sections.push(await getPrompt('eventSystemRules'));
+          const eventRules = await getPrompt('eventSystemRules');
+          sections.push(eventRules);
+          push?.({ key: 'eventSystemRules', 构成: '世界事件规则', 生成原因: '事件演变与影响', flow引用: flowRef, content: eventRules });
 
           const assembled = sections.join('\n\n---\n\n');
+          push?.({ key: 'statusSummary', 构成: '状态摘要', 生成原因: '上下文', flow引用: flowRef, content: coreStatusSummary });
+          push?.({ key: 'stateJson', 构成: '游戏状态JSON', 生成原因: '完整存档供指令生成', flow引用: flowRef, content: `# 游戏状态（JSON）\n${stateJsonString}` });
+
           return `
 ${assembled}
 
@@ -1024,13 +1073,20 @@ ${stateJsonString}
 
         // ========== 第1步：正文生成（失败重试1次） ==========
         options?.onProgressUpdate?.('分步生成：第1步（正文）…');
-        const systemPromptStep1 = await buildSplitSystemPrompt(1);
-        if (uiStore.debugMode) {
+        const step1Modules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [];
+        const systemPromptStep1 = await buildSplitSystemPrompt(1, uiStore.debugMode ? { flowName: '分步第1步', onSection: (m) => step1Modules.push(m) } : undefined);
+        if (uiStore.debugMode && step1Modules.length > 0) {
+          const memoryToSendForRecord = (typeof shortTermMemoryForPrompt !== 'undefined' ? shortTermMemoryForPrompt : shortTermMemory) as string[];
+          const memoryContentStep1 = memoryToSendForRecord.length > 0
+            ? `# 【最近事件】\n${memoryToSendForRecord.join('\n')}。根据这刚刚发生的文本事件，合理生成下一次文本信息，要保证衔接流畅、不断层，符合上文的文本信息`
+            : undefined;
           usePromptAssemblyStore().record({
             fullPrompt: systemPromptStep1,
-            modules: [{ key: 'splitStep1', 构成: '分步正文规则+世界观+状态', 生成原因: '分步第1步仅输出正文', flow引用: '分步第1步', content: systemPromptStep1 }],
+            modules: step1Modules,
             flowName: '分步第1步',
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            memoryContent: memoryContentStep1,
+            apiCallDescription: '第1次 API：role: system = 分步第1步；role: assistant = 记忆（如有）；role: user = 玩家输入'
           });
         }
         const injectsStep1 = buildSplitInjects(systemPromptStep1, true);
@@ -1056,13 +1112,15 @@ ${stateJsonString}
 
         // ========== 第2步：指令生成（COT已合并到提示词中，可选开启） ==========
         options?.onProgressUpdate?.('分步生成：第2步（指令生成）…');
-        const systemPromptStep2 = await buildSplitSystemPrompt(2);
-        if (uiStore.debugMode) {
+        const step2Modules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [];
+        const systemPromptStep2 = await buildSplitSystemPrompt(2, uiStore.debugMode ? { flowName: '分步第2步', onSection: (m) => step2Modules.push(m) } : undefined);
+        if (uiStore.debugMode && step2Modules.length > 0) {
           usePromptAssemblyStore().record({
             fullPrompt: systemPromptStep2,
-            modules: [{ key: 'splitStep2', 构成: '分步指令规则+业务规则+数据结构+状态', 生成原因: '分步第2步输出指令与选项', flow引用: '分步第2步', content: systemPromptStep2 }],
+            modules: step2Modules,
             flowName: '分步第2步',
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            apiCallDescription: '第2次 API：role: system = 分步第2步；role: user = 玩家输入 + 第1步返回正文'
           });
         }
         const injectsStep2 = buildSplitInjects(systemPromptStep2, false);
@@ -1321,11 +1379,19 @@ ${step1Text}
 
       if (shouldActuallySplit) {
 
-        const buildInitialSplitSystemPrompt = async (step: 1 | 2): Promise<string> => {
+        type InitSectionCollector = (m: { key: string; 构成: string; 生成原因: string; flow引用: string; content: string }) => void;
+
+        const buildInitialSplitSystemPrompt = async (step: 1 | 2, opts?: { flowName: string; onSection?: InitSectionCollector }): Promise<string> => {
+          const flowRef = opts?.flowName ?? (step === 1 ? '开局第1步' : '开局第2步');
+          const push = opts?.onSection;
+
           if (step === 1) {
-            // 第1步：只输出正文，不需要JSON格式和指令相关的提示词
             const stepRules = (await getPrompt('splitInitStep1')).trim();
             const worldStandardsPrompt = await getPrompt('worldStandards');
+            const roleBlock = `# 角色设定\n${userPrompt}`;
+            push?.({ key: 'splitInitStep1', 构成: '开局正文规则', 生成原因: '开局第1步仅输出正文', flow引用: flowRef, content: stepRules });
+            push?.({ key: 'worldStandards', 构成: '世界观设定', 生成原因: '叙事风格一致', flow引用: flowRef, content: worldStandardsPrompt });
+            push?.({ key: 'userPrompt', 构成: '角色设定', 生成原因: '玩家选择摘要', flow引用: flowRef, content: roleBlock });
             return `
 ${stepRules}
 
@@ -1356,9 +1422,10 @@ ${userPrompt}
 
           const sections: string[] = [stepRules];
 
-          // 如果启用COT，添加思维链提示
+          push?.({ key: 'splitInitStep2', 构成: '开局指令规则', 生成原因: '开局第2步输出指令与选项', flow引用: flowRef, content: stepRules });
+
           if (enableCot && cotPrompt) {
-            sections.push(`
+            const cotBlock = `
 # 思维链分析（先分析再生成指令）
 根据第1步正文内容，分析：
 1. 初始场景设定（位置、时间、环境）
@@ -1366,10 +1433,17 @@ ${userPrompt}
 3. 玩家初始状态
 4. 可能的发展方向
 
-${cotPrompt}`.trim());
+${cotPrompt}`.trim();
+            sections.push(cotBlock);
+            push?.({ key: 'cotCore', 构成: '思维链分析', 生成原因: '先分析再生成指令', flow引用: flowRef, content: cotBlock });
           }
 
           sections.push(sanitizedBusinessRulesPrompt, sanitizedDataDefinitionsPrompt, textFormatsPrompt, worldStandardsPrompt);
+          push?.({ key: 'businessRules', 构成: '核心规则', 生成原因: '业务规则', flow引用: flowRef, content: sanitizedBusinessRulesPrompt });
+          push?.({ key: 'dataDefinitions', 构成: '数据结构', 生成原因: '指令 key 规范', flow引用: flowRef, content: sanitizedDataDefinitionsPrompt });
+          push?.({ key: 'textFormatRules', 构成: '文本格式', 生成原因: '判定与命名', flow引用: flowRef, content: textFormatsPrompt });
+          push?.({ key: 'worldStandards', 构成: '世界标准', 生成原因: '境界与品质', flow引用: flowRef, content: worldStandardsPrompt });
+
           return sections.map(s => s.trim()).filter(Boolean).join('\n\n---\n\n').trim();
         };
 
@@ -1407,13 +1481,15 @@ ${cotPrompt}`.trim());
 
         // ========== 第1步：开局正文生成 ==========
         options?.onProgressUpdate?.('分步生成：第1步（开局正文）…');
-        const initSystemStep1 = await buildInitialSplitSystemPrompt(1);
-        if (uiStore.debugMode) {
+        const initStep1Modules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [];
+        const initSystemStep1 = await buildInitialSplitSystemPrompt(1, uiStore.debugMode ? { flowName: '开局第1步', onSection: (m) => initStep1Modules.push(m) } : undefined);
+        if (uiStore.debugMode && initStep1Modules.length > 0) {
           usePromptAssemblyStore().record({
             fullPrompt: initSystemStep1,
-            modules: [{ key: 'initStep1', 构成: '开局正文规则+世界观+角色设定', 生成原因: '开局分步第1步仅输出正文', flow引用: '开局第1步', content: initSystemStep1 }],
+            modules: initStep1Modules,
             flowName: '开局第1步',
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            apiCallDescription: '第1次 API：role: system = 开局第1步；role: user = 角色设定'
           });
         }
         const step1Raw = await generateOnce({
@@ -1434,13 +1510,15 @@ ${cotPrompt}`.trim());
         // ========== 第2步：COT + 指令生成（合并） ==========
         options?.onProgressUpdate?.('分步生成：第2步（思维链+指令生成）…');
 
-        const initSystemStep2 = await buildInitialSplitSystemPrompt(2);
-        if (uiStore.debugMode) {
+        const initStep2Modules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [];
+        const initSystemStep2 = await buildInitialSplitSystemPrompt(2, uiStore.debugMode ? { flowName: '开局第2步', onSection: (m) => initStep2Modules.push(m) } : undefined);
+        if (uiStore.debugMode && initStep2Modules.length > 0) {
           usePromptAssemblyStore().record({
             fullPrompt: initSystemStep2,
-            modules: [{ key: 'initStep2', 构成: '开局指令规则+业务规则+数据结构', 生成原因: '开局分步第2步输出指令与选项', flow引用: '开局第2步', content: initSystemStep2 }],
+            modules: initStep2Modules,
             flowName: '开局第2步',
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            apiCallDescription: '第2次 API：role: system = 开局第2步；role: user = 开局用户提示 + 第1步正文'
           });
         }
 

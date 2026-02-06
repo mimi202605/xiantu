@@ -1,9 +1,11 @@
 /**
  * 提示词组装可视化 - 调试用
- * 记录最近一次发送给 API 的系统提示词及其模组构成，供「提示词组装」面板展示。
+ * 记录最近多次发送给 API 的系统提示词及其模组构成（含分步第1/2步等），供「提示词组装」面板展示。
  */
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
+
+const MAX_RECENT_SNAPSHOTS = 20;
 
 export interface PromptModule {
   /** 模组 key（如 coreOutputRules） */
@@ -21,32 +23,41 @@ export interface PromptModule {
 export interface AssemblySnapshot {
   /** 完整系统提示词（发送给 API 的全文） */
   fullPrompt: string;
-  /** 各子模组 */
+  /** 本步骤使用的提示词模组 */
   modules: PromptModule[];
-  /** 流程名称（如 主回合 / 分步第1步 / 记忆总结） */
+  /** 流程名称（如 主回合 / 分步第1步 / 分步第2步 / 记忆总结） */
   flowName: string;
   /** 记录时间 */
   timestamp: number;
+  /** 本步骤发送的记忆内容（assistant 角色，如短期记忆；无则省略） */
+  memoryContent?: string;
+  /** 本步骤对应的 API 调用说明（如：第1次 API：system=分步第1步, assistant=记忆, user=玩家输入） */
+  apiCallDescription?: string;
 }
 
 export const usePromptAssemblyStore = defineStore('promptAssembly', () => {
-  const lastSnapshot = ref<AssemblySnapshot | null>(null);
+  const recentSnapshots = ref<AssemblySnapshot[]>([]);
 
-  const hasSnapshot = computed(() => lastSnapshot.value != null);
+  const hasSnapshot = computed(() => recentSnapshots.value.length > 0);
+  const lastSnapshot = computed(() => recentSnapshots.value[0] ?? null);
   const flowName = computed(() => lastSnapshot.value?.flowName ?? '');
   const fullPrompt = computed(() => lastSnapshot.value?.fullPrompt ?? '');
   const modules = computed(() => lastSnapshot.value?.modules ?? []);
   const timestamp = computed(() => lastSnapshot.value?.timestamp ?? 0);
 
   function record(snapshot: AssemblySnapshot) {
-    lastSnapshot.value = snapshot;
+    recentSnapshots.value = [
+      { ...snapshot, timestamp: snapshot.timestamp || Date.now() },
+      ...recentSnapshots.value
+    ].slice(0, MAX_RECENT_SNAPSHOTS);
   }
 
   function clear() {
-    lastSnapshot.value = null;
+    recentSnapshots.value = [];
   }
 
   return {
+    recentSnapshots,
     lastSnapshot,
     hasSnapshot,
     flowName,
