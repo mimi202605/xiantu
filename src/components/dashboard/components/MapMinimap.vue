@@ -16,6 +16,9 @@
       ref="viewportRef"
       @wheel.prevent="onWheel"
       @mousedown="onPanStart"
+      @touchstart.prevent="onTouchStart"
+      @touchmove.prevent="onTouchMove"
+      @touchend.prevent="onTouchEnd"
     >
       <svg
         class="map-svg"
@@ -174,13 +177,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-vue-next';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useI18n } from '@/i18n';
 import {
   buildLocationMapNodes,
   ZOOM_THRESHOLD_CHILDREN,
+  ZOOM_THRESHOLD_REFINED,
+  FOCUS_OCCUPY_RATIO,
   type MapLocationNode,
 } from '@/utils/locationMapUtils';
 import { getNpcsAtLocation } from '@/utils/locationUtils';
@@ -195,23 +200,143 @@ const props = defineProps<{
   entries: (LocationEntry | unknown)[];
 }>();
 
-const mapData = computed(() => buildLocationMapNodes(props.entries));
-const canvasWidth = computed(() => mapData.value.canvasWidth);
-const canvasHeight = computed(() => mapData.value.canvasHeight);
-
-// Zoom & pan（需在 nodes 之前定义，因 nodes 依赖 scale）
+// 单一 zoom/pan 逻辑；缩放倍率可无限大
 const scale = ref(1);
 const panX = ref(0);
 const panY = ref(0);
-const MIN_SCALE = 0.3;
-const MAX_SCALE = 8;
-const ZOOM_STEP = 0.25;
+const MIN_SCALE = 0.2;
+const MAX_SCALE = 500;
+const ZOOM_STEP = 0.2;
+const ZOOM_WHEEL_FACTOR = 0.0012;
 
-/** 缩放时：仅顶层可见；放大后子节点展开 */
-const nodes = computed(() => {
+const CANVAS_W = 1200;
+const CANVAS_H = 800;
+
+/** 视口中心在当前布局下的 SVG 坐标 */
+function viewportCenterInSvg(): { x: number; y: number } {
+  const s = scale.value;
+  return { x: (-panX.value + CANVAS_W / 2) / s, y: (-panY.value + CANVAS_H / 2) / s };
+}
+
+/** 节点在视口中占面积比例 (2*radius 为边长，视口 SVG 尺寸为 w/s * h/s) */
+function nodeOccupyRatio(node: MapLocationNode, s: number): number {
+  return (4 * node.radius * node.radius * s * s) / (CANVAS_W * CANVAS_H);
+}
+
+/** 在当前布局中找包含视口中心、有子节点且占屏足够的节点里最深的（半径最小） */
+function findDeepestOccupying(
+  nodes: MapLocationNode[],
+  center: { x: number; y: number },
+  s: number
+): MapLocationNode | null {
+  const candidates = nodes.filter(
+    (n) =>
+      n.childIds.length > 0 &&
+      center.x >= n.x - n.radius &&
+      center.x <= n.x + n.radius &&
+      center.y >= n.y - n.radius &&
+      center.y <= n.y + n.radius &&
+      nodeOccupyRatio(n, s) >= FOCUS_OCCUPY_RATIO
+  );
+  if (candidates.length === 0) return null;
+  return candidates.reduce((a, b) => (a.radius < b.radius ? a : b));
+}
+
+/** 当前视口在 SVG 中的尺寸，用于细化时让内部结构保持在画面内 */
+const viewportSvgSize = computed(() => ({
+  width: CANVAS_W / scale.value,
+  height: CANVAS_H / scale.value,
+}));
+
+function buildLayoutWithFocus(stack: string[]) {
+  return buildLocationMapNodes(props.entries, {
+    focusStack: stack,
+    viewportSvgSize: viewportSvgSize.value,
+  });
+}
+
+/** focus 栈（ref）：平移不取消细化；缩小满足阈值时仅出栈一层（先取消内部再取消外部） */
+const focusStackRef = ref<string[]>([]);
+
+watch(
+  [() => scale.value, () => panX.value, () => panY.value, () => props.entries],
+  () => {
+    // zoom out：先退出细化（focus 栈），子节点显示由 ZOOM_THRESHOLD_CHILDREN 决定
+    if (scale.value < ZOOM_THRESHOLD_REFINED) {
+      focusStackRef.value = [];
+      return;
+    }
+    if (scale.value < ZOOM_THRESHOLD_CHILDREN) return;
+    const center = viewportCenterInSvg();
+    const prevStack = focusStackRef.value;
+    let stack = [...prevStack];
+    let layout = buildLayoutWithFocus(stack);
+    if (stack.length > 0) {
+      const top = layout.nodeMap.get(stack[stack.length - 1]);
+      if (!top || nodeOccupyRatio(top, scale.value) < FOCUS_OCCUPY_RATIO) {
+        stack = stack.slice(0, -1);
+        layout = buildLayoutWithFocus(stack);
+      }
+    }
+    for (;;) {
+      const node = findDeepestOccupying(layout.nodes, center, scale.value);
+      if (!node || (stack.length > 0 && node.id === stack[stack.length - 1])) break;
+      stack = [...stack, node.id];
+      layout = buildLayoutWithFocus(stack);
+    }
+    // 进入或更新细化时，保证「仅当前 focus 及其子级」完整落在屏幕内：先适配视口再居中
+    const refinedTopChanged =
+      stack.length > 0 &&
+      (prevStack.length === 0 || prevStack[prevStack.length - 1] !== stack[stack.length - 1]);
+    if (refinedTopChanged && layout.refinedSubtreeCenter) {
+      const { x: cx, y: cy } = layout.refinedSubtreeCenter;
+      // 视口在 SVG 中的尺寸为 (CANVAS_W/scale, CANVAS_H/scale)，需能包住 bbox
+      if (layout.refinedSubtreeBbox) {
+        const { width: bw, height: bh } = layout.refinedSubtreeBbox;
+        const scaleToFit = Math.min(CANVAS_W / bw, CANVAS_H / bh) * 0.9; // 约 10% 边距
+        if (scale.value > scaleToFit) scale.value = Math.max(scaleToFit, ZOOM_THRESHOLD_REFINED);
+      }
+      const s = scale.value;
+      panX.value = CANVAS_W / 2 - cx * s;
+      panY.value = CANVAS_H / 2 - cy * s;
+    }
+    focusStackRef.value = stack;
+  },
+  { immediate: true }
+);
+
+const mapData = computed(() =>
+  buildLocationMapNodes(props.entries, {
+    focusStack: focusStackRef.value,
+    viewportSvgSize: viewportSvgSize.value,
+  })
+);
+const canvasWidth = computed(() => mapData.value.canvasWidth);
+const canvasHeight = computed(() => mapData.value.canvasHeight);
+
+/** 缩放达到阈值时展开子节点；否则只显示顶层 */
+const nodesRaw = computed(() => {
   const all = mapData.value.nodes;
   if (scale.value >= ZOOM_THRESHOLD_CHILDREN) return all;
   return all.filter((n) => n.depth === 0);
+});
+
+/** 细化视图中不渲染当前栈顶的同层级兄弟，避免同层级结构侵入被放大结构 */
+const nodesFiltered = computed(() => {
+  const list = nodesRaw.value;
+  const siblingIds = mapData.value.siblingIdsOfRefinedTop;
+  if (!siblingIds || siblingIds.size === 0) return list;
+  return list.filter((n) => !siblingIds.has(n.id));
+});
+
+/** 非细化节点先渲染，细化子树后渲染，避免其他结构盖住被放大结构 */
+const nodes = computed(() => {
+  const list = nodesFiltered.value;
+  const ids = mapData.value.refinedSubtreeIds;
+  if (!ids || ids.size === 0) return list;
+  const other = list.filter((n) => !ids.has(n.id));
+  const refined = list.filter((n) => ids.has(n.id));
+  return [...other, ...refined];
 });
 
 const exploredSet = computed(() => {
@@ -258,29 +383,49 @@ const svgViewBox = computed(() => {
   return `${x} ${y} ${vw} ${vh}`;
 });
 
-/** 限制拖拽边界，防止画布被拖出视口 */
+/** scale<=1 时把 pan 归零，避免画布跑出视口 */
 function clampPan() {
-  const s = scale.value;
-  const w = canvasWidth.value;
-  const h = canvasHeight.value;
-  if (s <= 1) {
+  if (scale.value <= 1) {
     panX.value = 0;
     panY.value = 0;
+  }
+}
+
+/** 以视口内某点 (vpX, vpY) 为焦点进行缩放：保持该点对应的 SVG 坐标不变 */
+function zoomAt(newScale: number, vpX: number, vpY: number) {
+  const w = canvasWidth.value;
+  const h = canvasHeight.value;
+  const rect = viewportRef.value?.getBoundingClientRect();
+  if (!rect || rect.width <= 0 || rect.height <= 0) {
+    scale.value = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+    clampPan();
     return;
   }
-  const minPanX = w * (1 - s);
-  const minPanY = h * (1 - s);
-  panX.value = Math.max(minPanX, Math.min(0, panX.value));
-  panY.value = Math.max(minPanY, Math.min(0, panY.value));
+  const vpW = rect.width;
+  const vpH = rect.height;
+  const s = scale.value;
+  const sx = (vpX * w) / vpW - panX.value;
+  const sy = (vpY * h) / vpH - panY.value;
+  const sNorm = sx / s;
+  const tNorm = sy / s;
+  const next = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+  scale.value = next;
+  panX.value = (vpX * w) / vpW - sNorm * next;
+  panY.value = (vpY * h) / vpH - tNorm * next;
+  clampPan();
 }
 
 function zoomIn() {
-  scale.value = Math.min(MAX_SCALE, scale.value + ZOOM_STEP);
-  clampPan();
+  const rect = viewportRef.value?.getBoundingClientRect();
+  const vpX = rect ? rect.width / 2 : 0;
+  const vpY = rect ? rect.height / 2 : 0;
+  zoomAt(scale.value + ZOOM_STEP, vpX, vpY);
 }
 function zoomOut() {
-  scale.value = Math.max(MIN_SCALE, scale.value - ZOOM_STEP);
-  clampPan();
+  const rect = viewportRef.value?.getBoundingClientRect();
+  const vpX = rect ? rect.width / 2 : 0;
+  const vpY = rect ? rect.height / 2 : 0;
+  zoomAt(scale.value - ZOOM_STEP, vpX, vpY);
 }
 function resetView() {
   scale.value = 1;
@@ -288,19 +433,65 @@ function resetView() {
   panY.value = 0;
 }
 
+/** 滚轮：以指针位置为中心放大/缩小 */
 function onWheel(e: WheelEvent) {
-  const delta = e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP;
-  scale.value = Math.max(
-    MIN_SCALE,
-    Math.min(MAX_SCALE, scale.value + delta)
-  );
-  clampPan();
+  const rect = viewportRef.value?.getBoundingClientRect();
+  if (!rect) return;
+  const vpX = e.clientX - rect.left;
+  const vpY = e.clientY - rect.top;
+  const delta = -e.deltaY * ZOOM_WHEEL_FACTOR * scale.value;
+  const next = scale.value + delta;
+  zoomAt(next, vpX, vpY);
 }
 
-/** 双击上级地点：放大至占满屏幕 */
+// 双指缩放：以双指中心为焦点
+let pinchStartDist = 0;
+let pinchStartScale = 1;
+let pinchCenterX = 0;
+let pinchCenterY = 0;
+
+function getTouchDistance(touches: TouchList): number {
+  if (touches.length < 2) return 0;
+  const dx = touches[1].clientX - touches[0].clientX;
+  const dy = touches[1].clientY - touches[0].clientY;
+  return Math.hypot(dx, dy);
+}
+function getTouchCenter(touches: TouchList, rect: DOMRect): { x: number; y: number } {
+  if (touches.length < 2) return { x: rect.width / 2, y: rect.height / 2 };
+  const x = ((touches[0].clientX + touches[1].clientX) / 2) - rect.left;
+  const y = ((touches[0].clientY + touches[1].clientY) / 2) - rect.top;
+  return { x, y };
+}
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length === 2) {
+    const rect = viewportRef.value?.getBoundingClientRect();
+    if (rect) {
+      pinchStartDist = getTouchDistance(e.touches);
+      pinchStartScale = scale.value;
+      const c = getTouchCenter(e.touches, rect);
+      pinchCenterX = c.x;
+      pinchCenterY = c.y;
+    }
+  }
+}
+function onTouchMove(e: TouchEvent) {
+  if (e.touches.length === 2 && pinchStartDist > 0) {
+    const rect = viewportRef.value?.getBoundingClientRect();
+    if (!rect) return;
+    const dist = getTouchDistance(e.touches);
+    const ratio = dist / pinchStartDist;
+    const next = pinchStartScale * ratio;
+    const c = getTouchCenter(e.touches, rect);
+    zoomAt(next, c.x, c.y);
+  }
+}
+function onTouchEnd() {
+  pinchStartDist = 0;
+}
+
+/** 双击：zoom+pan 使该结构占满屏幕并居中；bbox 含该节点及其子节点 */
 function onNodeDblClick(node: MapLocationNode) {
-  if (node.childIds.length === 0) return;
-  const all = mapData.value.nodes;
   const nodeMap = mapData.value.nodeMap;
   let minX = node.x - node.radius;
   let maxX = node.x + node.radius;
@@ -314,20 +505,17 @@ function onNodeDblClick(node: MapLocationNode) {
     minY = Math.min(minY, c.y - c.radius);
     maxY = Math.max(maxY, c.y + c.radius);
   }
-  const boxW = maxX - minX;
-  const boxH = maxY - minY;
-  const pad = 40;
-  const targetScale = Math.min(
-    (canvasWidth.value - pad * 2) / boxW,
-    (canvasHeight.value - pad * 2) / boxH,
-    MAX_SCALE
-  );
-  const newScale = Math.max(ZOOM_THRESHOLD_CHILDREN, Math.min(MAX_SCALE, targetScale));
+  const pad = 48;
+  const boxW = maxX - minX + 2 * pad;
+  const boxH = maxY - minY + 2 * pad;
+  const w = canvasWidth.value;
+  const h = canvasHeight.value;
+  const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, Math.min(w / boxW, h / boxH)));
+  const bboxCx = (minX + maxX) / 2;
+  const bboxCy = (minY + maxY) / 2;
   scale.value = newScale;
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  panX.value = canvasWidth.value / 2 - cx * newScale;
-  panY.value = canvasHeight.value / 2 - cy * newScale;
+  panX.value = w / 2 - bboxCx * newScale;
+  panY.value = h / 2 - bboxCy * newScale;
   clampPan();
 }
 

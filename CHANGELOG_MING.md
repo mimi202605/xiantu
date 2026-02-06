@@ -4,6 +4,29 @@
 
 ---
 
+## [0.2.18] - 2026-02-06
+
+### 坤舆图（minimap）：细化缩放与视口适配
+
+- **外部与内部同比例缩放**  
+  - 细化布局改为使用固定画布参考尺寸（`Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)`），不再根据当前视口（canvas/scale）计算 `innerFocusRadius` 与 `childrenSpread`。  
+  - 放大/缩小时由 SVG viewBox 统一缩放整张图，外部结构与内部结构同步放大，不再出现「外部不变、内部放大」的效果。
+
+- **Zoom out 细化退出阈值**  
+  - 新增 `ZOOM_THRESHOLD_REFINED`（1.4），专门控制细化（focus 栈）的启用与退出；子节点是否展开仍由 `ZOOM_THRESHOLD_CHILDREN`（1.2）控制。  
+  - 缩小到 scale &lt; 1.4 时先清空 focus 栈，避免退出细化时内部圈仍按细化布局绘制而跑到框外。
+
+- **进入/更新细化时内部结构在屏幕内**  
+  - 布局返回「仅当前 focus 及其子级」的几何中心（`refinedSubtreeCenter`）与 bbox 宽高（`refinedSubtreeBbox`），同级/父级不参与。  
+  - 进入或更新细化（栈顶变化）时：先根据 bbox 计算「适配视口」所需 scale（留约 10% 边距），若当前 scale 过大则适当缩小；再平移使该中心对准视口中心，保证内部结构完整显示在屏幕内。
+
+#### 涉及文件
+
+- `utils/locationMapUtils.ts`（固定参考尺寸、refinedSubtreeCenter/refinedSubtreeBbox、ZOOM_THRESHOLD_REFINED）
+- `components/dashboard/components/MapMinimap.vue`（细化退出阈值、进入/更新细化时 scale 适配与 pan 居中）
+
+---
+
 ## [0.2.17] - 2026-02-05
 
 ### 提示词组装（调试）：多步骤、模组明细、Token 估算、记忆与 API 说明
