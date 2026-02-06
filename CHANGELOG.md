@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.20 (2026-02-06)
+
+- **存档与导入导出**：核对存档系统与当前数据结构一致；修复 SavePanel「导出所有存档」使用槽位 key（save.id）从 IndexedDB 加载，与单档/角色导出一致，避免槽位名与显示名不一致时导出错误。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.19 (2026-02-06)
 
 - **坤舆图（minimap）性能**：布局与组件优化，行为不变。locationMapUtils：子节点布局 O(n²)→O(n)、细化块内单次遍历建 bbox、递归平移替代数组收集、Set 直填；MapMinimap：移除未用 viewportSvgSize 依赖、合并过滤为单次遍历。  

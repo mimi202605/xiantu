@@ -4,6 +4,23 @@
 
 ---
 
+## [0.2.20] - 2026-02-06
+
+### 存档与导入导出
+
+- **存档系统与数据结构**  
+  - 核对存档格式 V3、迁移、校验与 gameStateStore 的 toSaveData/loadFromSaveData，确认与当前 game.d.ts 及 saveSchemaV3 一致，无需因近期数据结构更新而改版。  
+  - 导入/导出流程已使用迁移与 V3 校验，dadBundle 格式兼容旧版。
+
+- **SavePanel 导出所有存档**  
+  - 修复「导出所有存档」从 IndexedDB 加载时使用错误 key 的问题：改为使用槽位 key（`save.id`），与「导出单个存档」「导出角色」一致；避免存档槽位 key（如「存档1」）与显示名（如「我的进度」）不一致时导出失败或数据错位。
+
+#### 涉及文件
+
+- `components/dashboard/SavePanel.vue`（exportSaves 使用 save.id || save.存档名 作为 loadSaveData 的槽位参数）
+
+---
+
 ## [0.2.19] - 2026-02-06
 
 ### 坤舆图（minimap）性能优化（行为不变）

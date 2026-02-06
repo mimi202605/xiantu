@@ -788,7 +788,8 @@ const exportSaves = async () => {
     const { loadSaveData } = await import('@/utils/indexedDBManager');
     const savesWithFullData = await Promise.all(
       savesList.value.map(async (save) => {
-        const fullData = await loadSaveData(characterId, save.存档名);
+        const slotKey = save.id || save.存档名;
+        const fullData = await loadSaveData(characterId, slotKey);
         return {
           ...save,
           存档数据: fullData  // 使用与 CharacterManagement.vue 一致的字段名
