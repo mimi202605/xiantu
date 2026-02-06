@@ -242,17 +242,8 @@ function findDeepestOccupying(
   return candidates.reduce((a, b) => (a.radius < b.radius ? a : b));
 }
 
-/** 当前视口在 SVG 中的尺寸，用于细化时让内部结构保持在画面内 */
-const viewportSvgSize = computed(() => ({
-  width: CANVAS_W / scale.value,
-  height: CANVAS_H / scale.value,
-}));
-
 function buildLayoutWithFocus(stack: string[]) {
-  return buildLocationMapNodes(props.entries, {
-    focusStack: stack,
-    viewportSvgSize: viewportSvgSize.value,
-  });
+  return buildLocationMapNodes(props.entries, { focusStack: stack });
 }
 
 /** focus 栈（ref）：平移不取消细化；缩小满足阈值时仅出栈一层（先取消内部再取消外部） */
@@ -306,27 +297,21 @@ watch(
 );
 
 const mapData = computed(() =>
-  buildLocationMapNodes(props.entries, {
-    focusStack: focusStackRef.value,
-    viewportSvgSize: viewportSvgSize.value,
-  })
+  buildLocationMapNodes(props.entries, { focusStack: focusStackRef.value })
 );
 const canvasWidth = computed(() => mapData.value.canvasWidth);
 const canvasHeight = computed(() => mapData.value.canvasHeight);
 
-/** 缩放达到阈值时展开子节点；否则只显示顶层 */
-const nodesRaw = computed(() => {
-  const all = mapData.value.nodes;
-  if (scale.value >= ZOOM_THRESHOLD_CHILDREN) return all;
-  return all.filter((n) => n.depth === 0);
-});
-
-/** 细化视图中不渲染当前栈顶的同层级兄弟，避免同层级结构侵入被放大结构 */
+/** 按缩放与细化过滤：子节点阈值 + 不渲染栈顶兄弟；单次遍历减少中间数组 */
 const nodesFiltered = computed(() => {
-  const list = nodesRaw.value;
+  const all = mapData.value.nodes;
+  const showAllLevels = scale.value >= ZOOM_THRESHOLD_CHILDREN;
   const siblingIds = mapData.value.siblingIdsOfRefinedTop;
-  if (!siblingIds || siblingIds.size === 0) return list;
-  return list.filter((n) => !siblingIds.has(n.id));
+  const hasSiblings = siblingIds && siblingIds.size > 0;
+  if (!hasSiblings && showAllLevels) return all;
+  return all.filter(
+    (n) => (showAllLevels || n.depth === 0) && (!hasSiblings || !siblingIds!.has(n.id))
+  );
 });
 
 /** 非细化节点先渲染，细化子树后渲染，避免其他结构盖住被放大结构 */

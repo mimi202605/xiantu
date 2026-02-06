@@ -4,6 +4,28 @@
 
 ---
 
+## [0.2.19] - 2026-02-06
+
+### 坤舆图（minimap）性能优化（行为不变）
+
+- **locationMapUtils.ts**  
+  - **layoutChildren**：按 parentId 预分组后单遍布局，由每节点 O(n) filter 改为整体 O(n)。  
+  - **refinedMap**：用单次 for 循环 `refinedMap.set(n.id, n)` 构建，减少临时数组。  
+  - **细化平移**：用递归 `applyDeltaToDescendants` 对后代应用 dx/dy，不再为每个子节点分配 `collectDescendantIds` 数组。  
+  - **细化子树 id + bbox**：单次 BFS 遍历同时填充 `refinedSubtreeIds` 并更新 bbox，不再先收集 id 再第二遍算 bbox。  
+  - **Set 直填**：新增 `addSubtreeIdsToSet`，`focusSubtreeIds` 与兄弟节点收集直接填 Set，避免 `collectDescendantIds` 返回数组再转 Set。
+
+- **MapMinimap.vue**  
+  - 移除未使用的 `viewportSvgSize` 计算与传参，`mapData` 仅依赖 `focusStackRef` 与 `props.entries`，zoom/pan 不触发布局重算。  
+  - 将「按缩放过滤」与「按兄弟过滤」合并为单一 `nodesFiltered` 计算，单次 `filter` 完成，减少中间数组与一次计算。
+
+#### 涉及文件
+
+- `utils/locationMapUtils.ts`（layoutChildren 分组、addSubtreeIdsToSet、applyDeltaToDescendants、单遍 bbox、refinedMap 构建）
+- `components/dashboard/components/MapMinimap.vue`（移除 viewportSvgSize、合并 nodesRaw/nodesFiltered）
+
+---
+
 ## [0.2.18] - 2026-02-06
 
 ### 坤舆图（minimap）：细化缩放与视口适配

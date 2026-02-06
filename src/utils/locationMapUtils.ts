@@ -128,14 +128,20 @@ function layoutTopLevel(nodes: MapLocationNode[]): void {
 
 /**
  * 子节点藏于父节点内部：小半径、紧贴父中心分布，放大时可见
+ * 预按 parentId 分组，避免每节点 O(n) filter，整体 O(n) 而非 O(n²)
  */
 function layoutChildren(nodes: MapLocationNode[], nodeMap: Map<string, MapLocationNode>): void {
+  const byParent = new Map<string | null, MapLocationNode[]>();
+  for (const node of nodes) {
+    const key = node.parentId;
+    if (!byParent.has(key)) byParent.set(key, []);
+    byParent.get(key)!.push(node);
+  }
   for (const node of nodes) {
     if (node.depth === 0) continue;
     const parent = node.parentId ? nodeMap.get(node.parentId) : null;
     if (!parent) continue;
-
-    const siblings = nodes.filter((n) => n.parentId === node.parentId);
+    const siblings = byParent.get(node.parentId) ?? [];
     const idx = siblings.findIndex((n) => n.id === node.id);
     const total = siblings.length;
     const angle = (2 * Math.PI * idx) / total + seededRandom(node.entry.名称, 3) * 0.4;
@@ -172,10 +178,22 @@ function collectDescendantIds(
   return out;
 }
 
+/** 将某节点及其所有后代 id 填入 set，避免为仅需 Set 的调用分配数组 */
+function addSubtreeIdsToSet(
+  nodeMap: Map<string, MapLocationNode>,
+  nodeId: string,
+  set: Set<string>
+): void {
+  const node = nodeMap.get(nodeId);
+  if (!node) return;
+  set.add(nodeId);
+  for (const cid of node.childIds) addSubtreeIdsToSet(nodeMap, cid, set);
+}
+
 /** 当前 focus 及其后代的 id 集合（用于排除「非内部」节点） */
 function focusSubtreeIds(focusId: string, nodeMap: Map<string, MapLocationNode>): Set<string> {
-  const set = new Set<string>([focusId]);
-  for (const id of collectDescendantIds(nodeMap, focusId)) set.add(id);
+  const set = new Set<string>();
+  addSubtreeIdsToSet(nodeMap, focusId, set);
   return set;
 }
 
@@ -257,7 +275,27 @@ export function buildLocationMapNodes(
   }
 
   const nodes = result.map((n) => ({ ...n }));
-  const refinedMap = new Map(nodes.map((n) => [n.id, n]));
+  const refinedMap = new Map<string, MapLocationNode>();
+  for (const n of nodes) refinedMap.set(n.id, n);
+
+  /** 对节点的所有后代应用平移（不含自身），避免为每次子节点分配 collectDescendantIds 数组 */
+  function applyDeltaToDescendants(
+    map: Map<string, MapLocationNode>,
+    nodeId: string,
+    dx: number,
+    dy: number
+  ): void {
+    const node = map.get(nodeId);
+    if (!node) return;
+    for (const cid of node.childIds) {
+      const c = map.get(cid);
+      if (c) {
+        c.x += dx;
+        c.y += dy;
+        applyDeltaToDescendants(map, cid, dx, dy);
+      }
+    }
+  }
 
   for (let level = 0; level < focusStack.length; level++) {
     const focusId = focusStack[level];
@@ -300,39 +338,34 @@ export function buildLocationMapNodes(
       child.radius =
         child.childIds.length > 0 ? REFINED_CHILD_CONTAINER_RADIUS : REFINED_CHILD_RADIUS;
       child.fontSizeScale = REFINED_CHILD_FONT_SCALE;
-      for (const descId of collectDescendantIds(refinedMap, cid)) {
-        const d = refinedMap.get(descId);
-        if (d) {
-          d.x += dx;
-          d.y += dy;
-        }
-      }
+      applyDeltaToDescendants(refinedMap, cid, dx, dy);
     }
   }
 
   const topFocusId = focusStack[focusStack.length - 1];
   const topFocus = refinedMap.get(topFocusId);
-  refinedSubtreeIds.add(topFocusId);
-  for (const id of collectDescendantIds(refinedMap, topFocusId)) refinedSubtreeIds.add(id);
-
-  /** 仅当前 focus 及其子级的 bbox 中心，用于平移到视口内（同级/父级不参与） */
+  /** 单次遍历：收集细化子树 id 并计算 bbox（同级/父级不参与） */
   let minX = Infinity;
   let minY = Infinity;
   let maxX = -Infinity;
   let maxY = -Infinity;
-  for (const id of refinedSubtreeIds) {
-    const n = refinedMap.get(id);
-    if (!n) continue;
-    minX = Math.min(minX, n.x - n.radius);
-    minY = Math.min(minY, n.y - n.radius);
-    maxX = Math.max(maxX, n.x + n.radius);
-    maxY = Math.max(maxY, n.y + n.radius);
+  const queue: string[] = [topFocusId];
+  for (let i = 0; i < queue.length; i++) {
+    const id = queue[i];
+    refinedSubtreeIds.add(id);
+    const node = refinedMap.get(id);
+    if (node) {
+      minX = Math.min(minX, node.x - node.radius);
+      minY = Math.min(minY, node.y - node.radius);
+      maxX = Math.max(maxX, node.x + node.radius);
+      maxY = Math.max(maxY, node.y + node.radius);
+      for (const cid of node.childIds) queue.push(cid);
+    }
   }
   const refinedSubtreeCenter =
     minX <= maxX && minY <= maxY
       ? { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
       : undefined;
-  /** 细化子树 bbox 宽高，用于计算「适配视口」所需的最小 scale */
   const refinedSubtreeBbox =
     minX <= maxX && minY <= maxY
       ? { width: maxX - minX, height: maxY - minY }
@@ -343,8 +376,7 @@ export function buildLocationMapNodes(
   if (topFocus?.parentId != null) {
     for (const node of refinedMap.values()) {
       if (node.parentId === topFocus.parentId && node.id !== topFocusId) {
-        siblingIdsOfRefinedTop.add(node.id);
-        for (const descId of collectDescendantIds(refinedMap, node.id)) siblingIdsOfRefinedTop.add(descId);
+        addSubtreeIdsToSet(refinedMap, node.id, siblingIdsOfRefinedTop);
       }
     }
   }
