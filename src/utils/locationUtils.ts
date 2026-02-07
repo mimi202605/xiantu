@@ -123,6 +123,7 @@ export function onPlayerLeaveLocation(
 
 /**
  * 在指定地点的 地点NPC 中追加名字（去重、不重复添加已有名字）。
+ * 追加前会从其他地点的 地点NPC 中移除同名 NPC，保证全局有且只有一个同名的 NPC（与双向校准兼容）。
  * 若地点不在树中则无操作。
  */
 export function appendNpcsToLocation(
@@ -136,6 +137,12 @@ export function appendNpcsToLocation(
   const entries = 地点信息?.地点信息 as (LocationEntry & { 地点NPC?: string[] })[] | undefined;
   const loc = findLocationInTree(entries, locationDesc);
   if (!loc) return;
+
+  // 先从其他地点移除同名 NPC（如与玩家同行的 NPC 移到新地点时，需从原地点去掉）
+  for (const name of npcNames) {
+    const trimmed = typeof name === 'string' ? name.trim() : '';
+    if (trimmed) removeNpcFromOtherLocations(saveData, trimmed, locationDesc);
+  }
 
   const current = Array.isArray(loc.地点NPC) ? loc.地点NPC : [];
   const set = new Set(current);
@@ -193,10 +200,12 @@ export function removeNpcFromOtherLocations(
 
 /**
  * 校准「关系 NPC 的当前位置」与「世界.信息.地点信息[地点].地点NPC」双向一致。
- * API 不一定同时正确写入两项，因此在后端做一次同步与互补：
- * 1. 每个 NPC 只出现在一个地点的 地点NPC 中（从其它地点移除）；
- * 2. 根据 社交.关系[npc].当前位置.描述 同步到对应地点的 地点NPC；
- * 3. 根据各地点的 地点NPC 互补 社交.关系[npc].当前位置.描述。
+ * API 不一定同时正确写入两项，因此在后端做一次同步与互补。
+ * 绝大多数情况下只修改 地点NPC；仅当 关系[npc].当前位置 缺失或与地点不一致时才写 关系。
+ *
+ * 1. 关系 → 地点：有 当前位置.描述 的 NPC 从其它地点移除并加入该地点的 地点NPC（只改地点NPC）
+ * 2. 地点去重：每个 NPC 有且只在一个地点的 地点NPC 中（仅对仍出现在多处的 NPC，首次出现地点保留）
+ * 3. 地点 → 关系：各地点的 地点NPC 补全/修正 关系[npc].当前位置.描述
  */
 export function calibrateNpcLocationSync(saveData: Record<string, unknown>): void {
   const 关系 = (saveData?.社交 as Record<string, unknown>)?.关系 as Record<
@@ -209,7 +218,15 @@ export function calibrateNpcLocationSync(saveData: Record<string, unknown>): voi
   if (!关系 || typeof 关系 !== 'object') return;
   if (!Array.isArray(entries)) return;
 
-  // 1. 每个 NPC 只保留在一个地点：先确定每个 NPC 首次出现的地点，再在各地点只保留「应在此地」的 NPC
+  // 1. 关系 → 地点：只改 地点NPC，不写 关系
+  for (const [npcName, npc] of Object.entries(关系)) {
+    const locDesc = npc?.当前位置?.描述;
+    if (typeof locDesc !== 'string' || !locDesc.trim()) continue;
+    removeNpcFromOtherLocations(saveData, npcName, locDesc);
+    appendNpcsToLocation(saveData, locDesc, [npcName]);
+  }
+
+  // 2. 地点去重：仅修改 地点NPC（API 可能只在多处写了 地点NPC，未写 关系）
   const npcFirstLocation = new Map<string, string>();
   forEachLocationInTree(entries, (loc) => {
     if (!Array.isArray(loc.地点NPC)) return;
@@ -222,15 +239,7 @@ export function calibrateNpcLocationSync(saveData: Record<string, unknown>): voi
     loc.地点NPC = loc.地点NPC.filter((n) => npcFirstLocation.get(n) === loc.名称);
   });
 
-  // 2. 关系 → 地点：有 当前位置.描述 的 NPC 加入对应地点的 地点NPC，并从其它地点移除
-  for (const [npcName, npc] of Object.entries(关系)) {
-    const locDesc = npc?.当前位置?.描述;
-    if (typeof locDesc !== 'string' || !locDesc.trim()) continue;
-    removeNpcFromOtherLocations(saveData, npcName, locDesc);
-    appendNpcsToLocation(saveData, locDesc, [npcName]);
-  }
-
-  // 3. 地点 → 关系：各地点的 地点NPC 补全/修正 关系[npc].当前位置.描述
+  // 3. 地点 → 关系：补全/修正 关系[npc].当前位置（仅在此步写 关系）
   forEachLocationInTree(entries, (loc) => {
     const locName = loc.名称;
     if (!Array.isArray(loc.地点NPC)) return;

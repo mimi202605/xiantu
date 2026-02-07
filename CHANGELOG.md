@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.26 (2026-02-07)
+
+- **地点-NPC：追加时去重 + 校准顺序优化**：`appendNpcsToLocation` 在追加前从其他地点的 地点NPC 中移除同名 NPC，保证全局有且只有一个同名 NPC（同行 NPC 移入新地点时从原地点去掉）。`calibrateNpcLocationSync` 调整顺序：先 关系→地点（只改地点NPC），再地点去重，最后 地点→关系（绝大多数只改地点NPC）；地点未更新时从关系 sync 到地点仍成立。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.25 (2026-02-07)
 
 - **地点-NPC 双向校准**：新增 `calibrateNpcLocationSync`（locationUtils），保证「关系[npc].当前位置」与「世界.信息.地点信息[地点].地点NPC」一致；API 回写与数据修复时均执行校准；设计文档更新（地图 rescale、地点 NPC 去重、关系网络与 NPC 关系更新等）。  

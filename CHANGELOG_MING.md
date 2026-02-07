@@ -4,6 +4,28 @@
 
 ---
 
+## [0.2.26] - 2026-02-07
+
+### 地点-NPC：追加时去重 + 校准顺序优化
+
+- **背景**：人物移动时 NPC 会生成在新地点或与玩家同行移动，需更新 地点NPC：从原地点移除同名 NPC，保证有且只有一个同名 NPC；与现有双向校准兼容，且绝大多数只修改 地点NPC。若仅 关系 更新、地点 NPC 未更新，也需能从 关系 sync 到地点。
+- **appendNpcsToLocation**  
+  - 在向某地点 地点NPC 追加名字**前**，先对每个名字调用 `removeNpcFromOtherLocations(saveData, npcName, locationDesc)`，再从该地点追加。  
+  - 效果：同行 NPC 移入新地点或在新地点生成时，会从其他地点的 地点NPC 中移除同名项；全局保证每个 NPC 名只出现在一个地点的列表中。仅修改 地点NPC。
+- **calibrateNpcLocationSync 顺序调整**  
+  - 1. 关系 → 地点：仅根据 关系[npc].当前位置.描述 更新各地点的 地点NPC（从其它地点移除、加入该地点）；不写 关系。  
+  - 2. 地点去重：对仍出现在多处的 NPC 按「首次出现地点」保留一处；只改 地点NPC。  
+  - 3. 地点 → 关系：用 地点NPC 补全/修正 关系[npc].当前位置.描述；仅在此步写 关系。  
+  - 绝大多数场景只改 地点NPC；当仅 关系 更新、地点未更新时，步骤 1 仍能从 关系 sync 到地点。
+- **设计文档**：在「每次更新地点 NPC 时移除其他地点的该 NPC」处注明已实现（appendNpcsToLocation + calibrateNpcLocationSync）。
+
+#### 涉及文件
+
+- `src/utils/locationUtils.ts`
+- `docs/design note`
+
+---
+
 ## [0.2.25] - 2026-02-07
 
 ### 地点-NPC 双向校准与设计文档
