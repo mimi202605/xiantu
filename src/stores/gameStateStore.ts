@@ -14,6 +14,7 @@ import type {
   GameMessage,
   EventSystem,
   StatusEffect,
+  WorldHeartbeatConfig,
 } from '@/types/game';
 // [MING] Removed attribute calculation - simplified attributes
 // import { calculateFinalAttributes } from '@/utils/attributeCalculation';
@@ -75,6 +76,10 @@ interface GameState {
   semanticMemory: import('@/types/gameStateIndex').SemanticMemoryStore | null;
   // [MING] 探索记录（世界.状态.探索记录）；用于地图 UI 迷雾显示
   explorationRecord: string[] | null;
+  // [MING] 回合序号（元数据.回合序号）；主回合结束时 +1，用于世界心跳周期与遗忘判定
+  roundNumber: number;
+  // [MING] 世界心跳配置与历史（世界.状态.心跳）
+  worldHeartbeat: WorldHeartbeatConfig | null;
 }
 
 export const useGameStateStore = defineStore('gameState', {
@@ -126,6 +131,14 @@ export const useGameStateStore = defineStore('gameState', {
 
     semanticMemory: null,
     explorationRecord: null,
+    roundNumber: 0,
+    worldHeartbeat: {
+      启用: false,
+      周期数值: 5,
+      历史条数: 10,
+      遗忘回合数: 10,
+      历史: [],
+    },
   }),
 
   actions: {
@@ -245,6 +258,22 @@ export const useGameStateStore = defineStore('gameState', {
       const explorationRecord: string[] = Array.isArray(v3?.世界?.状态?.探索记录)
         ? deepCopy(v3.世界.状态.探索记录)
         : [];
+      const roundNumber: number = typeof (v3?.元数据 as any)?.回合序号 === 'number' && (v3?.元数据 as any).回合序号 >= 0
+        ? (v3.元数据 as any).回合序号
+        : 0;
+      const worldHeartbeat: WorldHeartbeatConfig | null = (() => {
+        const hb = v3?.世界?.状态?.心跳;
+        if (!hb || typeof hb !== 'object') return null;
+        const def: WorldHeartbeatConfig = {
+          启用: typeof (hb as any).启用 === 'boolean' ? (hb as any).启用 : false,
+          周期数值: typeof (hb as any).周期数值 === 'number' && (hb as any).周期数值 >= 1 ? (hb as any).周期数值 : 5,
+          历史条数: typeof (hb as any).历史条数 === 'number' && (hb as any).历史条数 >= 1 ? (hb as any).历史条数 : 10,
+          遗忘回合数: typeof (hb as any).遗忘回合数 === 'number' && (hb as any).遗忘回合数 >= 0 ? (hb as any).遗忘回合数 : 10,
+          历史: Array.isArray((hb as any).历史) ? deepCopy((hb as any).历史) : [],
+        };
+        if (typeof (hb as any).上次心跳回合序号 === 'number') def.上次心跳回合序号 = (hb as any).上次心跳回合序号;
+        return def;
+      })();
       const coerceMemoryArray = (value: unknown): string[] => {
         if (Array.isArray(value)) return value.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
         if (typeof value === 'string' && value.trim().length > 0) return [value.trim()];
@@ -293,6 +322,14 @@ export const useGameStateStore = defineStore('gameState', {
       this.relationships = relationships;
       this.worldInfo = worldInfo;
       this.explorationRecord = explorationRecord;
+      this.roundNumber = roundNumber;
+      this.worldHeartbeat = worldHeartbeat ?? {
+        启用: false,
+        周期数值: 5,
+        历史条数: 10,
+        遗忘回合数: 10,
+        历史: [],
+      };
       this.memory = memory;
       this.gameTime = gameTime;
       this.narrativeHistory = narrativeHistory;
@@ -397,6 +434,7 @@ export const useGameStateStore = defineStore('gameState', {
         更新时间: nowIso,
         游戏时长秒: Number((this.saveMeta as any)?.游戏时长秒 ?? 0),
         时间: this.gameTime,
+        回合序号: typeof this.roundNumber === 'number' && this.roundNumber >= 0 ? this.roundNumber : 0,
       };
 
       const settings =
@@ -449,7 +487,16 @@ export const useGameStateStore = defineStore('gameState', {
         },
         世界: {
           信息: this.worldInfo ?? {},
-          状态: { 探索记录: this.explorationRecord ?? [] },
+          状态: {
+            探索记录: this.explorationRecord ?? [],
+            心跳: this.worldHeartbeat ?? {
+              启用: false,
+              周期数值: 5,
+              历史条数: 10,
+              遗忘回合数: 10,
+              历史: [],
+            },
+          },
         },
         系统: {
           配置: this.systemConfig ?? {},
@@ -589,6 +636,14 @@ export const useGameStateStore = defineStore('gameState', {
       this.bodyPartDevelopment = null;
       this.semanticMemory = null;
       this.explorationRecord = null;
+      this.roundNumber = 0;
+      this.worldHeartbeat = {
+        启用: false,
+        周期数值: 5,
+        历史条数: 10,
+        遗忘回合数: 10,
+        历史: [],
+      };
 
       console.log('[GameState] State has been reset');
     },

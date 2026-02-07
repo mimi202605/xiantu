@@ -208,6 +208,24 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
     if (!isPlainObject(normalized.世界)) normalized.世界 = {};
     if (!isPlainObject(normalized.世界.状态)) normalized.世界.状态 = {};
     if (!Array.isArray(normalized.世界.状态.探索记录)) normalized.世界.状态.探索记录 = [];
+    if (typeof (normalized.元数据 as any)?.回合序号 !== 'number' || (normalized.元数据 as any).回合序号 < 0) {
+      (normalized.元数据 as any).回合序号 = 0;
+    }
+    const hb = normalized.世界.状态.心跳;
+    if (!hb || typeof hb !== 'object') {
+      (normalized.世界.状态 as any).心跳 = {
+        启用: false,
+        周期数值: 5,
+        历史条数: 10,
+        遗忘回合数: 10,
+        历史: [],
+      };
+    } else {
+      if (typeof hb.周期数值 !== 'number' || hb.周期数值 < 1) (normalized.世界.状态 as any).心跳.周期数值 = 5;
+      if (typeof hb.历史条数 !== 'number' || hb.历史条数 < 1) (normalized.世界.状态 as any).心跳.历史条数 = 10;
+      if (typeof hb.遗忘回合数 !== 'number' || hb.遗忘回合数 < 0) (normalized.世界.状态 as any).心跳.遗忘回合数 = 10;
+      if (!Array.isArray(hb.历史)) (normalized.世界.状态 as any).心跳.历史 = [];
+    }
     // 迁移旧 世界.信息.地点NPC（Record）到各地点内的 地点NPC
     const old地点NPC = normalized.世界?.信息?.地点NPC;
     if (isPlainObject(old地点NPC) && Array.isArray(normalized.世界?.信息?.地点信息)) {
@@ -348,6 +366,7 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       更新时间: nowIso,
       游戏时长秒: Number(source.元数据?.游戏时长秒 ?? source.游戏时长秒 ?? source.元数据?.游戏时长 ?? source.游戏时长 ?? 0),
       时间: flatTime,
+      回合序号: Number((source.元数据 as any)?.回合序号 ?? 0),
     },
     角色: {
       身份: identity,
@@ -365,7 +384,17 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
     },
     世界: {
       信息: worldInfo as any,
-      状态: source.世界?.状态 ?? source.世界状态 ?? undefined,
+      状态: (() => {
+        const s = source.世界?.状态 ?? source.世界状态;
+        if (isPlainObject(s)) {
+          const hb = (s as any).心跳;
+          if (!hb || typeof hb !== 'object') {
+            return { ...s, 探索记录: Array.isArray(s.探索记录) ? s.探索记录 : [], 心跳: { 启用: false, 周期数值: 5, 历史条数: 10, 遗忘回合数: 10, 历史: [] } };
+          }
+          return { ...s, 探索记录: Array.isArray(s.探索记录) ? s.探索记录 : [] };
+        }
+        return { 探索记录: [], 心跳: { 启用: false, 周期数值: 5, 历史条数: 10, 遗忘回合数: 10, 历史: [] } };
+      })(),
     },
     系统: {
       配置: systemConfig,

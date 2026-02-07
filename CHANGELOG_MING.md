@@ -4,6 +4,24 @@
 
 ---
 
+## [0.2.27] - 2026-02-07
+
+### 世界心跳默认值调整与存档迁移补全
+
+- **默认值**：世界心跳默认改为「每 5 回合更新、历史保留 10 条、遗忘回合 10」（原为 3/20/30）。新开档、迁移/修复时缺失字段及运行时回退均使用新默认。
+- **统一位置**：`gameStateStore`（初始与加载归一化）、`saveMigration`（V3 归一与旧版迁移）、`dataRepair`、`worldHeartbeatService`（遗忘回合数/历史条数回退）、`AIBidirectionalSystem`（周期数值回退）已全部改为 5/10/10。
+- **存档迁移**：V3 存档已有 `世界.状态.心跳` 对象但缺少字段时，`saveMigration` 现会补全 `周期数值`（5），保证存档/角色导入后写入 IndexedDB 的存档结构完整。存档与角色导入导出、系统设置导入导出行为已核对，运行正常。
+
+#### 涉及文件
+
+- `src/stores/gameStateStore.ts`
+- `src/utils/saveMigration.ts`
+- `src/utils/dataRepair.ts`
+- `src/services/worldHeartbeatService.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+
+---
+
 ## [0.2.26] - 2026-02-07
 
 ### 地点-NPC：追加时去重 + 校准顺序优化

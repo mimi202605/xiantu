@@ -49,6 +49,9 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     repaired.元数据.更新时间 = new Date().toISOString();
     repaired.元数据.游戏时长秒 = validateNumber(repaired.元数据.游戏时长秒, 0, 999999999, 0);
     repaired.元数据.时间 = repairGameTime(repaired.元数据.时间);
+    if (typeof (repaired.元数据 as any).回合序号 !== 'number' || (repaired.元数据 as any).回合序号 < 0) {
+      (repaired.元数据 as any).回合序号 = 0;
+    }
 
     // --- 角色 ---
     repaired.角色 = repaired.角色 && typeof repaired.角色 === 'object' ? repaired.角色 : createMinimalSaveDataV3().角色;
@@ -190,6 +193,23 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     if (!repaired.世界 || typeof repaired.世界 !== 'object') repaired.世界 = createMinimalSaveDataV3().世界;
     if (!repaired.世界.状态 || typeof repaired.世界.状态 !== 'object') repaired.世界.状态 = {};
     if (!Array.isArray(repaired.世界.状态.探索记录)) repaired.世界.状态.探索记录 = [];
+    // 世界.状态.心跳（世界心跳系统）
+    const 心跳 = (repaired.世界.状态 as any).心跳;
+    if (!心跳 || typeof 心跳 !== 'object') {
+      (repaired.世界.状态 as any).心跳 = {
+        启用: false,
+        周期数值: 5,
+        历史条数: 10,
+        遗忘回合数: 10,
+        历史: [],
+      };
+    } else {
+      if (typeof 心跳.启用 !== 'boolean') 心跳.启用 = false;
+      if (typeof 心跳.周期数值 !== 'number' || 心跳.周期数值 < 1) 心跳.周期数值 = 5;
+      if (typeof 心跳.历史条数 !== 'number' || 心跳.历史条数 < 1) 心跳.历史条数 = 10;
+      if (typeof 心跳.遗忘回合数 !== 'number' || 心跳.遗忘回合数 < 0) 心跳.遗忘回合数 = 10;
+      if (!Array.isArray(心跳.历史)) 心跳.历史 = [];
+    }
     // 确保 世界.信息 及 地点信息 存在，否则 push 世界.信息.地点信息 会失败
     if (!repaired.世界.信息 || typeof repaired.世界.信息 !== 'object') repaired.世界.信息 = {};
     if (!Array.isArray(repaired.世界.信息.地点信息)) repaired.世界.信息.地点信息 = [];
@@ -538,6 +558,7 @@ function createMinimalSaveDataV3(): SaveData {
       更新时间: nowIso,
       游戏时长秒: 0,
       时间: time,
+      回合序号: 0,
     },
     角色: {
       身份: {
@@ -581,7 +602,16 @@ function createMinimalSaveDataV3(): SaveData {
         特殊设定: [],
         版本: 'v1',
       },
-      状态: { 探索记录: [] },
+      状态: {
+        探索记录: [],
+        心跳: {
+          启用: false,
+          周期数值: 5,
+          历史条数: 10,
+          遗忘回合数: 10,
+          历史: [],
+        },
+      },
     },
     系统: {
       配置: {},

@@ -265,6 +265,17 @@ class AIBidirectionalSystemClass {
         gameStateStore.updateState('memory', nextMemory);
       }
 
+      // [MING] 世界事件发生后若启用心跳，执行一次事件驱动心跳
+      const 心跳 = (v3 as any).世界?.状态?.心跳;
+      if (心跳 && typeof 心跳 === 'object' && 心跳.启用 === true) {
+        try {
+          const { runSingleHeartbeat } = await import('@/services/worldHeartbeatService');
+          await runSingleHeartbeat(v3 as SaveData, { triggerMode: '事件', event });
+        } catch (heartbeatErr) {
+          console.warn('[世界事件] 事件驱动心跳失败:', heartbeatErr);
+        }
+      }
+
       // 酒馆端：若触发了“特殊NPC登场”，立刻存档一次，确保人物关系与事件快照不丢失
       if (npcToAdd && npcToAdd.名字 && isTavernEnv()) {
         try {
@@ -1323,6 +1334,25 @@ ${step1Text}
         options.onStateChange(updatedSaveData as unknown as PlainObject);
       }
 
+      // [MING] 主回合成功后：若启用心跳且到达周期，执行周期心跳并同步存档
+      const 心跳 = (updatedSaveData as any)?.世界?.状态?.心跳;
+      const 回合序号 = (updatedSaveData as any)?.元数据?.回合序号 ?? 0;
+      const 上次心跳 = 心跳?.上次心跳回合序号 ?? -1;
+      const 周期数值 = 心跳?.周期数值 ?? 5;
+      const currentRoundJustEnded = Math.max(0, 回合序号 - 1);
+      if (心跳 && 心跳.启用 === true && (currentRoundJustEnded - 上次心跳 >= 周期数值)) {
+        try {
+          const { runSingleHeartbeat } = await import('@/services/worldHeartbeatService');
+          await runSingleHeartbeat(updatedSaveData as SaveData, { triggerMode: '周期' });
+          const gameStateStore = useGameStateStore();
+          gameStateStore.loadFromSaveData(updatedSaveData as SaveData);
+          const characterStore = useCharacterStore();
+          await characterStore.saveCurrentGame();
+        } catch (heartbeatErr) {
+          console.warn('[AI双向系统] 周期心跳执行失败:', heartbeatErr);
+        }
+      }
+
       // 🌐 联机穿越：每回合追加一条“被入侵者视角”的简短入侵日志到服务器
       // [MING] Online travel removed - local only mode
       return gmResponse;
@@ -2007,6 +2037,27 @@ ${step1Text}
       }
     }
 
+    // [MING] 主回合专用：被本批命令更新的 NPC 写入 上次主回合更新回合（仅主回合，心跳应用命令不经过此处）
+    if (!isInitialization) {
+      const currentRound = (saveData as any).元数据?.回合序号 ?? 0;
+      const npcsUpdatedByCommands = new Set<string>();
+      for (const cmd of sortedCommands) {
+        if (!cmd.key.startsWith('社交.关系.')) continue;
+        const parts = cmd.key.split('.');
+        if (parts.length < 3) continue;
+        npcsUpdatedByCommands.add(parts[2]);
+      }
+      for (const npcName of npcsUpdatedByCommands) {
+        const rel = (saveData as any).社交?.关系;
+        if (rel && typeof rel === 'object' && rel[npcName] && typeof rel[npcName] === 'object') {
+          set(saveData, `社交.关系.${npcName}.上次主回合更新回合`, currentRound);
+        }
+      }
+      // 主回合成功结束：回合序号 +1（写回存档时生效）
+      if (!(saveData as any).元数据) (saveData as any).元数据 = {};
+      (saveData as any).元数据.回合序号 = currentRound + 1;
+    }
+
     // 地点路人 NPC 生成：仅当玩家**移动到新地点**时生成路人 NPC；同一地点不重复生成
     const locationSetInBatch = sortedCommands.some((c) => c.key === '角色.位置');
     if (!isInitialization && locationSetInBatch && (saveData as any).角色?.位置?.描述) {
@@ -2021,7 +2072,7 @@ ${step1Text}
     }
 
     // 普通 NPC 升级逻辑：与 NPC 互动后，若该 NPC 为普通则升级为重点
-    const npcInteractionPaths = ['记忆', '好感度', '当前外貌状态', '当前内心想法', '关系'];
+    const npcInteractionPaths = ['记忆', '好感度', '当前外貌状态', '当前内心想法', '在做事项', '关系'];
     const upgradedNpcs = new Set<string>();
     for (const cmd of sortedCommands) {
       if (!cmd.key.startsWith('社交.关系.')) continue;
@@ -2630,6 +2681,21 @@ ${saveDataJson}`;
     }
     switch (action) {
       case 'set': {
+        // 在做事项更新时：将当前在做事项归档到 历史在做事项（不交由模型更新）
+        const segments = path.split('.');
+        const is在做事项Path = segments.length === 4 && segments[0] === '社交' && segments[1] === '关系' && segments[3] === '在做事项';
+        if (is在做事项Path && typeof value === 'string') {
+          const npcPath = `社交.关系.${segments[2]}`;
+          const npc = get(saveData, npcPath) as Record<string, unknown> | undefined;
+          const current在做事项 = npc?.在做事项;
+          if (typeof current在做事项 === 'string' && current在做事项.trim()) {
+            let 历史 = Array.isArray(npc?.历史在做事项) ? (npc.历史在做事项 as string[]).slice() : [];
+            历史.unshift(current在做事项.trim());
+            const maxHistory = 20;
+            if (历史.length > maxHistory) 历史 = 历史.slice(0, maxHistory);
+            set(saveData, `${npcPath}.历史在做事项`, 历史);
+          }
+        }
         const oldLocForLeave = path === '角色.位置' ? (get(saveData, path) as { 描述?: string } | undefined) : undefined;
         const oldDescForLeave = oldLocForLeave?.描述;
         set(saveData, path, value);
@@ -2758,6 +2824,22 @@ ${saveDataJson}`;
 
       default:
         throw new Error(`未知的操作类型: ${action}`);
+    }
+  }
+
+  /**
+   * 仅将命令应用到 saveData，不写 上次主回合更新回合（供世界心跳等非主回合流程调用）。
+   */
+  public applyCommandsOnly(
+    saveData: SaveData,
+    commands: Array<{ action: string; key: string; value?: unknown }>
+  ): void {
+    for (const cmd of commands) {
+      try {
+        this.executeCommand(cmd, saveData);
+      } catch (e) {
+        console.warn('[AI双向系统] applyCommandsOnly 单条失败:', cmd.key, e);
+      }
     }
   }
 
@@ -3011,6 +3093,91 @@ ${saveDataJson}`;
     }
 
     throw new Error('无法解析AI响应：未找到有效的JSON格式');
+  }
+
+  /**
+   * 从 API 原始响应中提取 tavern_commands，与主流程解析逻辑一致。
+   * 供世界心跳等非主流程复用：支持传入字符串（助手内容）或完整响应对象（含 choices/candidates）。
+   */
+  public extractTavernCommandsFromResponse(
+    rawResponse: string | Record<string, unknown> | null | undefined
+  ): Array<{ action: string; key: string; value?: unknown }> {
+    let contentStr: string;
+    if (rawResponse == null) {
+      contentStr = '';
+    } else if (typeof rawResponse === 'string') {
+      contentStr = rawResponse.trim();
+    } else {
+      const obj = rawResponse as Record<string, unknown>;
+      const fromChoices = (obj.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content;
+      const fromCandidates = (obj.candidates as Array<{ content?: { parts?: Array<{ text?: string }> } }>)?.[0]?.content?.parts?.[0]?.text;
+      contentStr = (typeof fromChoices === 'string' ? fromChoices : fromCandidates ?? '').trim();
+      if (!contentStr && typeof obj.text === 'string') contentStr = String(obj.text).trim();
+      if (!contentStr) contentStr = JSON.stringify(rawResponse);
+    }
+
+    const cleanedText = contentStr
+      .replace(/<(?:ant[-_]?)?thinking>[\s\S]*?<\/(?:ant[-_]?)?thinking>/gi, '')
+      .replace(/<\/?(?:ant[-_]?)?thinking>/gi, '')
+      .replace(/<reasoning>[\s\S]*?<\/reasoning>/gi, '')
+      .replace(/<\/?reasoning>/gi, '')
+      .replace(/<thought>[\s\S]*?<\/thought>/gi, '')
+      .replace(/<\/?thought>/gi, '')
+      .trim();
+
+    const tryParse = (text: string): Record<string, unknown> | null => {
+      try {
+        return JSON.parse(text) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    };
+
+    // 1. 直接解析
+    let parsedObj = tryParse(cleanedText);
+    if (parsedObj) {
+      const cmds = Array.isArray(parsedObj.tavern_commands) ? parsedObj.tavern_commands : Array.isArray(parsedObj.指令) ? parsedObj.指令 : [];
+      return cmds.map((cmd: any) => ({ action: cmd.action || 'set', key: cmd.key || '', value: cmd.value }));
+    }
+
+    // 2. 提取代码块（与 parseAIResponse 一致，结尾 ``` 可选）
+    const codeBlockMatch = cleanedText.match(/```(?:json)?\s*([\s\S]*?)(?:```|$)/i);
+    if (codeBlockMatch?.[1]) {
+      parsedObj = tryParse(codeBlockMatch[1].trim());
+      if (parsedObj) {
+        const cmds = Array.isArray(parsedObj.tavern_commands) ? parsedObj.tavern_commands : Array.isArray(parsedObj.指令) ? parsedObj.指令 : [];
+        return cmds.map((cmd: any) => ({ action: cmd.action || 'set', key: cmd.key || '', value: cmd.value }));
+      }
+    }
+
+    // 3. 提取第一个 JSON 对象
+    const extractFirstJSON = (text: string): string | null => {
+      const startIndex = text.indexOf('{');
+      if (startIndex === -1) return null;
+      let depth = 0;
+      let inString = false;
+      let escapeNext = false;
+      for (let i = startIndex; i < text.length; i++) {
+        const char = text[i];
+        if (escapeNext) { escapeNext = false; continue; }
+        if (char === '\\') { escapeNext = true; continue; }
+        if (char === '"') { inString = !inString; continue; }
+        if (inString) continue;
+        if (char === '{') depth++;
+        if (char === '}') { depth--; if (depth === 0) return text.substring(startIndex, i + 1); }
+      }
+      return null;
+    };
+    const firstJSON = extractFirstJSON(cleanedText);
+    if (firstJSON) {
+      parsedObj = tryParse(firstJSON);
+      if (parsedObj) {
+        const cmds = Array.isArray(parsedObj.tavern_commands) ? parsedObj.tavern_commands : Array.isArray(parsedObj.指令) ? parsedObj.指令 : [];
+        return cmds.map((cmd: any) => ({ action: cmd.action || 'set', key: cmd.key || '', value: cmd.value }));
+      }
+    }
+
+    return [];
   }
 }
 
