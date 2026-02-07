@@ -63,6 +63,14 @@
                         <EyeOff v-else :size="14" class="attention-icon inactive" />
                       </button>
                       <button
+                        class="heartbeat-lock-toggle"
+                        @click.stop="toggleHeartbeatLock(person)"
+                        :title="isHeartbeatLocked(person) ? '解锁心跳更新' : '锁定心跳更新'"
+                      >
+                        <Lock v-if="isHeartbeatLocked(person)" :size="14" class="lock-icon locked" />
+                        <Unlock v-else :size="14" class="lock-icon unlocked" />
+                      </button>
+                      <button
                         @click.stop="confirmDeleteNpc(person)"
                         class="delete-btn-card"
                         title="删除人物"
@@ -374,6 +382,43 @@
                           </div>
                         </div>
                       </div>
+                      <div class="status-item status-item-actions">
+                        <span class="status-icon">🔒</span>
+                        <div class="status-content">
+                          <div class="status-label">世界心跳更新</div>
+                          <label class="toggle-switch-inline">
+                            <input type="checkbox" :checked="isHeartbeatLocked(selectedPerson)" @change="toggleHeartbeatLock(selectedPerson)" />
+                            <span class="toggle-slider"></span>
+                          </label>
+                          <span class="status-hint">{{ isHeartbeatLocked(selectedPerson) ? '已锁定（不参与心跳更新）' : '未锁定' }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab: 在做事项 -->
+                <div v-show="activeTab === 'activity'" class="tab-panel">
+                  <div class="detail-section highlight-section">
+                    <h5 class="section-title">📌 在做事项</h5>
+                    <div class="realtime-status">
+                      <div class="status-item">
+                        <span class="status-icon">📌</span>
+                        <div class="status-content">
+                          <div class="status-label">当前在做事项</div>
+                          <div class="status-text">
+                            {{ selectedPerson.在做事项 || '暂无' }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-if="historyActivityList.length > 0" class="activity-history-section">
+                      <h6 class="subsection-title">{{ t('历史在做事项') }}</h6>
+                      <ul class="activity-history-list">
+                        <li v-for="(item, index) in historyActivityList" :key="index" class="activity-history-item">
+                          {{ item }}
+                        </li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -823,7 +868,7 @@ import type { NpcProfile, Item, BodyPartDevelopment, PrivacyProfile, SaveData } 
 import type { SpiritRoot } from '@/types';
 import {
   Users2, Search,
-  Loader2, ChevronRight, Package, ArrowRightLeft, Eye, EyeOff, Trash2, ArrowLeft, Download, BookOpen
+  Loader2, ChevronRight, Package, ArrowRightLeft, Eye, EyeOff, Trash2, ArrowLeft, Download, BookOpen, Lock, Unlock
 } from 'lucide-vue-next';
 import { useUIStore } from '@/stores/uiStore';
 import { useCharacterStore } from '@/stores/characterStore';
@@ -979,12 +1024,19 @@ const nsfwEnabled = computed(() => {
   }
 });
 
+// 历史在做事项（在做事项 tab 下方只读归档）
+const historyActivityList = computed(() => {
+  const arr = (selectedPerson.value as any)?.历史在做事项;
+  return Array.isArray(arr) ? arr : [];
+});
+
 // Tab管理
 const activeTab = ref('basic');
 const tabs = computed(() => {
   const baseTabs = [
     { id: 'basic', label: '基本信息', icon: '📋' },
     { id: 'status', label: '实时状态', icon: '💭' },
+    { id: 'activity', label: '在做事项', icon: '📌' },
   ];
 
   if (isTavernEnvFlag.value) {
@@ -1551,6 +1603,39 @@ const toggleAttention = async (person: NpcProfile) => {
 // 检查NPC是否被关注
 const isAttentionEnabled = (person: NpcProfile): boolean => {
   return person.实时关注 || false;
+};
+
+// 切换心跳锁定（锁定后该 NPC 不参与世界心跳更新）
+const toggleHeartbeatLock = async (person: NpcProfile) => {
+  const npcName = person.名字;
+  try {
+    const relationships = gameStateStore.relationships;
+    if (!relationships) {
+      uiStore.showToast('人物关系数据不存在', { type: 'error' });
+      return;
+    }
+    const npcKey = Object.keys(relationships).find(key => relationships[key]?.名字 === npcName);
+    if (!npcKey) {
+      uiStore.showToast(`找不到名为 ${npcName} 的人物`, { type: 'error' });
+      return;
+    }
+    const npcProfile = relationships[npcKey];
+    const newLocked = !(npcProfile.心跳锁定 || false);
+    npcProfile.心跳锁定 = newLocked;
+    await gameStateStore.saveGame();
+    uiStore.showToast(newLocked ? `已锁定 ${npcName} 的心跳更新` : `已解锁 ${npcName} 的心跳更新`, { type: 'success' });
+    if (selectedPerson.value?.名字 === npcName) {
+      selectedPerson.value = { ...relationships[npcKey] };
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : '未知错误';
+    uiStore.showToast(`操作失败: ${msg}`, { type: 'error' });
+    console.error('[心跳锁定]', error);
+  }
+};
+
+const isHeartbeatLocked = (person: NpcProfile): boolean => {
+  return person.心跳锁定 || false;
 };
 
 // 尝试从NPC身上偷窃物品
@@ -2385,6 +2470,31 @@ const confirmDeleteNpc = (person: NpcProfile) => {
   color: #16a34a;
 }
 
+.heartbeat-lock-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.heartbeat-lock-toggle:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+.heartbeat-lock-toggle .lock-icon.locked {
+  color: var(--color-warning, #eab308);
+}
+.heartbeat-lock-toggle .lock-icon.unlocked {
+  color: var(--color-text-secondary);
+}
+
 .person-realm {
   margin-bottom: 0.5rem;
   font-size: 0.8rem;
@@ -3036,6 +3146,24 @@ const confirmDeleteNpc = (person: NpcProfile) => {
   color: var(--color-text);
 }
 
+.activity-history-section {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.activity-history-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: disc;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}
+
+.activity-history-item {
+  margin-bottom: 0.25rem;
+}
+
 .talents-grid {
   display: flex;
   flex-wrap: wrap;
@@ -3546,6 +3674,58 @@ const confirmDeleteNpc = (person: NpcProfile) => {
   color: var(--color-text);
   line-height: 1.5;
   font-style: italic;
+}
+
+.status-item-actions .status-content {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.toggle-switch-inline {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+.toggle-switch-inline input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.toggle-switch-inline .toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--color-border);
+  border-radius: 20px;
+  transition: 0.3s;
+}
+.toggle-switch-inline .toggle-slider::before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: 0.3s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.toggle-switch-inline input:checked + .toggle-slider {
+  background: var(--color-primary, #3b82f6);
+}
+.toggle-switch-inline input:checked + .toggle-slider::before {
+  transform: translateX(16px);
+}
+.status-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
 }
 
 .desire-fill {

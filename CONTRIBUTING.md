@@ -28,3 +28,15 @@
 
 - 尽量保持改动聚焦：一个 PR 解决一个问题。
 - PR 描述里写清楚：动机、改了什么、如何验证。
+
+### 中文提交信息避免乱码（Windows / PowerShell）
+
+在 Windows 下用 PowerShell 执行 `git commit -m "中文"` 时，提交信息容易因编码变成乱码。**请始终采用「从文件读取提交信息」的方式**：
+
+1. 将提交信息写入一个 **UTF-8 编码** 的文本文件（例如 `commit_msg.txt`），内容为单行或多行均可。
+2. 使用以下命令提交，不要用 `-m "..."` 直接写中文：
+   - 新提交：`git commit -F commit_msg.txt`
+   - 修改上一次提交：`git commit --amend -F commit_msg.txt`
+3. 提交完成后可删除临时文件（如 `commit_msg.txt`）。
+
+这样 Git 会按文件编码正确保存中文，避免乱码。

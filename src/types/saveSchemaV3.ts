@@ -32,6 +32,8 @@ export interface SaveMetaV3 {
   更新时间: string;
   游戏时长秒: number;
   时间: GameTime;
+  /** 全局回合序号；主回合成功结束时 +1，用于世界心跳周期与遗忘判定 */
+  回合序号?: number;
 }
 
 export interface OnlineStateV3 {

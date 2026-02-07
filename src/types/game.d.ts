@@ -610,6 +610,37 @@ export interface EventSystem {
   事件记录: GameEvent[];
 }
 
+// --- 世界心跳 ---
+
+/** 单次心跳中某 NPC 的更新条目（用于 UI 展示与单条回溯） */
+export interface HeartbeatUpdateEntry {
+  npc名字: string;
+  更新摘要?: string;
+  更新前?: Partial<NpcProfile>;
+  更新后?: Partial<NpcProfile>;
+}
+
+/** 单次心跳记录（可展开 UI） */
+export interface HeartbeatRecord {
+  时间: string;
+  回合序号: number;
+  触发方式: '周期' | '事件' | '手动';
+  相关事件ID?: string;
+  更新列表: HeartbeatUpdateEntry[];
+  /** 更新前的完整 NPC 快照，用于全部/单条回溯 */
+  快照: Record<string, NpcProfile>;
+}
+
+/** 世界.状态.心跳 配置与历史 */
+export interface WorldHeartbeatConfig {
+  启用: boolean;
+  周期数值: number;
+  上次心跳回合序号?: number;
+  历史条数: number;
+  遗忘回合数: number;
+  历史?: HeartbeatRecord[];
+}
+
 // --- 世界地图 ---
 
 // --- NPC 模块 ---
@@ -735,6 +766,10 @@ export interface NpcProfile {
   // === 实时状态（用 set 直接替换）===
   当前外貌状态: string; // 如："脸颊微红，眼神迷离" / "衣衫整洁，神态自然"
   当前内心想法: string; // 如："在思考什么..." / "对xxx感到好奇"
+  /** 世界心跳/主回合可更新；简短一句，如 "在客栈打杂" */
+  在做事项?: string;
+  /** 历史在做事项归档（只读，由系统在更新 在做事项 时自动追加旧值；心跳时一并发送给模型） */
+  历史在做事项?: string[];
 
   // === 资产物品 ===
   背包: {
@@ -746,6 +781,10 @@ export interface NpcProfile {
   // === 可选模块 ===
   私密信息?: PrivacyProfile; // 仅NSFW模式下存在
   实时关注: boolean; // 标记为关注的NPC会在AI回合中主动更新
+  /** true 则不参与世界心跳更新；正常回合更新不受影响 */
+  心跳锁定?: boolean;
+  /** 最近一次被主回合（主游戏）更新时的 元数据.回合序号；仅主回合更新时写入，心跳更新不写入 */
+  上次主回合更新回合?: number;
 
   // === 扩展字段（用于“特殊NPC/定制人物”等业务标记，不影响核心生成）===
   扩展?: {

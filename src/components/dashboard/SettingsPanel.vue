@@ -175,6 +175,79 @@
         </div>
       </div>
 
+      <!-- 世界心跳 -->
+      <div class="settings-section">
+        <div class="section-header">
+          <h4 class="section-title">💓 {{ t('世界心跳') }}</h4>
+        </div>
+        <div class="settings-list">
+          <div class="setting-item">
+            <div class="setting-info">
+              <label class="setting-name">{{ t('启用世界心跳') }}</label>
+              <span class="setting-desc">{{ t('周期或事件触发时更新 NPC 位置/状态/内心想法/在做事项') }}</span>
+            </div>
+            <div class="setting-control">
+              <label class="setting-switch">
+                <input
+                  type="checkbox"
+                  :checked="worldHeartbeatEnabled"
+                  @change="onWorldHeartbeatEnabledChange"
+                />
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <label class="setting-name">{{ t('每 N 回合更新') }}</label>
+              <span class="setting-desc">{{ t('周期触发时，每多少回合执行一次心跳') }}</span>
+            </div>
+            <div class="setting-control">
+              <input
+                type="number"
+                class="config-input"
+                min="1"
+                max="99"
+                :value="worldHeartbeatPeriod"
+                @input="onWorldHeartbeatPeriodInput"
+              />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <label class="setting-name">{{ t('历史保留条数') }}</label>
+              <span class="setting-desc">{{ t('心跳记录列表最多保留条数') }}</span>
+            </div>
+            <div class="setting-control">
+              <input
+                type="number"
+                class="config-input"
+                min="5"
+                max="100"
+                :value="worldHeartbeatHistoryCount"
+                @input="onWorldHeartbeatHistoryCountInput"
+              />
+            </div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <label class="setting-name">{{ t('遗忘回合数') }}</label>
+              <span class="setting-desc">{{ t('超过此回合数未被主游戏更新的 NPC 不再参与心跳') }}</span>
+            </div>
+            <div class="setting-control">
+              <input
+                type="number"
+                class="config-input"
+                min="0"
+                max="999"
+                :value="worldHeartbeatForgetRounds"
+                @input="onWorldHeartbeatForgetRoundsInput"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 高级设置 -->
       <div class="settings-section">
         <div class="section-header">
@@ -334,6 +407,46 @@ const newPlayerName = ref('');
 const currentPlayerName = computed(() => {
   return gameStateStore.character?.名字 || '';
 });
+
+// 世界心跳（来自 gameStateStore.worldHeartbeat，随存档保存）
+const worldHeartbeatEnabled = computed(() => gameStateStore.worldHeartbeat?.启用 ?? false);
+const worldHeartbeatPeriod = computed(() => gameStateStore.worldHeartbeat?.周期数值 ?? 3);
+const worldHeartbeatHistoryCount = computed(() => gameStateStore.worldHeartbeat?.历史条数 ?? 20);
+const worldHeartbeatForgetRounds = computed(() => gameStateStore.worldHeartbeat?.遗忘回合数 ?? 30);
+
+const persistWorldHeartbeat = async () => {
+  if (gameStateStore.isGameLoaded) {
+    try {
+      await characterStore.saveCurrentGame();
+    } catch (e) {
+      console.warn('[设置] 世界心跳配置持久化失败:', e);
+    }
+  }
+};
+
+function onWorldHeartbeatEnabledChange(e: Event) {
+  const checked = (e.target as HTMLInputElement).checked;
+  gameStateStore.updateState('worldHeartbeat.启用', checked);
+  persistWorldHeartbeat();
+}
+
+function onWorldHeartbeatPeriodInput(e: Event) {
+  const v = Math.max(1, Math.min(99, Number((e.target as HTMLInputElement).value) || 3));
+  gameStateStore.updateState('worldHeartbeat.周期数值', v);
+  persistWorldHeartbeat();
+}
+
+function onWorldHeartbeatHistoryCountInput(e: Event) {
+  const v = Math.max(5, Math.min(100, Number((e.target as HTMLInputElement).value) || 20));
+  gameStateStore.updateState('worldHeartbeat.历史条数', v);
+  persistWorldHeartbeat();
+}
+
+function onWorldHeartbeatForgetRoundsInput(e: Event) {
+  const v = Math.max(0, Math.min(999, Number((e.target as HTMLInputElement).value) || 30));
+  gameStateStore.updateState('worldHeartbeat.遗忘回合数', v);
+  persistWorldHeartbeat();
+}
 
 // 更新玩家道号
 const updatePlayerName = async () => {

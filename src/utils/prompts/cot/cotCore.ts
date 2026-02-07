@@ -59,11 +59,13 @@ export function getCotCorePromptMing(userInput: string, enableActionOptions: boo
 □ 好感变化 → add \`社交.关系.[NPC名].好感度\`
 □ NPC记忆 → push \`社交.关系.[NPC名].记忆\`
 □ NPC状态 → set \`社交.关系.[NPC名].当前外貌状态\`
+□ NPC想法 → set \`社交.关系.[NPC名].当前内心想法\`
+□ NPC在做事项 → set \`社交.关系.[NPC名].在做事项\`（简短一句，如 "在客栈打杂"）
 □ NPC属性变化（重要！）：
   - NPC体力变化 → add \`社交.关系.[NPC名].属性.体力.当前\`
   - NPC精力变化 → add \`社交.关系.[NPC名].属性.精力.当前\`
   - NPC位置变化 → set \`社交.关系.[NPC名].位置\`
-□ 实时关注NPC → 若\`实时关注\`为true，即使不在身边也要更新其位置/状态/内心想法
+□ 实时关注NPC → 若\`实时关注\`为true，即使不在身边也要更新其位置/状态/内心想法/在做事项
 
 ### 世界事件系统
 □ 重大事件发生 → push \`社交.事件.事件记录\`

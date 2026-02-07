@@ -4,6 +4,39 @@
 
 ---
 
+## [0.2.28] - 2026-02-07
+
+### 世界心跳功能落地与贡献指南
+
+- **世界心跳 UI 与入口**：新增心跳面板（HeartbeatPanel）及路由 `/game/heartbeat`；侧栏与游戏内菜单添加入口；设置面板中心跳配置分组（周期、历史条数、遗忘回合数等）。
+- **关系网络与数据**：关系网络面板扩展（在做事项、历史在做事项等）；类型与存档结构（game.d.ts、saveSchemaV3）支持心跳与 NPC 相关字段；数据验证（dataValidation）与提示词（worldHeartbeatPromptsMing、dataDefinitionsMing、cotCore、inlinePromptsMing）补全。
+- **文档**：新增/纳入世界心跳实现计划（world-heartbeat-implementation-plan.md）与实现笔记（world-heartbeat-impl-notes.md）；i18n 新增心跳相关文案。
+- **贡献指南**：CONTRIBUTING.md 增加「中文提交信息避免乱码」说明，约定使用 `git commit -F 文件` 从 UTF-8 文件读取提交信息，避免 Windows/PowerShell 下乱码。
+
+#### 涉及文件
+
+- `CONTRIBUTING.md`
+- `docs/world-heartbeat-implementation-plan.md`
+- `docs/world-heartbeat-impl-notes.md`
+- `src/components/dashboard/HeartbeatPanel.vue`
+- `src/components/dashboard/components/WorldHeartbeatWidget.vue`
+- `src/components/dashboard/LeftSidebar.vue`
+- `src/components/dashboard/SettingsPanel.vue`
+- `src/components/dashboard/RelationshipNetworkPanel.vue`
+- `src/components/dashboard/PromptAssemblyPanel.vue`
+- `src/views/GameView.vue`
+- `src/router/index.ts`
+- `src/types/game.d.ts`
+- `src/types/saveSchemaV3.ts`
+- `src/utils/dataValidation.ts`
+- `src/utils/prompts/cot/cotCore.ts`
+- `src/utils/prompts/definitions/ming/dataDefinitionsMing.ts`
+- `src/utils/prompts/definitions/ming/inlinePromptsMing.ts`
+- `src/utils/prompts/tasks/worldHeartbeatPromptsMing.ts`
+- `src/i18n/index.ts`
+
+---
+
 ## [0.2.27] - 2026-02-07
 
 ### 世界心跳默认值调整与存档迁移补全

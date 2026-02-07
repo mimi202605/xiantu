@@ -241,6 +241,30 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
     }
 
     try {
+      if (typeof repairedNpc.在做事项 !== 'string') repairedNpc.在做事项 = '';
+      else if (!repairedNpc.在做事项.trim()) repairedNpc.在做事项 = '';
+    } catch (e) {
+      repairedNpc.在做事项 = '';
+    }
+
+    try {
+      if ((repairedNpc as any).历史在做事项 !== undefined) {
+        const arr = (repairedNpc as any).历史在做事项;
+        (repairedNpc as any).历史在做事项 = Array.isArray(arr)
+          ? arr.filter((x: unknown) => typeof x === 'string').slice(0, 20)
+          : [];
+      }
+    } catch {
+      (repairedNpc as any).历史在做事项 = [];
+    }
+
+    try {
+      if (typeof repairedNpc.心跳锁定 !== 'boolean') repairedNpc.心跳锁定 = false;
+    } catch (e) {
+      repairedNpc.心跳锁定 = false;
+    }
+
+    try {
       if (typeof repairedNpc.种族 !== 'string' || !repairedNpc.种族.trim()) repairedNpc.种族 = '人族';
     } catch (e) {
       repairedNpc.种族 = '人族';

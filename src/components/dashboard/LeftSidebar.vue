@@ -64,6 +64,16 @@
             </div>
             <ChevronRight :size="14" class="btn-arrow" />
           </button>
+          <button class="function-btn quest" @click="handleHeartbeat">
+            <div class="btn-icon">
+              <Heart :size="18" />
+            </div>
+            <div class="btn-content">
+              <span class="btn-text">{{ t('世界心跳') }}</span>
+              <span class="btn-desc">{{ t('回合推进时世界状态更新') }}</span>
+            </div>
+            <ChevronRight :size="14" class="btn-arrow" />
+          </button>
 
         </div>
       </div>
@@ -300,6 +310,10 @@ const handleMap = () => {
 
 const handleEvents = () => {
   router.push('/game/events');
+};
+
+const handleHeartbeat = () => {
+  router.push('/game/heartbeat');
 };
 
 const handleRelationships = () => {
