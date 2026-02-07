@@ -71,7 +71,7 @@
                       </button>
                     </div>
                   </div>
-                  <div class="person-realm" v-if="getNpcRealm(person) !== '未知'">
+                  <div class="person-realm">
                     <span class="realm-label">境界:</span>
                     <span class="realm-value">{{ getNpcRealm(person) }}</span>
                   </div>
@@ -1049,10 +1049,10 @@ const resetMemoryPagination = () => {
 };
 
 
-// 获取NPC境界信息
+// 获取NPC境界信息（未生成时显示默认「凡人」）
 const getNpcRealm = (npc: NpcProfile): string => {
   const realmField = npc.境界;
-  if (!realmField) return '未知';
+  if (!realmField) return '凡人';
 
   if (typeof realmField === 'object' && realmField !== null) {
     const name = realmField.名称 || '';
@@ -1066,7 +1066,7 @@ const getNpcRealm = (npc: NpcProfile): string => {
     return realmField;
   }
 
-  return '未知';
+  return '凡人';
 };
 
 // 获取NPC灵根信息

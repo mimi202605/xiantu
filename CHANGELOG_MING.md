@@ -4,6 +4,24 @@
 
 ---
 
+## [0.2.23] - 2026-02-06
+
+### NPC 境界默认「凡人」
+
+- **背景**：Prompt 清理后地点路人 NPC 结构不再强制包含境界，导致新生成 NPC 无境界字段，界面此前显示「未知」。
+- **UI 默认值**  
+  - `RelationshipNetworkPanel.vue`：`getNpcRealm` 在 `境界` 缺失或无法解析时返回 **「凡人」**（不再返回「未知」）。  
+  - 关系网络列表卡片中境界行始终展示，不再因「未知」隐藏。
+- **Prompt 可选字段**  
+  - `locationNpcGenerationPromptsMing.ts`：NPC 结构说明中增加可选字段 **境界?: string 或 {名称, 阶段}**，注明不填则界面显示「凡人」；若世界观有境界设定可填写，模型仍可选择性生成境界。
+
+#### 涉及文件
+
+- `src/utils/prompts/tasks/locationNpcGenerationPromptsMing.ts`
+- `src/components/dashboard/RelationshipNetworkPanel.vue`
+
+---
+
 ## [0.2.22] - 2026-02-06
 
 ### Prompt 清理计划落地：通用化用词、数据结构与 UI（docs/prompt-cleanup-plan.md）
