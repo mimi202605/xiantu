@@ -17,7 +17,7 @@ export async function initializeCharacterOffline(
 
   // 确保后天六司存在，开局默认全为0
   if (!baseInfo.后天六司) {
-    baseInfo.后天六司 = { 根骨: 0, 灵性: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
+    baseInfo.后天六司 = { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
     console.log('[离线初始化] 初始化后天六司为全0');
   }
 

@@ -225,8 +225,8 @@ export interface InitialGameData {
   baseInfo: {
     名字: string;
     先天六司?: {
-      根骨?: number;
-      灵性?: number;
+      体质?: number;
+      直觉?: number;
       悟性?: number;
       气运?: number;
       魅力?: number;

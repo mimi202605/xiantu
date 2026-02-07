@@ -46,7 +46,7 @@ export interface GameCharacter {
     breakthrough_bottleneck?: string;
   };
 
-  // ==================== 六维根骨 ====================
+  // ==================== 六司属性（体质/直觉/悟性/气运/魅力/心性） ====================
   attributes: {
     STR: number; // 力量
     CON: number; // 体质

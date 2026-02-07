@@ -57,18 +57,18 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     repaired.角色.身份.性别 = repaired.角色.身份.性别 || '男';
     if (!repaired.角色.身份.出生日期) repaired.角色.身份.出生日期 = { 年: 982, 月: 1, 日: 1 };
     if (!repaired.角色.身份.先天六司 || typeof repaired.角色.身份.先天六司 !== 'object') {
-      repaired.角色.身份.先天六司 = { 根骨: 5, 灵性: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
+      repaired.角色.身份.先天六司 = { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
     } else {
       const attrs = repaired.角色.身份.先天六司;
-      attrs.根骨 = validateNumber(attrs.根骨, 0, 10, 5);
-      attrs.灵性 = validateNumber(attrs.灵性, 0, 10, 5);
+      attrs.体质 = validateNumber(attrs.体质, 0, 10, 5);
+      attrs.直觉 = validateNumber(attrs.直觉, 0, 10, 5);
       attrs.悟性 = validateNumber(attrs.悟性, 0, 10, 5);
       attrs.气运 = validateNumber(attrs.气运, 0, 10, 5);
       attrs.魅力 = validateNumber(attrs.魅力, 0, 10, 5);
       attrs.心性 = validateNumber(attrs.心性, 0, 10, 5);
     }
     if (!repaired.角色.身份.后天六司 || typeof repaired.角色.身份.后天六司 !== 'object') {
-      repaired.角色.身份.后天六司 = { 根骨: 0, 灵性: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
+      repaired.角色.身份.后天六司 = { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
     }
 
     // --- 属性 ---
@@ -402,7 +402,7 @@ function repairNpc(npc: NpcProfile): NpcProfile {
 
   // 修复先天六司
   if (!repaired.先天六司 || typeof repaired.先天六司 !== 'object') {
-    repaired.先天六司 = { 根骨: 5, 灵性: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
+    repaired.先天六司 = { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
   }
 
   // 修复核心数值（整合为属性对象，旧存档自动补上默认值）
@@ -539,8 +539,8 @@ function createMinimalSaveDataV3(): SaveData {
         出生: '散修',
         灵根: '五行杂灵根',
         天赋: [],
-        先天六司: { 根骨: 5, 灵性: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
-        后天六司: { 根骨: 0, 灵性: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
+        先天六司: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
+        后天六司: { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
       },
       属性: createDefaultAttributes(),
       位置: createDefaultLocation(),

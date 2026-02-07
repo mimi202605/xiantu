@@ -284,12 +284,12 @@
                       <h6 class="subsection-title">先天六司</h6>
                       <div class="attributes-grid">
                         <div class="attribute-item">
-                          <span class="attr-label">根骨</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.根骨 || 0 }}</span>
+                          <span class="attr-label">体质</span
+                          ><span class="attr-value">{{ selectedPerson.先天六司.体质 ?? selectedPerson.先天六司.根骨 ?? 0 }}</span>
                         </div>
                         <div class="attribute-item">
-                          <span class="attr-label">灵性</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.灵性 || 0 }}</span>
+                          <span class="attr-label">直觉</span
+                          ><span class="attr-value">{{ selectedPerson.先天六司.直觉 ?? selectedPerson.先天六司.灵性 ?? 0 }}</span>
                         </div>
                         <div class="attribute-item">
                           <span class="attr-label">悟性</span
@@ -1957,8 +1957,8 @@ const exportToWorldBook = async () => {
     // 先天六司
     if (npc.先天六司) {
       entryContent += `\n**先天六司**\n`;
-      entryContent += `- 根骨：${npc.先天六司.根骨 || 0}\n`;
-      entryContent += `- 灵性：${npc.先天六司.灵性 || 0}\n`;
+      entryContent += `- 体质：${npc.先天六司.体质 ?? npc.先天六司.根骨 ?? 0}\n`;
+      entryContent += `- 直觉：${npc.先天六司.直觉 ?? npc.先天六司.灵性 ?? 0}\n`;
       entryContent += `- 悟性：${npc.先天六司.悟性 || 0}\n`;
       entryContent += `- 气运：${npc.先天六司.气运 || 0}\n`;
       entryContent += `- 魅力：${npc.先天六司.魅力 || 0}\n`;

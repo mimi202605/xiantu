@@ -153,8 +153,8 @@ export interface ItemQuality {
 // --- 先天六司 ---
 
 export interface InnateAttributes {
-  根骨: number;
-  灵性: number;
+  体质: number;
+  直觉: number;
   悟性: number;
   气运: number;
   魅力: number;
@@ -976,8 +976,8 @@ export interface SixSiBonus {
 
 /** 六司权重配置 */
 export interface SixSiWeights {
-  根骨: number;
-  灵性: number;
+  体质: number;
+  直觉: number;
   悟性: number;
   心性: number;
   气运: number;

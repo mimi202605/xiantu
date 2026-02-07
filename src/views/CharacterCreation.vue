@@ -545,16 +545,16 @@ async function createCharacter() {
       灵根: store.selectedSpiritRoot || '随机灵根', // service层会处理字符串
       天赋: store.selectedTalents,
       先天六司: {
-        根骨: store.attributes.root_bone,
-        灵性: store.attributes.spirituality,
+        体质: store.attributes.root_bone,
+        直觉: store.attributes.spirituality,
         悟性: store.attributes.comprehension,
         气运: store.attributes.fortune,
         魅力: store.attributes.charm,
         心性: store.attributes.temperament,
       },
       后天六司: {
-        根骨: 0,
-        灵性: 0,
+        体质: 0,
+        直觉: 0,
         悟性: 0,
         气运: 0,
         魅力: 0,

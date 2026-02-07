@@ -150,15 +150,15 @@
             <div class="judgement-types">
               <div class="type-item">
                 <span class="type-name">{{ $t('战斗判定') }}</span>
-                <span class="type-attrs">{{ $t('根骨50% + 灵性30% + 气运20%') }}</span>
+                <span class="type-attrs">{{ $t('体质50% + 直觉30% + 气运20%') }}</span>
               </div>
               <div class="type-item">
                 <span class="type-name">{{ $t('修炼判定') }}</span>
-                <span class="type-attrs">{{ $t('悟性50% + 灵性30% + 心性20%') }}</span>
+                <span class="type-attrs">{{ $t('悟性50% + 直觉30% + 心性20%') }}</span>
               </div>
               <div class="type-item">
                 <span class="type-name">{{ $t('技艺判定') }}</span>
-                <span class="type-attrs">{{ $t('悟性50% + 根骨30% + 灵性20%') }}</span>
+                <span class="type-attrs">{{ $t('悟性50% + 体质30% + 直觉20%') }}</span>
               </div>
               <div class="type-item">
                 <span class="type-name">{{ $t('社交判定') }}</span>
@@ -166,7 +166,7 @@
               </div>
               <div class="type-item">
                 <span class="type-name">{{ $t('探索判定') }}</span>
-                <span class="type-attrs">{{ $t('气运50% + 灵性30% + 悟性20%') }}</span>
+                <span class="type-attrs">{{ $t('气运50% + 直觉30% + 悟性20%') }}</span>
               </div>
             </div>
           </div>
@@ -177,14 +177,14 @@
               <div class="attr-card">
                 <div class="attr-header">
                   <span class="attr-icon">💪</span>
-                  <span class="attr-name">{{ $t('根骨') }}</span>
+                  <span class="attr-name">{{ $t('体质') }}</span>
                 </div>
                 <p>{{ $t('决定气血上限、恢复速度、寿命上限。影响炼体修行、抗打击能力。') }}</p>
               </div>
               <div class="attr-card">
                 <div class="attr-header">
                   <span class="attr-icon">✨</span>
-                  <span class="attr-name">{{ $t('灵性') }}</span>
+                  <span class="attr-name">{{ $t('直觉') }}</span>
                 </div>
                 <p>{{ $t('决定灵气上限、吸收效率。影响修炼速度、法术威力。') }}</p>
               </div>
@@ -513,7 +513,7 @@ const parsedText = computed(() => {
     if (markedContent.trim()) {
       if (nextMarker.type === 'judgement') {
         // 增强的判定解析
-        // 支持格式: "修炼判定:完美,骰点:45,灵性:8,加成:12,最终值:65,难度:50"
+        // 支持格式: "修炼判定:完美,骰点:45,直觉:8,加成:12,最终值:65,难度:50"
         const contentParts = markedContent.split(',').map(p => p.trim())
 
         if (contentParts.length >= 1) {
@@ -571,7 +571,7 @@ const parsedText = computed(() => {
               content: judgement
             })
           } else if (titleResult.length === 1) {
-            // 处理简单系统提示格式，如"系统提示：星屑吊坠效果触发，悟性+2，灵性+2，凝神静气效果生效。"
+            // 处理简单系统提示格式，如"系统提示：星屑吊坠效果触发，悟性+2，直觉+2，凝神静气效果生效。"
             const judgement: JudgementData = {
               title: '系统提示',
               result: markedContent.trim(),
@@ -594,7 +594,7 @@ const parsedText = computed(() => {
               } else if (key.includes('最终值') || key.includes('总值')) {
                 judgement.finalValue = value
               } else if (key.match(/^[^\d\s]+$/)) {
-                // 属性名(如"灵性"、"悟性"等)
+                // 属性名(如"直觉"、"悟性"等)
                 if (!judgement.attribute) {
                   judgement.attribute = `${key}:${value}`
                 } else {

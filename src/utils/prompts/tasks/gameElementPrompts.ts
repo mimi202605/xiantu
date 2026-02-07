@@ -72,7 +72,7 @@ export const IMPROVED_ORIGIN_PROMPT = `${BASE_INSTRUCTION}
 - description (字符串): 100-300字的背景故事
 - talent_cost (数字): 0-10之间的整数
 - rarity (数字): 1-5之间的整数
-- attribute_modifiers (对象): 先天六司加成，总和不超过5点
+- attribute_modifiers (对象): 先天六司加成（体质/直觉/悟性/气运/魅力/心性），总和不超过5点
 - effects (数组): 1-2个独特效果的文字描述
 
 【输出示例】
@@ -83,8 +83,8 @@ export const IMPROVED_ORIGIN_PROMPT = `${BASE_INSTRUCTION}
   "talent_cost": 2,
   "rarity": 3,
   "attribute_modifiers": {
-    "根骨": 2,
-    "灵性": -1,
+    "体质": 2,
+    "直觉": -1,
     "悟性": 0,
     "气运": 1,
     "魅力": -1,

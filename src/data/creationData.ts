@@ -436,7 +436,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     rarity: 5,
     effects: [
       { 类型: '技能加成', 技能: '剑法', 数值: 0.2 },
-      { 类型: '后天六司', 目标: '根骨', 数值: 3 }
+      { 类型: '后天六司', 目标: '体质', 数值: 3 }
     ]
   },
   {
@@ -490,7 +490,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     talent_cost: 5,
     rarity: 3,
     effects: [
-      { 类型: '后天六司', 目标: '根骨', 数值: 3 },
+      { 类型: '后天六司', 目标: '体质', 数值: 3 },
       { 类型: '特殊能力', 名称: '体修天赋', 数值: 0.1 }
     ]
   },
@@ -512,7 +512,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     talent_cost: 4,
     rarity: 3,
     effects: [
-      { 类型: '后天六司', 目标: '灵性', 数值: 2 },
+      { 类型: '后天六司', 目标: '直觉', 数值: 2 },
       { 类型: '特殊能力', 名称: '闪避天赋', 数值: 0.08 }
     ]
   },
@@ -610,7 +610,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     talent_cost: 5,
     rarity: 3,
     effects: [
-      { 类型: '后天六司', 目标: '根骨', 数值: 4 },
+      { 类型: '后天六司', 目标: '体质', 数值: 4 },
       { 类型: '特殊能力', 名称: '近战增幅', 数值: 0.2 }
     ]
   },
@@ -621,7 +621,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     talent_cost: 4,
     rarity: 3,
     effects: [
-      { 类型: '后天六司', 目标: '灵性', 数值: 3 },
+      { 类型: '后天六司', 目标: '直觉', 数值: 3 },
       { 类型: '特殊能力', 名称: '危险感知', 数值: 1 }
     ]
   },
@@ -654,7 +654,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     talent_cost: 10,
     rarity: 5,
     effects: [
-      { 类型: '后天六司', 目标: '根骨', 数值: 2 },
+      { 类型: '后天六司', 目标: '体质', 数值: 2 },
       { 类型: '技能加成', 技能: '剑法', 数值: 0.25 },
       { 类型: '特殊能力', 名称: '剑意感悟', 数值: 0.2 }
     ]
@@ -667,7 +667,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     rarity: 5,
     effects: [
       { 类型: '后天六司', 目标: '悟性', 数值: 4 },
-      { 类型: '后天六司', 目标: '灵性', 数值: 4 },
+      { 类型: '后天六司', 目标: '直觉', 数值: 4 },
       { 类型: '特殊能力', 名称: '万法精通', 数值: 0.3 }
     ]
   },
@@ -749,7 +749,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
     talent_cost: 12,
     rarity: 5,
     effects: [
-      { 类型: '后天六司', 目标: '根骨', 数值: 3 },
+      { 类型: '后天六司', 目标: '体质', 数值: 3 },
       { 类型: '特殊能力', 名称: '寿命延长', 数值: 0.3 }
     ]
   }

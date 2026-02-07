@@ -484,8 +484,8 @@ const vitalsData = computed(() => {
 });
 
 const buildInnateDefaults = (raw?: Partial<InnateAttributes> | null): InnateAttributes => ({
-  根骨: Number(raw?.根骨 ?? 0),
-  灵性: Number(raw?.灵性 ?? 0),
+  体质: Number(raw?.体质 ?? (raw as any)?.根骨 ?? 0),
+  直觉: Number(raw?.直觉 ?? (raw as any)?.灵性 ?? 0),
   悟性: Number(raw?.悟性 ?? 0),
   气运: Number(raw?.气运 ?? 0),
   魅力: Number(raw?.魅力 ?? 0),

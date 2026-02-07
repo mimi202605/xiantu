@@ -126,7 +126,7 @@ function validateValueType(key: string, value: unknown, action: string): string[
       '角色.背包.灵石.极品',
     ];
 
-    const houTianFields = ['根骨', '灵性', '悟性', '气运', '魅力', '心性'];
+    const houTianFields = ['体质', '直觉', '悟性', '气运', '魅力', '心性'];
 
     if (action === 'add') {
       if (numberFields.includes(key) && typeof value !== 'number') {

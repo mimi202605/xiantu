@@ -990,8 +990,8 @@ const formatTime = (timeStr: string | null): string => {
 // 转换先天六司
 const convertToStats = (innateAttrs: Record<string, number>) => {
   return {
-    root_bone: innateAttrs['根骨'] || 0,
-    spirituality: innateAttrs['灵性'] || 0,
+    root_bone: innateAttrs['体质'] ?? innateAttrs['根骨'] ?? 0,
+    spirituality: innateAttrs['直觉'] ?? innateAttrs['灵性'] ?? 0,
     comprehension: innateAttrs['悟性'] || 0,
     fortune: innateAttrs['气运'] || 0,
     charm: innateAttrs['魅力'] || 0,

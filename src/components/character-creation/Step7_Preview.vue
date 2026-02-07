@@ -150,8 +150,8 @@
       <div v-if="props.isLocalCreation" class="preview-item attributes-item">
         <h3>{{ $t('先天六司') }}</h3>
         <ul>
-          <li>{{ $t('根骨') }}: {{ store.attributes.root_bone }}</li>
-          <li>{{ $t('灵性') }}: {{ store.attributes.spirituality }}</li>
+          <li>{{ $t('体质') }}: {{ store.attributes.root_bone }}</li>
+          <li>{{ $t('直觉') }}: {{ store.attributes.spirituality }}</li>
           <li>{{ $t('悟性') }}: {{ store.attributes.comprehension }}</li>
           <li>{{ $t('气运') }}: {{ store.attributes.fortune }}</li>
           <li>{{ $t('魅力') }}: {{ store.attributes.charm }}</li>

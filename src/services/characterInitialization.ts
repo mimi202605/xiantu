@@ -151,24 +151,24 @@ async function robustAICall<T>(
 export function calculateInitialAttributes(baseInfo: CharacterBaseInfo, age: number): PlayerStatus {
   const { 先天六司 } = baseInfo;
 
-  // 确保先天六司都是有效的数值，避免NaN
+  // 确保先天六司都是有效的数值，避免NaN；兼容旧存档 根骨/灵性
   // ⚠️ 使用 ?? 而不是 ||，因为 || 会将 0 视为 falsy 值
-  const 根骨 = Number(先天六司?.根骨 ?? 0);
-  const 灵性 = Number(先天六司?.灵性 ?? 0);
+  const 体质 = Number(先天六司?.体质 ?? (先天六司 as any)?.根骨 ?? 0);
+  const 直觉 = Number(先天六司?.直觉 ?? (先天六司 as any)?.灵性 ?? 0);
   const 悟性 = Number(先天六司?.悟性 ?? 0);
 
   // 基础属性计算公式
-  const 初始气血 = 100 + 根骨 * 10;
-  const 初始灵气 = 50 + 灵性 * 5;
+  const 初始气血 = 100 + 体质 * 10;
+  const 初始灵气 = 50 + 直觉 * 5;
   const 初始神识 = 30 + 悟性 * 3;
 
   // -- 寿命计算逻辑 --
   const 基础寿命 = 80; // 凡人基础寿命
-  const 根骨寿命系数 = 5; // 每点根骨增加5年寿命
-  const 最大寿命 = 基础寿命 + 根骨 * 根骨寿命系数;
+  const 体质寿命系数 = 5; // 每点体质增加5年寿命
+  const 最大寿命 = 基础寿命 + 体质 * 体质寿命系数;
 
   console.log(`[角色初始化] 属性计算: 气血=${初始气血}, 灵气=${初始灵气}, 神识=${初始神识}, 年龄=${age}/${最大寿命}`);
-  console.log(`[角色初始化] 先天六司: 根骨=${根骨}, 灵性=${灵性}, 悟性=${悟性}`);
+  console.log(`[角色初始化] 先天六司: 体质=${体质}, 直觉=${直觉}, 悟性=${悟性}`);
 
   return {
     境界: {
@@ -240,8 +240,8 @@ function prepareInitialData(baseInfo: CharacterBaseInfo, age: number): { saveDat
   // 确保后天六司存在，开局默认全为0
   if (!processedBaseInfo.后天六司) {
     processedBaseInfo.后天六司 = {
-      根骨: 0,
-      灵性: 0,
+      体质: 0,
+      直觉: 0,
       悟性: 0,
       气运: 0,
       魅力: 0,
@@ -793,8 +793,8 @@ function deriveBaseFieldsFromDetails(baseInfo: CharacterBaseInfo): CharacterBase
   if (authoritativeAttributes) {
     console.log('[数据校准] ✅ 同步用户分配的先天六司:', authoritativeAttributes);
     derivedInfo.先天六司 = {
-      根骨: authoritativeAttributes.root_bone,
-      灵性: authoritativeAttributes.spirituality,
+      体质: authoritativeAttributes.root_bone,
+      直觉: authoritativeAttributes.spirituality,
       悟性: authoritativeAttributes.comprehension,
       气运: authoritativeAttributes.fortune,
       魅力: authoritativeAttributes.charm,

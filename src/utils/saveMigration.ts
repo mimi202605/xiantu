@@ -186,8 +186,8 @@ const buildDefaultIdentity = () => ({
   出生: '散修',
   灵根: '五行杂灵根',
   天赋: [],
-  先天六司: { 根骨: 5, 灵性: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
-  后天六司: { 根骨: 0, 灵性: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
+  先天六司: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
+  后天六司: { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
 });
 
 export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; report: SaveMigrationReport } {
@@ -232,6 +232,28 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
         if (npc && typeof npc === 'object' && npc.类型 !== '重点' && npc.类型 !== '普通') {
           npc.类型 = '重点';
         }
+      }
+    }
+    // 六司键名迁移：根骨→体质、灵性→直觉（主角与 NPC）
+    const normalizeSixSi = (o: any) => {
+      if (!o || typeof o !== 'object') return;
+      for (const key of ['先天六司', '后天六司'] as const) {
+        const six = o[key];
+        if (!six || typeof six !== 'object') continue;
+        if ('根骨' in six && typeof six.根骨 === 'number') {
+          six.体质 = six.体质 ?? six.根骨;
+          delete six.根骨;
+        }
+        if ('灵性' in six && typeof six.灵性 === 'number') {
+          six.直觉 = six.直觉 ?? six.灵性;
+          delete six.灵性;
+        }
+      }
+    };
+    if (normalized.角色?.身份) normalizeSixSi(normalized.角色.身份);
+    if (isPlainObject(normalized.社交?.关系)) {
+      for (const npc of Object.values(normalized.社交.关系) as any[]) {
+        if (npc && typeof npc === 'object') normalizeSixSi(npc);
       }
     }
     return { migrated: normalized as SaveDataV3, report };

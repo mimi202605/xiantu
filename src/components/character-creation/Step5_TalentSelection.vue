@@ -155,7 +155,7 @@ const customTalentFields: ModalField[] = [
           { value: '修炼加成', label: '修炼加成' }
         ]
       },
-      { key: '目标', placeholder: '目标（如：根骨、悟性）' },
+      { key: '目标', placeholder: '目标（如：体质、悟性）' },
       { key: '数值', placeholder: '数值（如：+2、+10%）' }
     ]
   }

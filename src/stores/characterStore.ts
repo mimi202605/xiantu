@@ -495,8 +495,8 @@ export const useCharacterStore = defineStore('characterV3', () => {
       天赋: creationStore.selectedTalents,
       // 确保后天六司存在且初始化为0（开局默认全为0）
       后天六司: baseInfo.后天六司 || {
-        根骨: 0,
-        灵性: 0,
+        体质: 0,
+        直觉: 0,
         悟性: 0,
         气运: 0,
         魅力: 0,

@@ -4,6 +4,39 @@
 
 ---
 
+## [0.2.21] - 2026-02-06
+
+### 六司属性通用化：根骨→体质、灵性→直觉
+
+- **数据与类型**  
+  - 先天六司/后天六司键名统一为 **体质**、**直觉**、悟性、气运、魅力、心性。  
+  - `InnateAttributes`、`SixSiWeights`、`InitialGameData` 等类型与默认值、校验路径（commandValidator）、dataRepair/saveMigration/offlineInitialization/characterStore 均改为体质、直觉。  
+  - `dataDefinitionsMing` 身份中补充先天六司/后天六司定义（体质、直觉等）；legacy `dataDefinitions.ts`、`definitions/dataDefinitions.ts`、`definitions/textFormats.ts`、`dataDefinitions.ts` 中六司描述与示例同步改为体质/直觉。  
+  - `docs/save-schema-v3.md` 六司字段与示例更新为体质、直觉。
+
+- **存档迁移与兼容**  
+  - `saveMigration`：在 V3 存档分支中增加六司键名迁移（根骨→体质、灵性→直觉），对主角身份与 `社交.关系` 下所有 NPC 执行后删除旧键。  
+  - 读取时兼容旧键：characterInitialization、CharacterDetailsPanel、RelationshipNetworkPanel、CharacterManagement 等处对 先天六司/后天六司 使用 `体质 ?? 根骨`、`直觉 ?? 灵性`，保证旧存档正常显示与计算。
+
+- **前端与 i18n**  
+  - 创建流程（Step3/Step6/Step7）、角色详情、关系网络、HexagonChart、FormattedText、GameVariableFormatGuideModal 等展示与占位符统一为「体质」「直觉」。  
+  - i18n：移除所有以「根骨」「灵性」为键的条目，仅保留「体质」「直觉」及对应判定配比、加权说明等文案。  
+  - Step5 天赋目标占位符、AIGameMaster.d.ts 注释更新为体质/直觉。
+
+- **Prompt 与文档**  
+  - `docs/prompt-cleanup-plan.md`：新增「六司属性：根骨→体质，灵性→直觉」一节，明确主角与 NPC 的 data structure / prompt / 前端修改范围及执行顺序；概述与执行建议中补充六司与迁移兼容说明。  
+  - `gameElementPrompts.ts` 中 attribute_modifiers 说明与示例改为体质/直觉；creationData 天赋 effects 中后天六司目标已为体质/直觉。
+
+#### 涉及文件
+
+- 类型：`types/game.d.ts`、`types/index.ts`、`types/AIGameMaster.d.ts`
+- 数据结构与 prompt：`definitions/ming/dataDefinitionsMing.ts`、`definitions/dataDefinitions.ts`、`dataDefinitions.ts`、`definitions/textFormats.ts`、`tasks/gameElementPrompts.ts`
+- 业务与迁移：`services/characterInitialization.ts`、`utils/saveMigration.ts`、`utils/dataRepair.ts`、`utils/commandValidator.ts`、`services/offlineInitialization.ts`、`stores/characterStore.ts`、`data/specialNpcs.ts`、`data/creationData.ts`
+- 前端：`i18n/index.ts`、`views/CharacterCreation.vue`、`App.vue`、`components/character-creation/*`、`components/dashboard/*`、`components/common/HexagonChart.vue`、`components/common/FormattedText.vue`
+- 文档：`docs/prompt-cleanup-plan.md`、`docs/save-schema-v3.md`
+
+---
+
 ## [0.2.20] - 2026-02-06
 
 ### 存档与导入导出

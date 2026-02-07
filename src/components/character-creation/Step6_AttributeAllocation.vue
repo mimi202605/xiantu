@@ -48,8 +48,8 @@ const minValue = 0 // 属性基础值
 const maxValue = 10 // 属性最大值
 
 const attributeNames = {
-  root_bone: '根骨',
-  spirituality: '灵性',
+  root_bone: '体质',
+  spirituality: '直觉',
   comprehension: '悟性',
   fortune: '气运',
   charm: '魅力',

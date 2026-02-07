@@ -396,14 +396,14 @@ const handleCreationComplete = async (rawPayload: CharacterCreationPayload) => {
       }
 
       const convertedAttributes = rawPayload.baseAttributes ? {
-        根骨: rawPayload.baseAttributes.root_bone ?? 0,
-        灵性: rawPayload.baseAttributes.spirituality ?? 0,
+        体质: rawPayload.baseAttributes.root_bone ?? 0,
+        直觉: rawPayload.baseAttributes.spirituality ?? 0,
         悟性: rawPayload.baseAttributes.comprehension ?? 0,
         气运: rawPayload.baseAttributes.fortune ?? 0,
         魅力: rawPayload.baseAttributes.charm ?? 0,
         心性: rawPayload.baseAttributes.temperament ?? 0
       } : {
-        根骨: 0, 灵性: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0
+        体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0
       };
 
       const baseInfo: CharacterBaseInfo = {
@@ -424,8 +424,8 @@ const handleCreationComplete = async (rawPayload: CharacterCreationPayload) => {
         })) || []) as Talent[],
         先天六司: convertedAttributes,
         后天六司: {
-          根骨: 0,
-          灵性: 0,
+          体质: 0,
+          直觉: 0,
           悟性: 0,
           气运: 0,
           魅力: 0,
