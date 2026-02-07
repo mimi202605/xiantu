@@ -29,7 +29,7 @@ import { stripNsfwContentMing } from '@/utils/prompts/definitions/ming/dataDefin
 import { isSaveDataV3, migrateSaveDataToLatest } from './saveMigration';
 import { mergeInto扩展 } from '@/services/gameStateIndexer';
 import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
-import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree } from '@/utils/locationUtils';
+import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync } from '@/utils/locationUtils';
 import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/locationNpcGenerationPromptsMing';
 import type { LocationEntry } from '@/types/game';
 
@@ -2050,6 +2050,13 @@ ${step1Text}
     }
 
     updateMasteredSkills(saveData);
+
+    // 校准 关系[npc].当前位置 与 世界.信息.地点信息[地点].地点NPC 双向一致（API 不一定同时写入两项）
+    try {
+      calibrateNpcLocationSync(saveData as Record<string, unknown>);
+    } catch (e) {
+      console.warn('[AI双向系统] 地点-NPC 校准失败:', e);
+    }
 
     if ((saveData as any).元数据?.时间) {
       (saveData as any).元数据.时间 = normalizeGameTime((saveData as any).元数据.时间);

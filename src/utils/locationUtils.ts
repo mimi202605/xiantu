@@ -147,5 +147,103 @@ export function appendNpcsToLocation(
   loc.地点NPC = Array.from(set);
 }
 
+/**
+ * 遍历地点树中每个地点条目（含递归 内部），对每个条目执行 callback。
+ */
+function forEachLocationInTree(
+  entries: (LocationEntry & { 地点NPC?: string[] })[] | undefined,
+  callback: (loc: LocationEntry & { 地点NPC?: string[] }) => void
+): void {
+  if (!Array.isArray(entries)) return;
+  for (const e of entries) {
+    if (e && typeof e === 'object') {
+      const loc = e as LocationEntry & { 地点NPC?: string[] };
+      callback(loc);
+      if (Array.isArray(loc.内部)) {
+        forEachLocationInTree(loc.内部 as (LocationEntry & { 地点NPC?: string[] })[], callback);
+      }
+    }
+  }
+}
+
+/**
+ * 从「除指定地点外」的所有地点的 地点NPC 中移除该 NPC。
+ * 用于保证同一 NPC 只出现在一个地点的 地点NPC 列表中。
+ */
+export function removeNpcFromOtherLocations(
+  saveData: Record<string, unknown>,
+  npcName: string,
+  keepAtLocationName: string
+): void {
+  if (!npcName || typeof npcName !== 'string' || !keepAtLocationName) return;
+
+  const 地点信息 = (saveData?.世界 as Record<string, unknown>)?.信息 as Record<string, unknown> | undefined;
+  const entries = 地点信息?.地点信息 as (LocationEntry & { 地点NPC?: string[] })[] | undefined;
+
+  forEachLocationInTree(entries, (loc) => {
+    if (loc.名称 === keepAtLocationName) return;
+    if (!Array.isArray(loc.地点NPC)) return;
+    const before = loc.地点NPC.length;
+    loc.地点NPC = loc.地点NPC.filter((n) => n !== npcName);
+    if (loc.地点NPC.length !== before) {
+      // 已从该地点移除
+    }
+  });
+}
+
+/**
+ * 校准「关系 NPC 的当前位置」与「世界.信息.地点信息[地点].地点NPC」双向一致。
+ * API 不一定同时正确写入两项，因此在后端做一次同步与互补：
+ * 1. 每个 NPC 只出现在一个地点的 地点NPC 中（从其它地点移除）；
+ * 2. 根据 社交.关系[npc].当前位置.描述 同步到对应地点的 地点NPC；
+ * 3. 根据各地点的 地点NPC 互补 社交.关系[npc].当前位置.描述。
+ */
+export function calibrateNpcLocationSync(saveData: Record<string, unknown>): void {
+  const 关系 = (saveData?.社交 as Record<string, unknown>)?.关系 as Record<
+    string,
+    { 当前位置?: { 描述?: string } }
+  > | undefined;
+  const 地点信息 = (saveData?.世界 as Record<string, unknown>)?.信息 as Record<string, unknown> | undefined;
+  const entries = 地点信息?.地点信息 as (LocationEntry & { 地点NPC?: string[] })[] | undefined;
+
+  if (!关系 || typeof 关系 !== 'object') return;
+  if (!Array.isArray(entries)) return;
+
+  // 1. 每个 NPC 只保留在一个地点：先确定每个 NPC 首次出现的地点，再在各地点只保留「应在此地」的 NPC
+  const npcFirstLocation = new Map<string, string>();
+  forEachLocationInTree(entries, (loc) => {
+    if (!Array.isArray(loc.地点NPC)) return;
+    for (const npcName of loc.地点NPC) {
+      if (!npcFirstLocation.has(npcName)) npcFirstLocation.set(npcName, loc.名称);
+    }
+  });
+  forEachLocationInTree(entries, (loc) => {
+    if (!Array.isArray(loc.地点NPC)) return;
+    loc.地点NPC = loc.地点NPC.filter((n) => npcFirstLocation.get(n) === loc.名称);
+  });
+
+  // 2. 关系 → 地点：有 当前位置.描述 的 NPC 加入对应地点的 地点NPC，并从其它地点移除
+  for (const [npcName, npc] of Object.entries(关系)) {
+    const locDesc = npc?.当前位置?.描述;
+    if (typeof locDesc !== 'string' || !locDesc.trim()) continue;
+    removeNpcFromOtherLocations(saveData, npcName, locDesc);
+    appendNpcsToLocation(saveData, locDesc, [npcName]);
+  }
+
+  // 3. 地点 → 关系：各地点的 地点NPC 补全/修正 关系[npc].当前位置.描述
+  forEachLocationInTree(entries, (loc) => {
+    const locName = loc.名称;
+    if (!Array.isArray(loc.地点NPC)) return;
+    for (const npcName of loc.地点NPC) {
+      const npc = 关系[npcName];
+      if (!npc || typeof npc !== 'object') continue;
+      const current = npc.当前位置;
+      if (!current || typeof current !== 'object' || current.描述 !== locName) {
+        (npc as { 当前位置: { 描述: string } }).当前位置 = { 描述: locName };
+      }
+    }
+  });
+}
+
 /** 导出供其他模块使用 */
 export { findLocationInTree };

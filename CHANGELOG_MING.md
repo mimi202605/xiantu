@@ -4,6 +4,33 @@
 
 ---
 
+## [0.2.25] - 2026-02-07
+
+### 地点-NPC 双向校准与设计文档
+
+- **背景**：API 回写或修复存档时，「社交.关系[npc].当前位置」与「世界.信息.地点信息[地点].地点NPC」可能不一致（API 不一定同时正确写入两项），需在后端做一次同步与互补。
+- **locationUtils**  
+  - 新增 `forEachLocationInTree`：遍历地点树中每个地点条目（含递归 内部）。  
+  - 新增 `removeNpcFromOtherLocations(saveData, npcName, keepAtLocationName)`：从除指定地点外的所有地点的 地点NPC 中移除该 NPC，保证同一 NPC 只出现在一个地点的列表中。  
+  - 新增 `calibrateNpcLocationSync(saveData)`：① 每个 NPC 只保留在一个地点的 地点NPC；② 根据 关系[npc].当前位置.描述 同步到对应地点的 地点NPC；③ 根据各地点的 地点NPC 补全/修正 关系[npc].当前位置.描述。
+- **调用点**  
+  - `AIBidirectionalSystem`：API 回写后、时间规范化前调用 `calibrateNpcLocationSync`。  
+  - `dataRepair.repairSaveData`：修复 世界.信息.地点信息 后调用 `calibrateNpcLocationSync`。
+- **设计文档（docs/design note）**  
+  - 地图 rescale 功能说明（外部与内部比例、嵌套适用）；  
+  - 每次更新地点 NPC 时需检查并移除其他地点中的该 NPC；  
+  - 禁止普通 NPC 进入玩家关系网络；  
+  - 七、NPC 之间的关系更新：周期性更新 NPC 关系，并更新记忆与情感记忆日志，可在世界心跳中执行。
+
+#### 涉及文件
+
+- `src/utils/locationUtils.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/utils/dataRepair.ts`
+- `docs/design note`
+
+---
+
 ## [0.2.24] - 2026-02-07
 
 ### 提示词组装：仅保留一回合 + 导出

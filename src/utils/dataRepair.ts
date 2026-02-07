@@ -15,6 +15,7 @@ import type { GradeType } from '@/data/itemQuality';
 import { cloneDeep } from 'lodash';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
+import { calibrateNpcLocationSync } from '@/utils/locationUtils';
 
 /**
  * 修复并清洗存档数据，确保所有必需字段存在且格式正确
@@ -192,6 +193,13 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     // 确保 世界.信息 及 地点信息 存在，否则 push 世界.信息.地点信息 会失败
     if (!repaired.世界.信息 || typeof repaired.世界.信息 !== 'object') repaired.世界.信息 = {};
     if (!Array.isArray(repaired.世界.信息.地点信息)) repaired.世界.信息.地点信息 = [];
+
+    // 校准 关系[npc].当前位置 与 世界.信息.地点信息[地点].地点NPC 双向一致
+    try {
+      calibrateNpcLocationSync(repaired as Record<string, unknown>);
+    } catch (e) {
+      console.warn('[数据修复] 地点-NPC 校准失败:', e);
+    }
 
     // --- 修炼 已退役，不再校验 ---
 
