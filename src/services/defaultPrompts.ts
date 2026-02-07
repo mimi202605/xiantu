@@ -15,7 +15,7 @@
  *
  * Legacy（当前未使用）：definitions/ 下非 ming 文件为旧版定义，本模块仅引用 definitions/ming/*。
  */
-import { getCotCorePrompt } from '@/utils/prompts/cot/cotCore';
+import { getCotCorePrompt, getCotCorePromptMing } from '@/utils/prompts/cot/cotCore';
 import { promptStorage } from './promptStorage';
 import { isTavernEnv } from '@/utils/tavern';
 
@@ -125,7 +125,6 @@ const BUSINESS_RULES = [
   BusinessMing.NPC_RULES,
   BusinessMing.COMMAND_PATH_CONSTRUCTION_RULES,
   BusinessMing.LOCATION_UPDATE_RULES,
-  BusinessMing.CONFLICT_TURN_RULES,
   BusinessMing.PLAYER_AUTONOMY_RULES,
   BusinessMing.NSFW_CONTENT_RULES
 ].join('\n\n');
@@ -162,7 +161,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
       name: '2. 核心规则',
       content: BUSINESS_RULES,
       category: 'coreRequest',
-      description: '境界、NPC、战斗规则',
+      description: 'NPC、冲突、难度等业务规则',
       order: 2,
       weight: 9
     },
@@ -194,7 +193,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
       name: '5. 世界标准',
       content: WORLD_STANDARDS,
       category: 'coreRequest',
-      description: '境界属性、品质',
+      description: '属性、品质',
       order: 5,
       weight: 7
     },
@@ -355,7 +354,7 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
     },
     cotCore: {
       name: '6. 自检协议',
-      content: getCotCorePrompt('{{用户输入}}', false),
+      content: USE_MING_PROMPTS ? getCotCorePromptMing('{{用户输入}}', false) : getCotCorePrompt('{{用户输入}}', false),
       category: 'coreRequest',
       description: '禁止思维链输出',
       order: 6,

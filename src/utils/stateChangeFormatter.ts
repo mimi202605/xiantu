@@ -100,9 +100,12 @@ function parseItemChange(change: StateChange): FormattedChange | null {
     }
   }
 
-  // 灵石（V3：角色.背包.灵石.下品/中品/上品/极品）
-  if (key.startsWith('角色.背包.灵石.') || key.includes('.背包.灵石.')) {
-    const stoneType = key.split('.').pop() || '灵石';
+  // 货币（金钱/灵石兼容：角色.背包.金钱 或 角色.背包.灵石）
+  if (
+    key.startsWith('角色.背包.金钱.') || key.includes('.背包.金钱.') ||
+    key.startsWith('角色.背包.灵石.') || key.includes('.背包.灵石.')
+  ) {
+    const stoneType = key.split('.').pop() || '金钱';
     const oldNum = typeof oldValue === 'number' ? oldValue : 0;
     const newNum = typeof newValue === 'number' ? newValue : 0;
     const diff = newNum - oldNum;
@@ -143,6 +146,8 @@ function parsePlayerStatusChange(change: StateChange): FormattedChange | null {
     key.includes('.角色.位置.') ||
     key.includes('.气血') ||
     key.includes('.灵气') ||
+    key.includes('.体力') ||
+    key.includes('.精力') ||
     key.includes('.神识') ||
     key.includes('.寿命');
 
@@ -208,7 +213,7 @@ function parsePlayerStatusChange(change: StateChange): FormattedChange | null {
   // 路径格式: 角色.属性.气血.上限 / 角色.属性.气血.当前（以及其它属性同理）
   const pathParts = key.split('.');
   const fieldType = pathParts[pathParts.length - 1]; // "上限"/"当前"/"最大"
-  const attributeBaseName = pathParts[pathParts.length - 2] || attributeName; // "气血"/"灵气"/"神识"
+  const attributeBaseName = pathParts[pathParts.length - 2] || attributeName; // "气血"/"灵气"/"体力"/"精力"/"神识"
 
   if ((fieldType === '上限' || fieldType === '最大') && typeof newValue === 'number') {
     const diff = typeof oldValue === 'number' ? newValue - oldValue : newValue;

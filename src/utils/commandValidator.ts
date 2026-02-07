@@ -116,6 +116,10 @@ function validateValueType(key: string, value: unknown, action: string): string[
       '角色.属性.气血.上限',
       '角色.属性.灵气.当前',
       '角色.属性.灵气.上限',
+      '角色.属性.体力.当前',
+      '角色.属性.体力.上限',
+      '角色.属性.精力.当前',
+      '角色.属性.精力.上限',
       '角色.属性.神识.当前',
       '角色.属性.神识.上限',
       '角色.属性.寿命.当前',
@@ -124,6 +128,10 @@ function validateValueType(key: string, value: unknown, action: string): string[
       '角色.背包.灵石.中品',
       '角色.背包.灵石.上品',
       '角色.背包.灵石.极品',
+      '角色.背包.金钱.下品',
+      '角色.背包.金钱.中品',
+      '角色.背包.金钱.上品',
+      '角色.背包.金钱.极品',
     ];
 
     const houTianFields = ['体质', '直觉', '悟性', '气运', '魅力', '心性'];

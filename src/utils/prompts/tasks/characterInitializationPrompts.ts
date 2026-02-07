@@ -1,5 +1,6 @@
 /**
  * @fileoverview 角色初始化AI提示词
+ * Legacy: 仅当 USE_MING_PROMPTS=false 时使用；含灵根、境界等修仙设定。
  *
  * 开局流程：世界生成 → 角色初始化（本文件）
  */
@@ -243,6 +244,22 @@ export function buildCharacterSelectionsSummary(
   const originIsObj = typeof origin === 'object' && origin !== null;
   const spiritRootIsObj = typeof spiritRoot === 'object' && spiritRoot !== null;
 
+  // 灵根：对象时输出完整信息供 API 使用
+  const spiritRootSection =
+    spiritRootIsObj
+      ? (() => {
+          const sr = spiritRoot as SpiritRoot;
+          const lines = [
+            `名称: ${sr.name}`,
+            sr.tier != null ? `品级: ${sr.tier}` : '',
+            sr.description ? `描述: ${sr.description}` : '',
+            sr.cultivation_speed ? `修炼相关: ${sr.cultivation_speed}` : '',
+            sr.special_effects?.length ? `特殊效果: ${sr.special_effects.join('；')}` : '',
+          ].filter(Boolean);
+          return lines.join('\n');
+        })()
+      : `${spiritRoot}: (随机，需AI生成)`;
+
   // 格式化天赋列表
   const talentsList = talents.length > 0
     ? talents.map(t => `- ${t.name}: ${t.description}`).join('\n')
@@ -277,8 +294,8 @@ ${talentTier.name}: ${talentTier.description}
 ## 出身
 ${originIsObj ? (origin as Origin).name : origin}: ${originIsObj ? (origin as Origin).description : '(随机，需AI生成)'}
 
-## 灵根
-${spiritRootIsObj ? `${(spiritRoot as SpiritRoot).name} (${(spiritRoot as SpiritRoot).tier})` : spiritRoot}: ${spiritRootIsObj ? (spiritRoot as SpiritRoot).description : '(随机，需AI生成)'}
+## 灵根（以下为完整信息，请勿丢失）
+${spiritRootSection}
 
 ## 天赋
 ${talentsList}

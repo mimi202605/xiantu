@@ -1,5 +1,6 @@
 /**
  * @fileoverview SaveData数据结构定义
+ * Legacy: 仅当 USE_MING_PROMPTS=false 时使用；含境界、灵根等修仙结构。
  *
  * 【职责】
  * - 定义精简版SaveData数据结构（AI实际接收的数据）

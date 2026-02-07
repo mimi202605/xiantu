@@ -262,13 +262,19 @@ export interface MasteredSkill {
   使用次数: number; // 使用次数统计
 }
 
+/** 货币四档（通用：可对应铜钱/银两/金币等，Ming 使用 金钱） */
+export interface CurrencyFourTier {
+  下品: number;
+  中品: number;
+  上品: number;
+  极品: number;
+}
+
 export interface Inventory extends AIMetadata {
-  灵石: {
-    下品: number;
-    中品: number;
-    上品: number;
-    极品: number;
-  };
+  /** 通用货币（Ming 使用；旧存档可能为 灵石，读取时 金钱 ?? 灵石） */
+  金钱?: CurrencyFourTier;
+  /** @deprecated 已改为 金钱，仅兼容旧存档 */
+  灵石?: CurrencyFourTier;
   物品: Record<string, Item>; // 物品现在是对象结构，key为物品ID，value为Item对象
 }
 
@@ -390,9 +396,11 @@ export interface PlayerStatus extends AIMetadata {
     y?: number; // 纬度坐标 (Latitude, 通常 25-35)
     灵气浓度?: number; // 当前位置的灵气浓度，1-100，影响修炼速度
   };
-  气血: ValuePair<number>; // 生命/体力，通用
-  灵气: ValuePair<number>; // 精力/能量，通用
-  神识?: ValuePair<number>; // 精神力（可选，偏修仙）
+  气血: ValuePair<number>; // 生命/体力，通用（Legacy）
+  灵气: ValuePair<number>; // 精力/能量，通用（Legacy）
+  体力?: ValuePair<number>; // Ming/通用：体力，读取时 体力 ?? 气血
+  精力?: ValuePair<number>; // Ming/通用：精力，读取时 精力 ?? 灵气
+  神识?: ValuePair<number>; // 精神力（可选，偏修仙；Ming 不使用）
   寿命: ValuePair<number>;
   状态效果?: StatusEffect[];
   事件系统?: EventSystem;
@@ -694,9 +702,11 @@ export interface NpcProfile {
 
   // === 核心数值（整合为属性对象）===
   属性: {
-    气血: ValuePair<number>; // HP/生命值，通用
-    灵气: ValuePair<number>; // MP/精力/能量，通用
-    神识?: ValuePair<number>; // 精神力（可选，偏修仙）
+    气血?: ValuePair<number>; // Legacy
+    灵气?: ValuePair<number>; // Legacy
+    体力?: ValuePair<number>; // Ming/通用：体力
+    精力?: ValuePair<number>; // Ming/通用：精力
+    神识?: ValuePair<number>; // 可选；Ming 不使用
     寿元上限: number; // 最大寿命（当前年龄由出生日期自动计算）
   };
 
@@ -728,7 +738,8 @@ export interface NpcProfile {
 
   // === 资产物品 ===
   背包: {
-    灵石: { 下品: number; 中品: number; 上品: number; 极品: number };
+    金钱?: { 下品: number; 中品: number; 上品: number; 极品: number };
+    灵石?: { 下品: number; 中品: number; 上品: number; 极品: number };
     物品: Record<string, Item>;
   };
 
@@ -823,7 +834,8 @@ export interface CharacterBaseInfo extends AIMetadata {
   世界: World;
   天资: TalentTier;
   出生: Origin | string;
-  灵根: SpiritRoot | string;
+  灵根?: SpiritRoot | string; // Legacy/修仙；Ming 使用 特质
+  特质?: string; // Ming/通用：角色特质，替代灵根
   天赋: Talent[];
   先天六司: InnateAttributes;
   后天六司: InnateAttributes; // 后天获得的六司加成（装备、天赋等），开局默认全为0

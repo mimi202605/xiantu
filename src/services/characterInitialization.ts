@@ -167,7 +167,11 @@ export function calculateInitialAttributes(baseInfo: CharacterBaseInfo, age: num
   const 体质寿命系数 = 5; // 每点体质增加5年寿命
   const 最大寿命 = 基础寿命 + 体质 * 体质寿命系数;
 
-  console.log(`[角色初始化] 属性计算: 气血=${初始气血}, 灵气=${初始灵气}, 神识=${初始神识}, 年龄=${age}/${最大寿命}`);
+  // 体力/精力 与 气血/灵气 同值，通用版(Ming)用体力/精力，修仙版兼容气血/灵气
+  const 体力值 = { 当前: 初始气血, 上限: 初始气血 };
+  const 精力值 = { 当前: 初始灵气, 上限: 初始灵气 };
+  const 神识值 = { 当前: 初始神识, 上限: 初始神识 };
+  console.log(`[角色初始化] 属性计算: 体力=${初始气血}, 精力=${初始灵气}, 神识=${初始神识}, 年龄=${age}/${最大寿命}`);
   console.log(`[角色初始化] 先天六司: 体质=${体质}, 直觉=${直觉}, 悟性=${悟性}`);
 
   return {
@@ -178,13 +182,13 @@ export function calculateInitialAttributes(baseInfo: CharacterBaseInfo, age: num
       下一级所需: 100,
       突破描述: "引气入体，感悟天地灵气，踏上修仙第一步"
     },
-    声望: 0, // 声望应该是数字类型
-    位置: {
-      描述: "位置生成失败" // 标记为错误状态而不是默认值
-    },
-    气血: { 当前: 初始气血, 上限: 初始气血 },
-    灵气: { 当前: 初始灵气, 上限: 初始灵气 },
-    神识: { 当前: 初始神识, 上限: 初始神识 },
+    声望: 0,
+    位置: { 描述: "位置生成失败" },
+    气血: 体力值,
+    灵气: 精力值,
+    神识: 神识值,
+    体力: 体力值,
+    精力: 精力值,
     寿命: { 当前: age, 上限: 最大寿命 }
   };
 }
@@ -250,7 +254,7 @@ function prepareInitialData(baseInfo: CharacterBaseInfo, age: number): { saveDat
     console.log('[角色初始化] 初始化后天六司为全0');
   }
 
-  if (isRandomSpiritRoot(processedBaseInfo.灵根)) {
+  if (isRandomSpiritRoot(processedBaseInfo.灵根 ?? '')) {
     console.log('[灵根生成] 检测到随机灵根，将由 AI 创造性生成');
     // 保留"随机灵根"字符串，让 AI 处理
   } else {
@@ -271,6 +275,8 @@ function prepareInitialData(baseInfo: CharacterBaseInfo, age: number): { saveDat
     气血: playerStatus.气血,
     灵气: playerStatus.灵气,
     神识: playerStatus.神识,
+    体力: playerStatus.体力 ?? playerStatus.气血,
+    精力: playerStatus.精力 ?? playerStatus.灵气,
     寿命: playerStatus.寿命,
   };
   const location = playerStatus.位置;
@@ -442,7 +448,7 @@ async function generateOpeningScene(saveData: SaveData, baseInfo: CharacterBaseI
     world: baseInfo.世界 || world, // 优先使用 baseInfo 中的完整对象
     talentTier: baseInfo.天资, // 现在是完整对象
     origin: baseInfo.出生,     // 现在是完整对象或"随机出身"
-    spiritRoot: baseInfo.灵根, // 现在是完整对象或"随机灵根"
+    spiritRoot: baseInfo.灵根 ?? baseInfo.特质 ?? '随机', // 灵根/特质（Ming 用特质，兼容灵根）
     talents: baseInfo.天赋 || [], // 现在是完整对象数组
     attributes: (baseInfo.先天六司 || {}) as unknown as Record<string, number>,
     difficultyPrompt: characterCreationStore.currentDifficultyPrompt // 🔥 添加难度提示词
@@ -668,13 +674,14 @@ async () => {
   const creationStore = useCharacterCreationStore();
 
   // [Roo] 强制TS重新评估类型
-  // 如果用户选择了随机灵根，用AI生成的具体灵根替换
-  if (creationStore.selectedSpiritRoot?.name === '随机灵根' && (saveDataAfterCommands as any).角色?.身份?.灵根) {
+  // 如果用户选择了随机灵根，用AI生成的具体灵根替换（修仙版）
+  if (!USE_MING_PROMPTS && creationStore.selectedSpiritRoot?.name === '随机灵根' && (saveDataAfterCommands as any).角色?.身份?.灵根) {
     const aiSpiritRoot = (saveDataAfterCommands as any).角色.身份.灵根;
     if (typeof aiSpiritRoot === 'object') {
       creationStore.setAIGeneratedSpiritRoot(aiSpiritRoot as SpiritRoot);
     }
   }
+  // Ming：若 AI 写入了 角色.身份.特质，已在 saveData 中，最终化时会合并
 
   // 如果用户选择了随机出生，用AI生成的具体出生替换
   if (creationStore.selectedOrigin?.name === '随机出身' && (saveDataAfterCommands as any).角色?.身份?.出生) {
@@ -833,11 +840,35 @@ async function finalizeAndSyncData(saveData: SaveData, baseInfo: CharacterBaseIn
   };
 
 
-  // 灵根权威覆盖
+  // 灵根/特质 权威覆盖（Ming 使用 特质，兼容 灵根）
   const userChoseRandomSpiritRoot = (typeof baseInfo.灵根 === 'object' && (baseInfo.灵根 as SpiritRoot)?.name?.includes('随机')) ||
                                 (typeof baseInfo.灵根 === 'string' && baseInfo.灵根.includes('随机'));
 
-  if (userChoseRandomSpiritRoot) {
+  if (USE_MING_PROMPTS) {
+    // 通用版：若用户选了具体灵根（完整对象），保留完整灵根信息；否则用特质字符串
+    const userSpiritRootObj = typeof baseInfo.灵根 === 'object' && baseInfo.灵根 !== null && !(baseInfo.灵根 as SpiritRoot)?.name?.includes('随机')
+      ? (baseInfo.灵根 as SpiritRoot)
+      : null;
+    const aiTrait = (saveData as any).角色?.身份?.特质;
+
+    if (userSpiritRootObj) {
+      // 用户选择了具体灵根（完整对象）：保留完整灵根，特质为名称
+      mergedBaseInfo.灵根 = userSpiritRootObj;
+      mergedBaseInfo.特质 = userSpiritRootObj.name;
+    } else if (userChoseRandomSpiritRoot && aiTrait != null && String(aiTrait).trim()) {
+      mergedBaseInfo.特质 = String(aiTrait).trim();
+      mergedBaseInfo.灵根 = mergedBaseInfo.特质;
+    } else {
+      const userTrait = baseInfo.特质 ?? (typeof baseInfo.灵根 === 'string' ? baseInfo.灵根 : (baseInfo.灵根 as SpiritRoot)?.name);
+      if (userTrait != null && String(userTrait).trim()) {
+        mergedBaseInfo.特质 = String(userTrait).trim();
+        mergedBaseInfo.灵根 = mergedBaseInfo.特质;
+      } else {
+        mergedBaseInfo.特质 = aiTrait != null ? String(aiTrait) : '未设定';
+        mergedBaseInfo.灵根 = mergedBaseInfo.特质;
+      }
+    }
+  } else if (userChoseRandomSpiritRoot) {
     console.log('[数据最终化] 🎲 用户选择随机灵根，使用AI生成的数据');
     const aiGeneratedSpiritRoot = (saveData as any).角色?.身份?.灵根;
     mergedBaseInfo.灵根 = aiGeneratedSpiritRoot || '随机灵根'; // Fallback to string
@@ -931,13 +962,17 @@ async function finalizeAndSyncData(saveData: SaveData, baseInfo: CharacterBaseIn
       }
     : authoritativeStatus.境界;
 
-  // 🔥 新架构：不再写入 saveData.状态，改为短路径拆分：属性 + 位置
+  // 🔥 新架构：短路径 属性；体力/精力 与 气血/灵气 同源，通用版(Ming)显示体力/精力
+  const hp = aiModifiedAttributes.体力 ?? aiModifiedAttributes.气血 ?? authoritativeStatus.体力 ?? authoritativeStatus.气血;
+  const mp = aiModifiedAttributes.精力 ?? aiModifiedAttributes.灵气 ?? authoritativeStatus.精力 ?? authoritativeStatus.灵气;
   (saveData as any).属性 = {
     境界: mergedRealm,
     声望: typeof aiModifiedAttributes.声望 === 'number' ? aiModifiedAttributes.声望 : authoritativeStatus.声望,
-    气血: aiModifiedAttributes.气血 ?? authoritativeStatus.气血,
-    灵气: aiModifiedAttributes.灵气 ?? authoritativeStatus.灵气,
+    气血: hp,
+    灵气: mp,
     神识: aiModifiedAttributes.神识 ?? authoritativeStatus.神识,
+    体力: hp,
+    精力: mp,
     寿命: aiModifiedAttributes.寿命 ?? authoritativeStatus.寿命,
   };
 

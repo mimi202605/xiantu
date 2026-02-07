@@ -55,10 +55,10 @@ export async function assembleSystemPrompt(
   };
 
   add('coreOutputRules', '核心输出规则', '正常游戏请求时按顺序发送', coreRulesPrompt);
-  add('businessRules', '核心规则', '境界、NPC、战斗等业务规则', sanitizedBusinessRulesPrompt);
+  add('businessRules', '核心规则', 'NPC、冲突、难度等业务规则', sanitizedBusinessRulesPrompt);
   add('dataDefinitions', '数据结构', '存档结构定义', sanitizedDataDefinitionsPrompt);
   add('textFormatRules', '文本格式', '判定、伤害、命名', textFormatsPrompt);
-  add('worldStandards', '世界标准', '境界属性、品质', worldStandardsPrompt);
+  add('worldStandards', '世界标准', '属性、品质', worldStandardsPrompt);
 
   if (activePrompts.includes('actionOptions')) {
     const actionOptionsPrompt = (await getPrompt('actionOptions')).trim();

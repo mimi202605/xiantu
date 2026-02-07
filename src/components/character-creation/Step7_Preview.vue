@@ -129,7 +129,7 @@
 
       <!-- Spirit Root -->
       <div class="preview-item">
-        <h3>{{ $t('灵根') }}</h3>
+        <h3>{{ $t(traitOrRootLabel) }}</h3>
         <h4>{{ store.selectedSpiritRoot?.name || $t('随机灵根') }}</h4>
         <p class="item-description">{{ store.selectedSpiritRoot?.description || $t('暂无描述') }}</p>
       </div>
@@ -173,8 +173,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { useCharacterCreationStore } from '../../stores/characterCreationStore'
+import { USE_MING_PROMPTS } from '@/services/defaultPrompts'
 
 const store = useCharacterCreationStore()
+const traitOrRootLabel = USE_MING_PROMPTS ? '特质' : '灵根'
 
 const props = defineProps<{
   isLocalCreation: boolean

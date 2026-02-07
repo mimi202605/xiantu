@@ -274,12 +274,16 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
   const legacyStatusLike = source.属性 ?? source.状态 ?? source.玩家角色状态 ?? source.玩家角色状态信息 ?? null;
   const legacyStatusObj = isPlainObject(legacyStatusLike) ? legacyStatusLike : ({} as any);
 
+  const hp = (legacyStatusObj as any).体力 ?? (legacyStatusObj as any).气血 ?? { 当前: 100, 上限: 100 };
+  const mp = (legacyStatusObj as any).精力 ?? (legacyStatusObj as any).灵气 ?? { 当前: 50, 上限: 50 };
   const flatAttributes = {
     境界: (legacyStatusObj as any).境界 ?? null,
     声望: (legacyStatusObj as any).声望 ?? 0,
-    气血: (legacyStatusObj as any).气血 ?? { 当前: 100, 上限: 100 },
-    灵气: (legacyStatusObj as any).灵气 ?? { 当前: 50, 上限: 50 },
+    气血: hp,
+    灵气: mp,
     神识: (legacyStatusObj as any).神识 ?? { 当前: 30, 上限: 30 },
+    体力: hp,
+    精力: mp,
     寿命: (legacyStatusObj as any).寿命 ?? { 当前: 18, 上限: 80 },
   };
 

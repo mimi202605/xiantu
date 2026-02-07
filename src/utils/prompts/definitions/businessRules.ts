@@ -1,5 +1,6 @@
 /**
  * @fileoverview 游戏业务逻辑规则 v2.0 (精简版)
+ * Legacy: 仅当 USE_MING_PROMPTS=false 时使用；修仙专有（境界、大道、冲突回合等）。
  */
 
 export const REALM_SYSTEM_RULES = `

@@ -20,12 +20,12 @@
             <div class="vital-info">
               <span class="vital-name">
                 <Droplet :size="12" class="vital-icon blood" />
-                <span>{{ t('气血') }}</span>
+                <span>{{ t('体力') }}</span>
               </span>
-              <span class="vital-text">{{ playerStatus?.气血?.当前 }} / {{ playerStatus?.气血?.上限 }}</span>
+              <span class="vital-text">{{ playerVitals.体力.当前 }} / {{ playerVitals.体力.上限 }}</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill health" :style="{ width: getVitalPercent('气血') + '%' }"></div>
+              <div class="progress-fill health" :style="{ width: getVitalPercent('体力') + '%' }"></div>
             </div>
           </div>
 
@@ -33,16 +33,16 @@
             <div class="vital-info">
               <span class="vital-name">
                 <Sparkles :size="12" class="vital-icon mana" />
-                <span>{{ t('灵气') }}</span>
+                <span>{{ t('精力') }}</span>
               </span>
-              <span class="vital-text">{{ playerStatus?.灵气?.当前 }} / {{ playerStatus?.灵气?.上限 }}</span>
+              <span class="vital-text">{{ playerVitals.精力.当前 }} / {{ playerVitals.精力.上限 }}</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill mana" :style="{ width: getVitalPercent('灵气') + '%' }"></div>
+              <div class="progress-fill mana" :style="{ width: getVitalPercent('精力') + '%' }"></div>
             </div>
           </div>
 
-          <div class="vital-item">
+          <div class="vital-item" v-if="hasSpirit">
             <div class="vital-info">
               <span class="vital-name">
                 <Brain :size="12" class="vital-icon spirit" />
@@ -299,10 +299,28 @@ const getRealmProgressClass = (): string => {
   return '';                                         // 紫色 - 默认
 };
 
-// 计算生命体征百分比
-const getVitalPercent = (type: '气血' | '灵气' | '神识') => {
+// 体力/精力 兼容 气血/灵气
+const playerVitals = computed(() => {
+  const a = gameStateStore.attributes as any;
+  if (!a) return { 体力: { 当前: 0, 上限: 100 }, 精力: { 当前: 0, 上限: 50 } };
+  return {
+    体力: a.体力 ?? a.气血 ?? { 当前: 0, 上限: 100 },
+    精力: a.精力 ?? a.灵气 ?? { 当前: 0, 上限: 50 },
+  };
+});
+const hasSpirit = computed(() => {
+  const s = gameStateStore.attributes?.神识;
+  return s && (s.当前 != null || s.上限 != null);
+});
+
+// 计算生命体征百分比（体力/精力 兼容 气血/灵气）
+const getVitalPercent = (type: '体力' | '精力' | '神识') => {
   if (!gameStateStore.attributes) return 0;
-  const vital = (gameStateStore.attributes as any)[type];
+  const a = gameStateStore.attributes as any;
+  let vital: { 当前?: number; 上限?: number } | undefined;
+  if (type === '体力') vital = a.体力 ?? a.气血;
+  else if (type === '精力') vital = a.精力 ?? a.灵气;
+  else vital = a.神识;
   if (!vital?.当前 || !vital?.上限) return 0;
   return Math.round((vital.当前 / vital.上限) * 100);
 };

@@ -413,7 +413,7 @@
         </div>
       </div>
 
-      <!-- 灵石标签 -->
+      <!-- 货币（金钱）标签 -->
       <div v-if="activeTab === 'currency'" class="currency-tab">
         <div class="currency-grid">
           <div
@@ -427,8 +427,8 @@
                 <Gem :size="isMobile ? 32 : 40" />
               </div>
               <div class="currency-info">
-                <div class="currency-amount">{{ (gameStateStore.inventory?.灵石?.[grade.name] || 0) }}</div>
-                <div class="currency-label">{{ t(grade.name) }}{{t('灵石')}}</div>
+                <div class="currency-amount">{{ (currency[grade.name] || 0) }}</div>
+                <div class="currency-label">{{ t(grade.name) }}{{ t('金钱') }}</div>
               </div>
             </div>
             <div v-if="grade.canExchange || grade.canExchangeDown" class="currency-exchange">
@@ -436,8 +436,8 @@
                 v-if="grade.canExchange"
                 class="exchange-btn"
                 @click="handleExchange(grade.name, 'up')"
-                :disabled="((gameStateStore.inventory?.灵石?.[grade.name] || 0) < 100)"
-                :title="t('兑换为{0}灵石 (100:1)').replace('{0}', t(grade.exchangeUp))"
+                :disabled="((currency[grade.name] || 0) < 100)"
+                :title="t('兑换为{0}金钱 (100:1)').replace('{0}', t(grade.exchangeUp))"
               >
                 {{ t('↑ 兑换') }}
               </button>
@@ -445,8 +445,8 @@
                 v-if="grade.canExchangeDown"
                 class="exchange-btn down"
                 @click="handleExchange(grade.name, 'down')"
-                :disabled="((gameStateStore.inventory?.灵石?.[grade.name] || 0) < 1)"
-                :title="t('分解为{0}灵石 (1:100)').replace('{0}', t(grade.exchangeDown))"
+                :disabled="((currency[grade.name] || 0) < 1)"
+                :title="t('分解为{0}金钱 (1:100)').replace('{0}', t(grade.exchangeDown))"
               >
                 {{ t('↓ 分解') }}
               </button>
@@ -525,7 +525,7 @@ const isMobile = computed(() => {
 const tabs = computed(() => [
   { id: 'items', label: '物品', icon: Package },
   { id: 'equipment', label: '装备', icon: Sword },
-  { id: 'currency', label: '灵石', icon: Gem },
+  { id: 'currency', label: '金钱', icon: Gem },
 ])
 
 // 装备槽位（短路径：装备）
@@ -820,8 +820,8 @@ const getItemTypeIcon = (type: string): string => {
   return typeIcons[type] || '📦'
 }
 
-// 质量等阶规范化（兼容 "凡阶/黄阶/…" 与 "凡/黄/…"；支持自定义品质）
-const PRESET_QUALITIES = ['凡', '黄', '玄', '地', '天', '仙', '神']
+// 质量等阶规范化（兼容 凡/黄/…/神 与 普通/优良/稀有/史诗/传说/神话；支持自定义品质）
+const PRESET_QUALITIES = ['凡', '黄', '玄', '地', '天', '仙', '神', '普通', '优良', '稀有', '史诗', '传说', '神话']
 const getNormalizedQuality = (quality: unknown): { value: string; isCustom: boolean } => {
   const raw = String(quality || '').trim()
   if (!raw) return { value: '未知', isCustom: false }
@@ -1146,6 +1146,12 @@ const spiritStoneGrades = [
   },
 ] as const
 
+// 货币：金钱 ?? 灵石（兼容旧存档）
+const currency = computed(() => {
+  const inv = gameStateStore.inventory
+  return inv?.金钱 ?? inv?.灵石 ?? { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }
+})
+
 // 选择物品
 const selectItem = (item: Item) => {
   selectedItem.value = item
@@ -1167,43 +1173,34 @@ const closeModal = () => {
   showItemModal.value = false
 }
 
-// 灵石兑换功能
+// 货币兑换（写入 金钱，兼容旧存档 灵石）
 const handleExchange = async (
   currentGrade: '下品' | '中品' | '上品' | '极品',
   direction: 'up' | 'down',
 ) => {
   const gradeInfo = spiritStoneGrades.find((g) => g.name === currentGrade)
   if (!gradeInfo) return
+  const inv = gameStateStore.inventory
+  if (!inv) return
+  const defaultCur = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }
+  if (!inv.金钱) inv.金钱 = { ...(inv.灵石 ?? defaultCur) }
+  const cur = inv.金钱
 
   if (direction === 'up' && gradeInfo.canExchange && gradeInfo.exchangeUp) {
-    // 向上兑换：100个当前等级 → 1个高级
-    const currentAmount = gameStateStore.inventory?.灵石?.[currentGrade] || 0
+    const currentAmount = cur[currentGrade] || 0
     if (currentAmount >= 100) {
-      // 更新数据
-      if (gameStateStore.inventory?.灵石) {
-        ;(gameStateStore.inventory.灵石[currentGrade] as number) = currentAmount - 100
-        const targetGrade = gradeInfo.exchangeUp as '下品' | '中品' | '上品' | '极品'
-        const targetAmount = gameStateStore.inventory.灵石[targetGrade] || 0
-        ;(gameStateStore.inventory.灵石[targetGrade] as number) = targetAmount + 1
-
-        // 保存数据
-        await characterStore.saveCurrentGame()
-      }
+      cur[currentGrade] = currentAmount - 100
+      const targetGrade = gradeInfo.exchangeUp as '下品' | '中品' | '上品' | '极品'
+      cur[targetGrade] = (cur[targetGrade] || 0) + 1
+      await characterStore.saveCurrentGame()
     }
   } else if (direction === 'down' && gradeInfo.canExchangeDown && gradeInfo.exchangeDown) {
-    // 向下分解：1个当前等级 → 100个低级
-    const currentAmount = gameStateStore.inventory?.灵石?.[currentGrade] || 0
+    const currentAmount = cur[currentGrade] || 0
     if (currentAmount >= 1) {
-      // 更新数据
-      if (gameStateStore.inventory?.灵石) {
-        ;(gameStateStore.inventory.灵石[currentGrade] as number) = currentAmount - 1
-        const targetGrade = gradeInfo.exchangeDown as '下品' | '中品' | '上品' | '极品'
-        const targetAmount = gameStateStore.inventory.灵石[targetGrade] || 0
-        ;(gameStateStore.inventory.灵石[targetGrade] as number) = targetAmount + 100
-
-        // 保存数据
-        await characterStore.saveCurrentGame()
-      }
+      cur[currentGrade] = currentAmount - 1
+      const targetGrade = gradeInfo.exchangeDown as '下品' | '中品' | '上品' | '极品'
+      cur[targetGrade] = (cur[targetGrade] || 0) + 100
+      await characterStore.saveCurrentGame()
     }
   }
 }

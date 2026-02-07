@@ -64,7 +64,7 @@
               <div class="stat-mini-card" v-if="hasSpiritRoot">
                 <div class="icon-box spirit"><Sparkles :size="18" /></div>
                 <div class="stat-info">
-                  <span class="label">{{ t('灵根') }}</span>
+                  <span class="label">{{ t(traitLabel) }}</span>
                   <span class="value" :class="getSpiritRootClass(baseInfo.灵根)">{{ formatSpiritRoot(baseInfo.灵根) }}</span>
                 </div>
               </div>
@@ -159,10 +159,10 @@
                 </div>
 
                 <div class="talent-layout">
-                  <!-- 灵根卡片 -->
+                  <!-- 特质/灵根卡片 -->
                   <div class="spirit-root-banner clickable" @click="showSpiritRootModal = true" :class="baseInfo ? getSpiritRootClass(baseInfo.灵根) : 'spirit-common'">
                     <div class="banner-content">
-                       <span class="root-type">{{ t('灵根') }}</span>
+                       <span class="root-type">{{ t(traitLabel) }}</span>
                        <div class="root-main">
                          <span class="root-name">{{ getSpiritRootDisplay(baseInfo.灵根) }}</span>
                          <span class="root-grade badge">{{ t(getSpiritRootGrade(baseInfo.灵根) || '凡品') }}</span>
@@ -283,7 +283,7 @@
                      </div>
                       <div class="inv-stat">
                         <span class="num gold-text">{{ spiritStoneEquivalent }}</span>
-                        <span class="lbl">{{ t('灵石折算') }}</span>
+                        <span class="lbl">{{ t('金钱折算') }}</span>
                      </div>
                   </div>
                   <div class="spirit-stones-grid">
@@ -331,9 +331,10 @@
                <!-- ... 内容插槽, 这里使用简化的示例，实际项目中保留原v-if逻辑 ... -->
                <button class="close-float" @click="closeModals"><X /></button>
 
-              <!-- 灵根详情示例 -->
+              <!-- 特质/灵根详情 -->
                <div v-if="showSpiritRootModal && baseInfo" class="modal-inner">
                   <h2 class="modal-title">{{ getSpiritRootDisplay(baseInfo.灵根) }}</h2>
+                  <p v-if="USE_MING_PROMPTS" class="modal-subtitle">{{ t('特质') }}</p>
                   <div class="modal-body-scroller custom-scrollbar">
                      <div class="detail-grid">
                         <div class="d-item"><label>{{ t('品级') }}</label> <span>{{ t(getSpiritRootGrade(baseInfo.灵根)) }}</span></div>
@@ -372,6 +373,7 @@ import { calculateAgeFromBirthdate, type GameTime as LifespanGameTime } from '@/
 // [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils';
 const formatRealmWithStage = (_realm: any): string => '';
 import { isTavernEnv } from '@/utils/tavern';
+import { USE_MING_PROMPTS } from '@/services/defaultPrompts';
 import type { InnateAttributes, Inventory, Item, ItemQuality, MasteredSkill, NpcProfile, SaveData, TechniqueItem } from '@/types/game';
 import type { Origin, TalentTier, SpiritRoot } from '@/types';
 import {
@@ -471,16 +473,21 @@ const currentAge = computed(() => {
   return 0;
 });
 
-// Vitals data
+// Vitals data（体力/精力 兼容 气血/灵气；神识有值才显示）
 const vitalsData = computed(() => {
   if (!playerStatus.value) return [];
-  const s = playerStatus.value;
-  return [
-    { label: t('气血'), current: s.气血?.当前 || 0, max: s.气血?.上限 || 100, color: 'red-bar' },
-    { label: t('灵气'), current: s.灵气?.当前 || 0, max: s.灵气?.上限 || 100, color: 'blue-bar' },
-    { label: t('神识'), current: s.神识?.当前 || 0, max: s.神识?.上限 || 100, color: 'gold-bar' },
-    { label: t('寿元'), current: currentAge.value || 0, max: s.寿命?.上限 || 100, color: 'purple-bar' },
+  const s = playerStatus.value as any;
+  const hp = s.体力 ?? s.气血;
+  const mp = s.精力 ?? s.灵气;
+  const rows: { label: string; current: number; max: number; color: string }[] = [
+    { label: t('体力'), current: hp?.当前 ?? 0, max: hp?.上限 ?? 100, color: 'red-bar' },
+    { label: t('精力'), current: mp?.当前 ?? 0, max: mp?.上限 ?? 50, color: 'blue-bar' },
   ];
+  if (s.神识?.当前 != null || s.神识?.上限 != null) {
+    rows.push({ label: t('神识'), current: s.神识?.当前 ?? 0, max: s.神识?.上限 ?? 100, color: 'gold-bar' });
+  }
+  rows.push({ label: t('寿元'), current: currentAge.value || 0, max: s.寿命?.上限 ?? 100, color: 'purple-bar' });
+  return rows;
 });
 
 const buildInnateDefaults = (raw?: Partial<InnateAttributes> | null): InnateAttributes => ({
@@ -551,7 +558,7 @@ const inventoryItemCount = computed(() => {
 
 type SpiritStoneGrade = '下品' | '中品' | '上品' | '极品';
 const getSpiritStoneCount = (grade: SpiritStoneGrade): number => {
-  const stones = inventory.value?.灵石;
+  const stones = inventory.value?.金钱 ?? inventory.value?.灵石;
   if (!stones) return 0;
   return stones[grade] ?? 0;
 };
@@ -568,7 +575,10 @@ const inventoryPreviewItems = computed<Item[]>(() => {
   const items = inventory.value?.物品;
   if (!items) return [];
 
-  const qualityRank: Record<string, number> = { 仙: 1, 神: 2, 圣: 3, 道: 4, 天: 5, 地: 6, 玄: 7, 黄: 8, 凡: 9 };
+  const qualityRank: Record<string, number> = {
+    仙: 1, 神: 2, 圣: 3, 道: 4, 天: 5, 地: 6, 玄: 7, 黄: 8, 凡: 9,
+    神话: 1, 传说: 2, 史诗: 3, 稀有: 4, 优良: 5, 普通: 6
+  };
   return Object.values(items)
     .filter((it): it is Item => !!it && typeof it === 'object')
     .sort((a, b) => {
@@ -691,10 +701,17 @@ const formatRealmDisplay = (realm?: unknown): string => {
   return formatRealmWithStage(realm);
 };
 
+const traitLabel = USE_MING_PROMPTS ? '特质' : '灵根';
+
 const hasSpiritRoot = computed(() => {
   const root = baseInfo.value?.灵根 as unknown;
   if (!root) return false;
-  if (typeof root === 'string') return root.trim().length > 0 && root.trim() !== '未知灵根';
+  if (typeof root === 'string') {
+    const s = root.trim();
+    if (!s) return false;
+    if (s === '未知灵根' || s === '未知特质') return false;
+    return true;
+  }
   if (typeof root === 'object') {
     const obj = root as Record<string, unknown>;
     return typeof obj.name === 'string' || typeof obj.名称 === 'string';
@@ -717,12 +734,12 @@ const formatSpiritRoot = (spiritRoot: SpiritRoot | string | undefined): string =
 };
 
 const getSpiritRootDisplay = (spiritRoot: SpiritRoot | string | undefined): string => {
-  if (!spiritRoot) return t('无灵根');
+  if (!spiritRoot) return t(USE_MING_PROMPTS ? '无特质' : '无灵根');
   if (typeof spiritRoot === 'string') return spiritRoot;
   const obj = spiritRoot as unknown as Record<string, unknown>;
   if (typeof obj.name === 'string' && obj.name.trim()) return obj.name;
   if (typeof obj.名称 === 'string' && obj.名称.trim()) return obj.名称;
-  return t('未知灵根');
+  return t(USE_MING_PROMPTS ? '未知特质' : '未知灵根');
 };
 
 const getSpiritRootGrade = (spiritRoot: SpiritRoot | string | undefined): string => {
@@ -780,13 +797,13 @@ const getSpiritRootElements = (spiritRoot: SpiritRoot | string | undefined): str
 };
 
 const getSpiritRootDescription = (spiritRoot: SpiritRoot | string | undefined): string => {
-  if (!spiritRoot) return t('无灵根，无法修炼');
+  if (!spiritRoot) return t(USE_MING_PROMPTS ? '无特质' : '无灵根，无法修炼');
   if (typeof spiritRoot === 'object' && 'description' in spiritRoot && spiritRoot.description) {
     return String(spiritRoot.description);
   }
   const rootObj = spiritRoot as unknown as Record<string, unknown>;
   if (typeof spiritRoot === 'object' && (rootObj.描述 || rootObj.description)) return String(rootObj.描述 ?? rootObj.description);
-  return t('此灵根可用于修炼');
+  return t(USE_MING_PROMPTS ? '此特质' : '此灵根可用于修炼');
 };
 
 const getAnimalStageDisplay = (): string => {

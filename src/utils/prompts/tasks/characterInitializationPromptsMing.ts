@@ -30,7 +30,7 @@ const RESPONSE_FORMAT_MING = `
     {"action":"set","key":"角色.身份.出生日期","value":{"年":1032,"月":1,"日":1,"小时":0,"分钟":0}},
     {"action":"set","key":"角色.位置","value":{"描述":"东荒大陆·青云山脉·小村庄","x":5000,"y":5000}},
     {"action":"set","key":"角色.属性.声望","value":0},
-    {"action":"set","key":"角色.背包.灵石","value":{"下品":50,"中品":0,"上品":0,"极品":0}}
+    {"action":"set","key":"角色.背包.金钱","value":{"下品":50,"中品":0,"上品":0,"极品":0}}
   ],
   "action_options": ["四处走动熟悉环境","查看自身状态","与附近的人交谈","调查周围","打听消息"]
 }
@@ -83,12 +83,12 @@ const COMMANDS_RULES_MING = `
    - 有势力/组织背景：10-50
    - 名门/显赫：50-100
 
-4. **随机项** - 若出身/天赋为「随机」
-   - 用 \`set\` 写入 \`角色.身份.出身\` 或 \`角色.身份.天赋\` 的具体内容
-   - 出身格式：{"名称":"…","描述":"…"} 或 string
+4. **随机项** - 若出身/天赋/特质为「随机」
+   - 用 \`set\` 写入 \`角色.身份.出身\`、\`角色.身份.天赋\` 或 \`角色.身份.特质\` 的具体内容
+   - 出身格式：{"名称":"…","描述":"…"} 或 string；特质为 string（如「聪慧」「坚韧」「神秘血脉」等）
 
 5. **资源** - 设置初始资源
-   - \`角色.背包.灵石\`（根据出身决定数量，见下方资源控制）
+   - \`角色.背包.金钱\`（根据出身决定数量，见下方资源控制）
    - \`角色.背包.物品.{物品ID}\`（如有初始物品，类型为 装备/消耗品/材料/其他）
 
 6. **NPC** - 仅创建文本中明确提到的重要人物（0-3 个）
@@ -139,7 +139,7 @@ const NARRATIVE_RULES_MING = `
 const RESOURCE_RANGES_MING = `
 ## 初始资源控制（严格执行）
 
-### 货币 / 灵石（基于出身）
+### 货币 / 金钱（基于出身）
 - **贫困/流浪**：0-10
 - **平民/普通**：10-50
 - **世家/组织**：100-300
@@ -229,6 +229,22 @@ export function buildCharacterSelectionsSummaryMing(
   const originIsObj = typeof origin === 'object' && origin !== null;
   const spiritRootIsObj = typeof spiritRoot === 'object' && spiritRoot !== null;
 
+  // 特质/灵根：对象时输出完整信息供 API 使用，不丢失品级、描述、修炼加成等
+  const traitSection =
+    spiritRootIsObj
+      ? (() => {
+          const sr = spiritRoot as SpiritRoot;
+          const lines = [
+            `名称: ${sr.name}`,
+            sr.tier != null ? `品级: ${sr.tier}` : '',
+            sr.description ? `描述: ${sr.description}` : '',
+            sr.cultivation_speed ? `修炼相关: ${sr.cultivation_speed}` : '',
+            sr.special_effects?.length ? `特殊效果: ${sr.special_effects.join('；')}` : '',
+          ].filter(Boolean);
+          return lines.join('\n');
+        })()
+      : `${spiritRoot}: (随机，需AI生成)`;
+
   const talentsList = talents.length > 0
     ? talents.map(t => `- ${t.name}: ${t.description}`).join('\n')
     : '无';
@@ -257,8 +273,8 @@ ${talentTier.name}: ${talentTier.description}
 ## 出身
 ${originIsObj ? (origin as Origin).name : origin}: ${originIsObj ? (origin as Origin).description : '(随机，需AI生成)'}
 
-## 特质
-${spiritRootIsObj ? `${(spiritRoot as SpiritRoot).name}: ${(spiritRoot as SpiritRoot).description}` : `${spiritRoot}: (随机，需AI生成)`}
+## 特质（即灵根/角色特质，以下为完整信息，请勿丢失）
+${traitSection}
 
 ## 天赋
 ${talentsList}

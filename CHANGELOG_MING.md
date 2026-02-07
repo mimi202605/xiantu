@@ -4,6 +4,58 @@
 
 ---
 
+## [0.2.22] - 2026-02-06
+
+### Prompt 清理计划落地：通用化用词、数据结构与 UI（docs/prompt-cleanup-plan.md）
+
+- **删除的规则**  
+  - `businessRulesMing.ts`：移除「地点势力不重叠（铁律）」整段；删除 `CONFLICT_TURN_RULES` 整个 export。  
+  - `defaultPrompts.ts`：从 BUSINESS_RULES 数组中去掉 `CONFLICT_TURN_RULES`；业务规则描述改为「NPC、冲突、难度等业务规则」。  
+  - `promptAssembler.ts`：businessRules / worldStandards 的 add-cause 文案同步为「NPC、冲突、难度等业务规则」「属性、品质」。
+
+- **货币：灵石→金钱**  
+  - **类型**：`game.d.ts` 新增 `CurrencyFourTier`；`Inventory` 与 NPC 背包支持 `金钱?`，`灵石?` 标为 `@deprecated`，读取时 金钱 ?? 灵石。  
+  - **Prompt/数据定义**：`dataDefinitionsMing`、`characterInitializationPromptsMing`、`locationNpcGenerationPromptsMing`、`inlinePromptsMing`、`coreRulesMing` 中背包/货币统一为「金钱」及四档（下品/中品/上品/极品）。  
+  - **运行时**：`useGameData`、`dataRepair`、`dataValidation`、`enhancedActionQueue`、`commandValidator`、`stateChangeFormatter`、`AIBidirectionalSystem` 支持 金钱 并兼容 灵石（读写、校验、防负值）。  
+  - **UI**：`InventoryPanel` 标签与兑换、`CharacterDetailsPanel` 金钱折算、`RelationshipNetworkPanel` 货币展示与 NPC 条目、i18n（金钱/金钱折算/金钱储备/兑换·分解文案）统一为「金钱」。
+
+- **属性：气血→体力、灵气→精力；神识可选**  
+  - **类型**：`PlayerStatus` / NPC 属性 增加 `体力?`、`精力?`；NPC 属性中 气血/灵气 改为可选。  
+  - **Prompt**：`dataDefinitionsMing` 1.2、2.3 与 `locationNpcGenerationPromptsMing` NPC 结构为 体力/精力；不要求神识。  
+  - **校验与格式化**：`commandValidator`、`stateChangeFormatter` 支持 角色.属性.体力/精力.*；`dataRepair`、`dataValidation` 修复时补全 体力/精力（缺则从 气血/灵气 推导），NPC 默认 体力/精力。  
+  - **AI 状态摘要**：`AIBidirectionalSystem` 核心状态与 owner 详情使用 体力??气血、精力??灵气；神识仅在有值时显示。  
+  - **角色生成与迁移**：`calculateInitialAttributes`、`prepareInitialData`、`finalizeAndSyncData` 写入 体力/精力（与 气血/灵气 同源）；`saveMigration` 的 `flatAttributes` 含 体力/精力。  
+  - **UI 核心数值**：`RightSidebar`（角色状态）、`CharacterDetailsPanel`（vitalsData）、`RelationshipNetworkPanel`（NPC 核心数值）展示 体力/精力（兼容 气血/灵气），神识仅在有数据时显示；i18n 增加 体力/精力。
+
+- **品质系统通用**  
+  - `worldStandardsMing.ts`：QUALITY_SYSTEM 改为 普通|优良|稀有|史诗|传说|神话（grade 0–10）。  
+  - `dataDefinitionsMing`、`inlinePromptsMing` 物品品质与生成规则同步；`InventoryPanel`、`CharacterDetailsPanel` 的 PRESET_QUALITIES / qualityRank 支持新旧品质名。
+
+- **灵根→特质（Ming）**  
+  - **数据定义**：`dataDefinitionsMing` 身份增加「特质」；`characterInitializationPromptsMing` COMMANDS_RULES_MING 随机项含「若特质为随机则 set 角色.身份.特质」。  
+  - **类型**：`CharacterBaseInfo` 增加 `特质?`，`灵根` 改为可选。  
+  - **开局合并**：`characterInitialization` 在 USE_MING_PROMPTS 下，若用户选了具体灵根（完整对象）则保留 `mergedBaseInfo.灵根` 为完整对象、`mergedBaseInfo.特质` 为名称；随机时用 AI 特质字符串。  
+  - **Prompt 完整信息**：`buildCharacterSelectionsSummaryMing`、`buildCharacterSelectionsSummary` 当 spiritRoot 为对象时输出完整字段（名称、品级、描述、修炼相关、特殊效果），避免发给 API 时丢失。  
+  - **UI 文案**：Ming 下人物详情、关系网络、角色管理、创建预览、数据校验弹窗等处标签由「灵根」改为「特质」；i18n 增加 无特质/未知特质/此特质。
+
+- **CoT 与默认提示词**  
+  - `cotCore.ts`：保留 `getCotCorePrompt`（修仙版），新增 `getCotCorePromptMing`（仅 位置/时间/金钱/物品/关系/事件/体力/精力，无神识/修炼/渡劫/宗门）。  
+  - `defaultPrompts.ts`：当 USE_MING_PROMPTS 时 cotCore 使用 `getCotCorePromptMing`。
+
+- **注释与 Legacy 标注**  
+  - `defaultPrompts.ts` worldStandards 描述改为「属性、品质」。  
+  - `businessRules.ts`、`dataDefinitions.ts`、`characterInitializationPrompts.ts` 文件头增加「Legacy: 仅当 USE_MING_PROMPTS=false 时使用」及简短说明。
+
+#### 涉及文件
+
+- 计划与文档：`docs/prompt-cleanup-plan.md`
+- 提示词与规则：`definitions/ming/businessRulesMing.ts`、`dataDefinitionsMing.ts`、`coreRulesMing.ts`、`worldStandardsMing.ts`、`inlinePromptsMing.ts`、`tasks/characterInitializationPromptsMing.ts`、`characterInitializationPrompts.ts`、`tasks/locationNpcGenerationPromptsMing.ts`、`cot/cotCore.ts`、`promptAssembler.ts`、`services/defaultPrompts.ts`、`definitions/businessRules.ts`、`definitions/dataDefinitions.ts`
+- 类型与数据：`types/game.d.ts`
+- 服务与工具：`services/characterInitialization.ts`、`utils/dataRepair.ts`、`utils/dataValidation.ts`、`utils/saveMigration.ts`、`utils/commandValidator.ts`、`utils/stateChangeFormatter.ts`、`utils/AIBidirectionalSystem.ts`、`utils/enhancedActionQueue.ts`
+- 前端与 i18n：`composables/useGameData.ts`、`i18n/index.ts`、`components/dashboard/CharacterDetailsPanel.vue`、`components/dashboard/RightSidebar.vue`、`components/dashboard/RelationshipNetworkPanel.vue`、`components/dashboard/InventoryPanel.vue`、`components/character-creation/CharacterManagement.vue`、`components/character-creation/Step7_Preview.vue`、`components/common/DataValidationErrorDialog.vue`
+
+---
+
 ## [0.2.21] - 2026-02-06
 
 ### 六司属性通用化：根骨→体质、灵性→直觉

@@ -507,7 +507,7 @@
                   <span class="value">{{ getFieldName(detailsCharacter.角色.出生) }}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="label">{{ $t('灵根') }}</span>
+                  <span class="label">{{ $t(traitOrRootLabel) }}</span>
                   <span class="value">{{ getFieldName(detailsCharacter.角色.灵根) }}</span>
                 </div>
                 <div class="detail-item">
@@ -566,6 +566,7 @@ import "@/style.css";
 const formatRealmWithStage = (_realm: any): string => '';
 import { toast } from '@/utils/toast';
 import { isTavernEnv } from '@/utils/tavern';
+import { USE_MING_PROMPTS } from '@/services/defaultPrompts';
 import { ensureSaveDataHasTavernNsfw } from '@/utils/nsfw';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
@@ -595,6 +596,7 @@ const isFullscreen = computed(() => props.fullscreen);
 
 const router = useRouter();
 const characterStore = useCharacterStore();
+const traitOrRootLabel = USE_MING_PROMPTS ? '特质' : '灵根';
 // 临时：管理面板不再校验登录状态，默认视为已登录
 const isLoggedIn = ref(true);
 const selectedCharId = ref<string | null>(null);

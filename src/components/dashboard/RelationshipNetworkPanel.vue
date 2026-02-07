@@ -180,7 +180,7 @@
                         ><span class="info-value">{{ getNpcAge(selectedPerson) }}</span>
                       </div>
                       <div class="info-item-row">
-                        <span class="info-label">灵根</span
+                        <span class="info-label">{{ traitOrRootLabel }}</span
                         ><span class="info-value">{{ getNpcSpiritRoot(selectedPerson) }}</span>
                       </div>
                       <div class="info-item-row" v-if="selectedPerson.当前位置">
@@ -194,31 +194,31 @@
                     </div>
                   </div>
 
-                  <!-- 核心数值 -->
+                  <!-- 核心数值（体力/精力 兼容 气血/灵气；神识有值才显示） -->
                   <div class="detail-section" v-if="hasNpcCoreStats(selectedPerson)">
                     <h5 class="section-title">核心数值</h5>
                     <div class="npc-vitals-container">
                       <div class="npc-vital-row">
                         <div class="npc-vital-meta">
-                          <span class="npc-vital-name">气血</span>
-                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '气血') }}</span>
+                          <span class="npc-vital-name">{{ t('体力') }}</span>
+                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '体力') }}</span>
                         </div>
                         <div class="npc-vital-track">
-                          <div class="npc-vital-bar red-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '气血') + '%' }"></div>
+                          <div class="npc-vital-bar red-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '体力') + '%' }"></div>
                         </div>
                       </div>
                       <div class="npc-vital-row">
                         <div class="npc-vital-meta">
-                          <span class="npc-vital-name">灵气</span>
-                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '灵气') }}</span>
+                          <span class="npc-vital-name">{{ t('精力') }}</span>
+                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '精力') }}</span>
                         </div>
                         <div class="npc-vital-track">
-                          <div class="npc-vital-bar blue-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '灵气') + '%' }"></div>
+                          <div class="npc-vital-bar blue-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '精力') + '%' }"></div>
                         </div>
                       </div>
-                      <div class="npc-vital-row">
+                      <div class="npc-vital-row" v-if="hasNpcStatPair(selectedPerson, '神识')">
                         <div class="npc-vital-meta">
-                          <span class="npc-vital-name">神识</span>
+                          <span class="npc-vital-name">{{ t('神识') }}</span>
                           <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '神识') }}</span>
                         </div>
                         <div class="npc-vital-track">
@@ -725,18 +725,9 @@
                 <div v-show="activeTab === 'inventory'" class="tab-panel">
                   <div class="detail-section">
                     <h5 class="section-title">背包</h5>
-                    <div v-if="selectedPerson.背包?.灵石" class="spirit-stones-grid">
-                      <div class="spirit-stone-item">
-                        <span>下品灵石</span><span>{{ selectedPerson.背包.灵石.下品 || 0 }}</span>
-                      </div>
-                      <div class="spirit-stone-item">
-                        <span>中品灵石</span><span>{{ selectedPerson.背包.灵石.中品 || 0 }}</span>
-                      </div>
-                      <div class="spirit-stone-item">
-                        <span>上品灵石</span><span>{{ selectedPerson.背包.灵石.上品 || 0 }}</span>
-                      </div>
-                      <div class="spirit-stone-item">
-                        <span>极品灵石</span><span>{{ selectedPerson.背包.灵石.极品 || 0 }}</span>
+                    <div v-if="selectedPerson.背包?.金钱 || selectedPerson.背包?.灵石" class="spirit-stones-grid">
+                      <div class="spirit-stone-item" v-for="g in ['下品','中品','上品','极品']" :key="g">
+                        <span>{{ g }}金钱</span><span>{{ (selectedPerson.背包.金钱 ?? selectedPerson.背包.灵石)?.[g] || 0 }}</span>
                       </div>
                     </div>
                     <div class="npc-inventory" style="margin-top: 1rem">
@@ -827,6 +818,7 @@
 import { ref, computed, onMounted, onActivated, watch } from 'vue';
 import { useActionQueueStore } from '@/stores/actionQueueStore';
 import { useI18n } from '@/i18n';
+import { USE_MING_PROMPTS } from '@/services/defaultPrompts';
 import type { NpcProfile, Item, BodyPartDevelopment, PrivacyProfile, SaveData } from '@/types/game';
 import type { SpiritRoot } from '@/types';
 import {
@@ -945,6 +937,7 @@ onActivated(() => {
   isTavernEnvFlag.value = isTavernEnv();
 });
 const { t } = useI18n();
+const traitOrRootLabel = computed(() => t(USE_MING_PROMPTS ? '特质' : '灵根'));
 const characterData = computed(() => gameStateStore.getCurrentSaveData());
 const actionQueue = useActionQueueStore();
 const uiStore = useUIStore();
@@ -1095,10 +1088,13 @@ const toFiniteNumber = (value: unknown): number | null => {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 };
 
-type NpcCoreStatKey = '气血' | '灵气' | '神识';
+type NpcCoreStatKey = '体力' | '精力' | '神识' | '气血' | '灵气';
 
 const getNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): { current: number | null; max: number | null } => {
-  const raw = (npc as any)?.属性?.[key] ?? (npc as any)?.[key];
+  const attrs = (npc as any)?.属性;
+  let raw: unknown = attrs?.[key];
+  if (key === '体力') raw = attrs?.体力 ?? attrs?.气血;
+  else if (key === '精力') raw = attrs?.精力 ?? attrs?.灵气;
   if (!raw || typeof raw !== 'object') {
     return { current: null, max: null };
   }
@@ -1120,12 +1116,13 @@ const getNpcLifespanMax = (npc: NpcProfile): number | null => {
   return toFiniteNumber(raw);
 };
 
+const hasNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): boolean => {
+  const pair = getNpcStatPair(npc, key);
+  return pair.current !== null || pair.max !== null;
+};
+
 const hasNpcCoreStats = (npc: NpcProfile): boolean => {
-  const hasPair = (key: NpcCoreStatKey) => {
-    const pair = getNpcStatPair(npc, key);
-    return pair.current !== null || pair.max !== null;
-  };
-  return hasPair('气血') || hasPair('灵气') || hasPair('神识') || getNpcLifespanMax(npc) !== null;
+  return hasNpcStatPair(npc, '体力') || hasNpcStatPair(npc, '精力') || hasNpcStatPair(npc, '神识') || getNpcLifespanMax(npc) !== null;
 };
 
 // 获取NPC最近三条记忆
@@ -1935,7 +1932,7 @@ const exportToWorldBook = async () => {
       entryContent += `- 出生日期：${birthDate.年}年${birthDate.月}月${birthDate.日}日\n`;
     }
     entryContent += `- 境界：${getNpcRealm(npc)}\n`;
-    entryContent += `- 灵根：${getNpcSpiritRoot(npc)}\n`;
+    entryContent += `- ${t(USE_MING_PROMPTS ? '特质' : '灵根')}：${getNpcSpiritRoot(npc)}\n`;
     if (npc.势力归属) entryContent += `- 势力：${npc.势力归属}\n`;
     if (npc.出生) entryContent += `- 出生地：${getNpcOrigin(npc.出生)}\n`;
     if (npc.当前位置?.描述) entryContent += `- 当前位置：${npc.当前位置.描述}\n`;
@@ -1988,12 +1985,12 @@ const exportToWorldBook = async () => {
       });
     }
 
-    // 灵石
-    if (npc.背包?.灵石) {
-      const stones = npc.背包.灵石;
+    // 货币（金钱 ?? 灵石）
+    const stones = npc.背包?.金钱 ?? npc.背包?.灵石;
+    if (stones) {
       const total = (stones.下品 || 0) + (stones.中品 || 0) + (stones.上品 || 0) + (stones.极品 || 0);
       if (total > 0) {
-        entryContent += `\n**灵石**\n`;
+        entryContent += `\n**金钱**\n`;
         if (stones.下品) entryContent += `- 下品：${stones.下品}\n`;
         if (stones.中品) entryContent += `- 中品：${stones.中品}\n`;
         if (stones.上品) entryContent += `- 上品：${stones.上品}\n`;

@@ -79,6 +79,8 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
       repaired.角色.属性.境界 = repairRealm(repaired.角色.属性.境界);
       repaired.角色.属性.气血 = repairValuePair(repaired.角色.属性.气血, 100, 100);
       repaired.角色.属性.灵气 = repairValuePair(repaired.角色.属性.灵气, 50, 50);
+      repaired.角色.属性.体力 = repairValuePair(repaired.角色.属性.体力 ?? repaired.角色.属性.气血, 100, 100);
+      repaired.角色.属性.精力 = repairValuePair(repaired.角色.属性.精力 ?? repaired.角色.属性.灵气, 50, 50);
       repaired.角色.属性.神识 = repairValuePair(repaired.角色.属性.神识, 30, 30);
       repaired.角色.属性.寿命 = repairValuePair(repaired.角色.属性.寿命, 18, 80);
       repaired.角色.属性.声望 = validateNumber(repaired.角色.属性.声望, 0, 999999, 0);
@@ -97,17 +99,18 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     // --- 装备 已退役，不再强制补全 ---
 
     // --- 背包 ---
+    const defaultCurrency = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 };
     if (!repaired.角色.背包 || typeof repaired.角色.背包 !== 'object') {
-      repaired.角色.背包 = { 灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }, 物品: {} };
+      repaired.角色.背包 = { 金钱: { ...defaultCurrency }, 物品: {} };
     } else {
-      if (!repaired.角色.背包.灵石 || typeof repaired.角色.背包.灵石 !== 'object') {
-        repaired.角色.背包.灵石 = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 };
-      } else {
-        repaired.角色.背包.灵石.下品 = validateNumber(repaired.角色.背包.灵石.下品, 0, 999999999, 0);
-        repaired.角色.背包.灵石.中品 = validateNumber(repaired.角色.背包.灵石.中品, 0, 999999999, 0);
-        repaired.角色.背包.灵石.上品 = validateNumber(repaired.角色.背包.灵石.上品, 0, 999999999, 0);
-        repaired.角色.背包.灵石.极品 = validateNumber(repaired.角色.背包.灵石.极品, 0, 999999999, 0);
-      }
+      const currency = repaired.角色.背包.金钱 ?? repaired.角色.背包.灵石 ?? defaultCurrency;
+      const cur = typeof currency === 'object' && currency !== null ? currency : defaultCurrency;
+      repaired.角色.背包.金钱 = {
+        下品: validateNumber(cur.下品, 0, 999999999, 0),
+        中品: validateNumber(cur.中品, 0, 999999999, 0),
+        上品: validateNumber(cur.上品, 0, 999999999, 0),
+        极品: validateNumber(cur.极品, 0, 999999999, 0),
+      };
 
       if (!repaired.角色.背包.物品 || typeof repaired.角色.背包.物品 !== 'object') {
         repaired.角色.背包.物品 = {};

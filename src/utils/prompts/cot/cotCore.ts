@@ -19,6 +19,77 @@ import { DICE_ROLLING_RULES } from '../definitions/ming/textFormatsMing';
  * - v4.0.0: 全面重构思维链，增强AI感知游戏状态能力
  */
 
+/** 通用版 (Ming) CoT：仅 位置/时间/金钱/物品/关系/事件/体力/精力，无神识/修炼/渡劫/宗门 */
+export function getCotCorePromptMing(userInput: string, enableActionOptions: boolean = false): string {
+  const intentMatch = userInput.match(/<行动趋向>([\s\S]*?)<\/行动趋向>/);
+  const actualIntent = intentMatch ? intentMatch[1].trim() : (userInput || '无');
+
+  return `
+# 🧭 低噪声协议（无思维链）
+
+用户意图："${actualIntent}"
+
+ ## 禁止
+ - 绝对禁止输出：\`<thinking>\` / 思维链 / 任何推理过程标签
+
+## 占位符规则（CRITICAL）
+- 本提示词中出现的 [NPC名] 仅为占位符说明
+- 输出 tavern_commands.key 时必须替换为真实名称，且不要保留方括号 []
+- 方括号 [] 只有“数组索引”能用：例如 角色.效果[0]
+
+ ## 内部自检清单（不要写出来）
+
+### 基础同步（V3短路径）- 必须全面更新！
+□ 位置变化 → set \`角色.位置\`
+□ 时间流逝 → add \`元数据.时间.分钟\`
+□ 金钱变化 → add \`角色.背包.金钱.下品/中品/上品/极品\`
+□ 物品增删 → push/delete \`角色.背包.物品\`
+
+### 冲突与消耗 - 必须更新所有参与者！
+□ 受伤 → add \`角色.属性.体力.当前\`（负）
+  ⚠️ 玩家受伤 → add \`角色.属性.体力.当前\`
+  ⚠️ NPC受伤 → add \`社交.关系.[NPC名].属性.体力.当前\`
+□ 使用精力 → add \`角色.属性.精力.当前\`（负）
+  ⚠️ NPC精力消耗 → add \`社交.关系.[NPC名].属性.精力.当前\`
+□ 状态效果 → push \`角色.效果\`（中毒/重伤/虚弱等）
+  ⚠️ NPC状态效果 → push \`社交.关系.[NPC名].效果\`
+
+### NPC交互 - 必须全面更新NPC状态！
+□ NPC出场 → set \`社交.关系.[NPC名]\`（完整对象）
+□ 好感变化 → add \`社交.关系.[NPC名].好感度\`
+□ NPC记忆 → push \`社交.关系.[NPC名].记忆\`
+□ NPC状态 → set \`社交.关系.[NPC名].当前外貌状态\`
+□ NPC属性变化（重要！）：
+  - NPC体力变化 → add \`社交.关系.[NPC名].属性.体力.当前\`
+  - NPC精力变化 → add \`社交.关系.[NPC名].属性.精力.当前\`
+  - NPC位置变化 → set \`社交.关系.[NPC名].位置\`
+□ 实时关注NPC → 若\`实时关注\`为true，即使不在身边也要更新其位置/状态/内心想法
+
+### 世界事件系统
+□ 重大事件发生 → push \`社交.事件.事件记录\`
+  格式：{事件ID,事件名称,事件类型,事件描述,影响等级,影响范围,相关人物,发生时间}
+□ 事件类型：势力冲突/局势变化/重大发现/人物风波 等
+
+### 特殊事件
+□ 物品获得 → push \`角色.背包.物品\` 或 set \`角色.背包.物品.{物品ID}\`
+□ 声望变化 → add \`角色.属性.声望\`
+
+### ⚠️ 重要提醒：变量更新全面性检查
+每次生成前必须检查：
+1. 是否有冲突/受伤？→ 所有参与者的体力/精力都要更新！
+2. 是否有NPC互动？→ NPC的好感度/记忆/状态都要更新！
+3. 是否有时间流逝？→ 时间必须更新！
+4. 是否有物品/金钱交易？→ 金钱/物品必须更新！
+5. 是否有NPC受伤/消耗？→ NPC的体力/精力必须更新！
+
+## 行动选项
+- 若启用：输出 \`action_options\`（3-5个）
+- 若未启用：不要输出 \`action_options\`
+
+${DICE_ROLLING_RULES}
+`;
+}
+
 export function getCotCorePrompt(userInput: string, enableActionOptions: boolean = false): string {
   const intentMatch = userInput.match(/<行动趋向>([\s\S]*?)<\/行动趋向>/);
   const actualIntent = intentMatch ? intentMatch[1].trim() : (userInput || '无');

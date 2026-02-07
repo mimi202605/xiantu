@@ -516,7 +516,10 @@ class AIBidirectionalSystemClass {
 
       let coreStatusSummary = '# 角色核心状态速览\n';
       if (attributes) {
-        coreStatusSummary += `\n- 生命: 气血${attributes.气血?.当前}/${attributes.气血?.上限} 灵气${attributes.灵气?.当前}/${attributes.灵气?.上限} 神识${attributes.神识?.当前}/${attributes.神识?.上限} 寿元${attributes.寿命?.当前}/${attributes.寿命?.上限}`;
+        const hp = attributes.体力 ?? attributes.气血;
+        const mp = attributes.精力 ?? attributes.灵气;
+        coreStatusSummary += `\n- 生命: 体力${hp?.当前}/${hp?.上限} 精力${mp?.当前}/${mp?.上限} 寿元${attributes.寿命?.当前}/${attributes.寿命?.上限}`;
+        if (attributes.神识?.当前 != null) coreStatusSummary += ` 神识${attributes.神识.当前}/${attributes.神识.上限}`;
 
         if (attributes.境界) {
           const realm = attributes.境界;
@@ -690,8 +693,10 @@ class AIBidirectionalSystemClass {
         if (ownerProfile?.门派) ownerDetailInfo += `\n- 门派：${ownerProfile.门派}`;
         if (ownerProfile?.性别) ownerDetailInfo += `\n- 性别：${ownerProfile.性别}`;
         if (ownerProfile?.种族) ownerDetailInfo += `\n- 种族：${ownerProfile.种族}`;
-        if (ownerProfile?.气血) ownerDetailInfo += `\n- 气血：${JSON.stringify(ownerProfile.气血)}`;
-        if (ownerProfile?.灵气) ownerDetailInfo += `\n- 灵气：${JSON.stringify(ownerProfile.灵气)}`;
+        const ownerHp = ownerProfile?.体力 ?? ownerProfile?.气血;
+        const ownerMp = ownerProfile?.精力 ?? ownerProfile?.灵气;
+        if (ownerHp) ownerDetailInfo += `\n- 体力：${JSON.stringify(ownerHp)}`;
+        if (ownerMp) ownerDetailInfo += `\n- 精力：${JSON.stringify(ownerMp)}`;
         if (ownerProfile?.神识) ownerDetailInfo += `\n- 神识：${JSON.stringify(ownerProfile.神识)}`;
         if (ownerLocation) {
           const ox = ownerLocation.x ?? ownerLocation.坐标?.x;
@@ -2648,8 +2653,8 @@ ${saveDataJson}`;
         }
         const newValue = currentValue + value;
 
-        // 🔥 防止灵石变成负数
-        if (path.includes('灵石') && newValue < 0) {
+        // 🔥 防止货币（金钱/灵石）变成负数
+        if ((path.includes('金钱') || path.includes('灵石')) && newValue < 0) {
           console.warn(`[AI双向系统] ${path} 执行add后会变成负数 (${currentValue} + ${value} = ${newValue})，已限制为0`);
           set(saveData, path, 0);
         } else {
