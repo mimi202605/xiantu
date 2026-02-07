@@ -4,6 +4,26 @@
 
 ---
 
+## [0.2.24] - 2026-02-07
+
+### 提示词组装：仅保留一回合 + 导出
+
+- **背景**：此前保留最近 20 条快照占用内存较多；实际只需查看当前回合的组装结果，历史需保存时再导出即可。
+- **Store（promptAssemblyStore）**  
+  - 仅保留**当前一个回合**内的快照。以 flowName 判定回合边界：`主回合`、`分步第1步`、`开局第1步` 视为新回合开始，此时清空上一回合再记录；同回合内后续步骤（如 `分步第2步`、`开局第2步`）追加到当前回合。  
+  - 单回合内最多保留 10 条快照（防止异常增长）。  
+  - 新增 `getDataForExport()`，供面板将当前回合快照序列化为 JSON 并下载。
+- **面板（PromptAssemblyPanel）**  
+  - 当前回合有多条快照时显示步骤 tab，可切换查看（如 分步第1步 / 分步第2步）；仅一条时不显示 tab。  
+  - 新增「导出」按钮，下载文件名为 `prompt-assembly-YYYY-MM-DDTHH-mm-ss.json`，内容含 `exportedAt` 与当前回合的 `snapshots` 数组。
+
+#### 涉及文件
+
+- `src/stores/promptAssemblyStore.ts`
+- `src/components/dashboard/PromptAssemblyPanel.vue`
+
+---
+
 ## [0.2.23] - 2026-02-06
 
 ### NPC 境界默认「凡人」

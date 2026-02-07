@@ -1,11 +1,14 @@
 /**
  * 提示词组装可视化 - 调试用
- * 记录最近多次发送给 API 的系统提示词及其模组构成（含分步第1/2步等），供「提示词组装」面板展示。
+ * 仅保留当前一个回合内的多条快照（如 主回合 单条，或 分步第1步+分步第2步）；新回合开始时清空上一回合。导出用于保存历史。
  */
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-const MAX_RECENT_SNAPSHOTS = 20;
+/** 标记「新回合开始」的 flowName：见到则清空上一回合，只保留本回合内的快照 */
+const ROUND_START_FLOW_NAMES = ['主回合', '分步第1步', '开局第1步'] as const;
+/** 单回合内最多保留的快照数（主回合=1，分步=2，开局=2，预留记忆总结等） */
+const MAX_SNAPSHOTS_PER_ROUND = 10;
 
 export interface PromptModule {
   /** 模组 key（如 coreOutputRules） */
@@ -46,14 +49,27 @@ export const usePromptAssemblyStore = defineStore('promptAssembly', () => {
   const timestamp = computed(() => lastSnapshot.value?.timestamp ?? 0);
 
   function record(snapshot: AssemblySnapshot) {
-    recentSnapshots.value = [
-      { ...snapshot, timestamp: snapshot.timestamp || Date.now() },
-      ...recentSnapshots.value
-    ].slice(0, MAX_RECENT_SNAPSHOTS);
+    const isNewRound = ROUND_START_FLOW_NAMES.includes(
+      snapshot.flowName as (typeof ROUND_START_FLOW_NAMES)[number]
+    );
+    const withTs = { ...snapshot, timestamp: snapshot.timestamp || Date.now() };
+    if (isNewRound) {
+      recentSnapshots.value = [withTs];
+    } else {
+      recentSnapshots.value = [withTs, ...recentSnapshots.value].slice(0, MAX_SNAPSHOTS_PER_ROUND);
+    }
   }
 
   function clear() {
     recentSnapshots.value = [];
+  }
+
+  /** 供导出使用：返回当前快照数据（含时间戳），可序列化为 JSON 并下载 */
+  function getDataForExport(): { exportedAt: string; snapshots: AssemblySnapshot[] } {
+    return {
+      exportedAt: new Date().toISOString(),
+      snapshots: [...recentSnapshots.value]
+    };
   }
 
   return {
@@ -65,6 +81,7 @@ export const usePromptAssemblyStore = defineStore('promptAssembly', () => {
     modules,
     timestamp,
     record,
-    clear
+    clear,
+    getDataForExport
   };
 });

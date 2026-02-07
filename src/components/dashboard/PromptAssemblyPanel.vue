@@ -5,6 +5,13 @@
         <span class="title-text">🔍 提示词组装</span>
       </div>
       <div class="panel-actions">
+        <button v-if="hasSnapshot" class="action-btn-compact" @click="exportSnapshot" title="导出为 JSON 保存">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
         <button v-if="hasSnapshot" class="action-btn-compact" @click="clearSnapshot" title="清除记录">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="3 6 5 6 21 6"></polyline>
@@ -21,8 +28,8 @@
     </div>
 
     <template v-else>
-      <!-- 步骤列表：选择要查看的 step -->
-      <div class="step-tabs">
+      <!-- 当前回合内可能有多条快照（如 分步第1步、分步第2步），可切换查看 -->
+      <div class="step-tabs" v-if="recentSnapshots.length > 1">
         <button
           v-for="(snap, idx) in recentSnapshots"
           :key="idx"
@@ -36,7 +43,6 @@
         </button>
       </div>
 
-      <!-- 当前选中步骤的详情 -->
       <div class="assembly-meta" v-if="selectedSnapshot">
         <span class="flow-badge">{{ selectedSnapshot.flowName }}</span>
         <span class="time-text">{{ formatTime(selectedSnapshot.timestamp) }}</span>
@@ -141,6 +147,18 @@ function formatTime(ts: number) {
 function clearSnapshot() {
   store.clear();
   selectedIndex.value = 0;
+}
+
+function exportSnapshot() {
+  const data = store.getDataForExport();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `prompt-assembly-${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 </script>
 
