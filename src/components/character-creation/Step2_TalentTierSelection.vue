@@ -55,7 +55,7 @@
           <div class="description-scroll">
             <p>{{ activeTier.description }}</p>
           </div>
-          <div class="points-display">{{ $t('天道点') }}: {{ activeTier.total_points }}</div>
+          <div class="points-display">{{ $t('天命点') }}: {{ activeTier.total_points }}</div>
         </div>
         <div v-else class="placeholder">{{ $t('请选择你的天资等级，这将决定你的起点。') }}</div>
       </div>
@@ -149,7 +149,7 @@ const filteredTalentTiers = computed(() => {
 const customTierFields = [
   { key: 'name', label: '天资名称', type: 'text', placeholder: '例如：凡人' },
   { key: 'description', label: '天资描述', type: 'textarea', placeholder: '描述此天资的特点...' },
-  { key: 'total_points', label: '天道点', type: 'number', placeholder: '例如：20' },
+  { key: 'total_points', label: '天命点', type: 'number', placeholder: '例如：20' },
   { key: 'rarity', label: '稀有度', type: 'number', placeholder: '1-10，数值越高越稀有' },
   { key: 'color', label: '辉光颜色', type: 'color', placeholder: '例如：#808080' },
 ] as const
@@ -158,7 +158,7 @@ function validateCustomTier(data: Partial<CustomTierData>) {
     const errors: Record<string, string> = {};
     if (!data.name?.trim()) errors.name = '天资名称不可为空';
     const points = Number(data.total_points);
-    if (isNaN(points) || points < 0) errors.total_points = '天道点必须是非负数';
+    if (isNaN(points) || points < 0) errors.total_points = '天命点必须是非负数';
     const rarity = Number(data.rarity);
     if (isNaN(rarity) || rarity < 1 || rarity > 10) errors.rarity = '稀有度必须在1-10之间';
     return {

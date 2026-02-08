@@ -130,7 +130,7 @@
       <!-- Spirit Root -->
       <div class="preview-item">
         <h3>{{ $t(traitOrRootLabel) }}</h3>
-        <h4>{{ store.selectedTrait?.name || $t('随机灵根') }}</h4>
+        <h4>{{ store.selectedTrait?.name || $t('随机特质') }}</h4>
         <p class="item-description">{{ store.selectedTrait?.description || $t('暂无描述') }}</p>
       </div>
 

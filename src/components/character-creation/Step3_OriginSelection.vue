@@ -65,7 +65,7 @@
           <div class="description-scroll">
             <p>{{ activeDescription }}</p>
           </div>
-          <div class="cost-display">{{ $t('消耗天道点: {0}').replace('{0}', String(activeCost)) }}</div>
+          <div class="cost-display">{{ $t('消耗天命点: {0}').replace('{0}', String(activeCost)) }}</div>
         </div>
         <div v-else class="placeholder">{{ $t('请选择一处出身，或听天由命。') }}</div>
       </div>
@@ -179,7 +179,7 @@ const _modifierOptions = [
 const customOriginFields: ModalField[] = [
   { key: 'name', label: '出身名称', type: 'text', placeholder: '例如：山野遗孤' },
   { key: 'description', label: '出身描述', type: 'textarea', placeholder: '描述此出身的背景故事和成长经历...' },
-  { key: 'talent_cost', label: '天道点消耗', type: 'number', placeholder: '选择此出身需要消耗的天道点，可为负数表示奖励' },
+  { key: 'talent_cost', label: '天命点消耗', type: 'number', placeholder: '选择此出身需要消耗的天命点，可为负数表示奖励' },
   { key: 'rarity', label: '稀有度', type: 'number', placeholder: '1-10，数值越高越稀有' },
   {
     key: 'attribute_modifiers',
@@ -233,7 +233,7 @@ function validateCustomOrigin(data: Partial<CustomOriginData>) {
     // 数值字段验证
     const talentCost = Number(data.talent_cost);
     if (data.talent_cost !== undefined && data.talent_cost !== '' && isNaN(talentCost)) {
-      errors.talent_cost = '天道点消耗必须是数字';
+      errors.talent_cost = '天命点消耗必须是数字';
     }
 
     const rarity = Number(data.rarity);
@@ -333,14 +333,14 @@ async function handleAIPromptSubmit(userPrompt: string) {
 
     // 如果AI没有提供天道点，给予警告并设置默认值
     if (talentCost === undefined || talentCost === null) {
-      console.warn('【AI推演-出身】AI未返回天道点消耗字段，使用默认值3');
-      toast.warning('AI未设置天道点消耗，已自动设为3点', { id: toastId, duration: 2000 });
+      console.warn('【AI推演-出身】AI未返回天命点消耗字段，使用默认值3');
+      toast.warning('AI未设置天命点消耗，已自动设为3点', { id: toastId, duration: 2000 });
       talentCost = 3; // 默认消耗3点，较为合理
     } else {
       // 确保是数字类型
       talentCost = Number(talentCost);
       if (isNaN(talentCost)) {
-        console.warn('【AI推演-出身】天道点消耗不是有效数字，使用默认值3');
+        console.warn('【AI推演-出身】天命点消耗不是有效数字，使用默认值3');
         talentCost = 3;
       }
     }
@@ -463,7 +463,7 @@ const editInitialData = computed(() => {
 
 function handleSelectOrigin(origin: Origin) {
   if (!canSelect(origin)) {
-    toast.warning('天道点不足，无法选择此出身。')
+    toast.warning('天命点不足，无法选择此出身。')
     return
   }
   // Toggle selection

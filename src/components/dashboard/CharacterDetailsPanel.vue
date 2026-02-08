@@ -151,7 +151,7 @@
                 </div>
               </section>
 
-              <!-- 天赋灵根 -->
+              <!-- 天赋与特质 -->
               <section class="info-card glass-panel">
                 <div class="card-header">
                   <Zap :size="20" class="header-icon purple" />
@@ -159,7 +159,7 @@
                 </div>
 
                 <div class="talent-layout">
-                  <!-- 特质/灵根卡片 -->
+                  <!-- 特质卡片 -->
                   <div class="spirit-root-banner clickable" @click="showSpiritRootModal = true" :class="baseInfo ? getSpiritRootClass((baseInfo as any).特质 ?? (baseInfo as any).灵根) : 'spirit-common'">
                     <div class="banner-content">
                        <span class="root-type">{{ t(traitLabel) }}</span>
@@ -331,7 +331,7 @@
                <!-- ... 内容插槽, 这里使用简化的示例，实际项目中保留原v-if逻辑 ... -->
                <button class="close-float" @click="closeModals"><X /></button>
 
-              <!-- 特质/灵根详情 -->
+              <!-- 特质详情 -->
                <div v-if="showSpiritRootModal && baseInfo" class="modal-inner">
                   <h2 class="modal-title">{{ getSpiritRootDisplay((baseInfo as any).特质 ?? (baseInfo as any).灵根) }}</h2>
                   <p v-if="USE_MING_PROMPTS" class="modal-subtitle">{{ t('特质') }}</p>
@@ -704,7 +704,7 @@ const formatRealmDisplay = (realm?: unknown): string => {
   return formatRealmWithStage(realm);
 };
 
-const traitLabel = USE_MING_PROMPTS ? '特质' : '灵根';
+const traitLabel = '特质';
 
 const hasSpiritRoot = computed(() => {
   const root = ((baseInfo.value as any)?.特质 ?? (baseInfo.value as any)?.灵根) as unknown;
@@ -712,7 +712,7 @@ const hasSpiritRoot = computed(() => {
   if (typeof root === 'string') {
     const s = root.trim();
     if (!s) return false;
-    if (s === '未知灵根' || s === '未知特质') return false;
+    if (s === '未知特质') return false;
     return true;
   }
   if (typeof root === 'object') {
@@ -737,12 +737,12 @@ const formatSpiritRoot = (spiritRoot: SpiritRoot | string | undefined): string =
 };
 
 const getSpiritRootDisplay = (spiritRoot: SpiritRoot | string | undefined): string => {
-  if (!spiritRoot) return t(USE_MING_PROMPTS ? '无特质' : '无灵根');
+  if (!spiritRoot) return t('无特质');
   if (typeof spiritRoot === 'string') return spiritRoot;
   const obj = spiritRoot as unknown as Record<string, unknown>;
   if (typeof obj.name === 'string' && obj.name.trim()) return obj.name;
   if (typeof obj.名称 === 'string' && obj.名称.trim()) return obj.名称;
-  return t(USE_MING_PROMPTS ? '未知特质' : '未知灵根');
+  return t('未知特质');
 };
 
 const getSpiritRootGrade = (spiritRoot: SpiritRoot | string | undefined): string => {
@@ -800,13 +800,13 @@ const getSpiritRootElements = (spiritRoot: SpiritRoot | string | undefined): str
 };
 
 const getSpiritRootDescription = (spiritRoot: SpiritRoot | string | undefined): string => {
-  if (!spiritRoot) return t(USE_MING_PROMPTS ? '无特质' : '无灵根，无法修炼');
+  if (!spiritRoot) return t('无特质');
   if (typeof spiritRoot === 'object' && 'description' in spiritRoot && spiritRoot.description) {
     return String(spiritRoot.description);
   }
   const rootObj = spiritRoot as unknown as Record<string, unknown>;
   if (typeof spiritRoot === 'object' && (rootObj.描述 || rootObj.description)) return String(rootObj.描述 ?? rootObj.description);
-  return t(USE_MING_PROMPTS ? '此特质' : '此灵根可用于修炼');
+  return t('此特质');
 };
 
 const getAnimalStageDisplay = (): string => {
@@ -1454,7 +1454,7 @@ const closeModals = () => {
 }
 .rep-value { font-weight: bold; color: var(--color-accent); }
 
-/* 天赋灵根区 */
+/* 天赋与特质区 */
 .spirit-root-banner {
     position: relative;
     padding: 1rem; border-radius: 12px;
@@ -1463,7 +1463,7 @@ const closeModals = () => {
     margin-bottom: 1rem;
     overflow: hidden;
 }
-/* 灵根样式复用你的 class 逻辑，这里做通用处理 */
+/* 特质样式复用 class 逻辑，通用处理 */
 .spirit-divine { background: linear-gradient(135deg, #4c1d95 0%, #2e1065 100%); border-color: #a78bfa; color: #fff; }
 .spirit-earth { background: linear-gradient(135deg, #064e3b 0%, #052e16 100%); border-color: rgba(52, 211, 153, 0.6); color: #ecfdf5; }
 .spirit-common { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }

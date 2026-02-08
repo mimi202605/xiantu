@@ -85,8 +85,8 @@
 
         <!-- 剩余点数显示 -->
         <div class="points-display">
-          <div v-if="store.currentStep >= 3 && store.currentStep <= 7" class="destiny-points">
-            <span class="points-label">{{ $t('剩余天道点') }}:</span>
+          <div v-if="store.currentStep >= 1 && store.currentStep <= 7" class="destiny-points">
+            <span class="points-label">{{ $t('剩余天命点') }}:</span>
             <span class="points-value" :class="{ low: store.remainingTalentPoints < 0 }">
               {{ store.remainingTalentPoints }}
             </span>
@@ -263,7 +263,7 @@ async function executeCloudAiGeneration(code: string, userPrompt?: string) {
       'world': '世界背景',
       'talent_tier': '天资等级',
       'origin': '出身背景',
-      'spirit_root': '灵根',
+      'spirit_root': '特质',
       'talent': '天赋'
     };
     const typeName = typeNameMap[type] || type;
@@ -361,13 +361,13 @@ defineExpose({
 })
 
 const stepLabels = computed(() => [
-  t('诸天问道'),
-  t('仙缘初定'),
-  t('转世因果'),
-  t('测灵问道'),
-  t('神通择定'),
-  t('命格天成'),
-  t('窥天算命'),
+  t('万象择一'),
+  t('禀赋天成'),
+  t('因果前缘'),
+  t('性灵所钟'),
+  t('才情所钟'),
+  t('命格初成'),
+  t('一览终章'),
 ])
 
 const characterDataForPreset = computed(() => ({

@@ -596,7 +596,7 @@ const isFullscreen = computed(() => props.fullscreen);
 
 const router = useRouter();
 const characterStore = useCharacterStore();
-const traitOrRootLabel = USE_MING_PROMPTS ? '特质' : '灵根';
+const traitOrRootLabel = '特质';
 // 临时：管理面板不再校验登录状态，默认视为已登录
 const isLoggedIn = ref(true);
 const selectedCharId = ref<string | null>(null);

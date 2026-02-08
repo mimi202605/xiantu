@@ -137,7 +137,7 @@ const filteredTalents = computed(() => {
 const customTalentFields: ModalField[] = [
   { key: 'name', label: '天赋名称', type: 'text', placeholder: '例如：道心天成' },
   { key: 'description', label: '天赋描述', type: 'textarea', placeholder: '描述此天赋的本质...' },
-  { key: 'talent_cost', label: '天道点消耗', type: 'number', placeholder: '例如：3' },
+  { key: 'talent_cost', label: '天命点消耗', type: 'number', placeholder: '例如：3' },
   { key: 'rarity', label: '稀有度', type: 'number', placeholder: '1-10，数值越高越稀有' },
   {
     key: 'effects',
@@ -184,9 +184,9 @@ function validateCustomTalent(data: Partial<CustomTalentData>) {
     // 数值字段验证
     const talentCost = Number(data.talent_cost);
     if (data.talent_cost === undefined || data.talent_cost === null || data.talent_cost === '' || isNaN(talentCost)) {
-        errors.talent_cost = '天道点消耗必须填写';
+        errors.talent_cost = '天命点消耗必须填写';
     } else if (talentCost < 0) {
-        errors.talent_cost = '天道点消耗不能为负数';
+        errors.talent_cost = '天命点消耗不能为负数';
     }
 
     const rarity = Number(data.rarity);

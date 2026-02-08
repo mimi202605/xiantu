@@ -8,248 +8,392 @@ export const LOCAL_WORLDS: Omit<World, 'source'>[] = [
     id: 1,
     name: '朝天大陆',
     era: '朝天历元年',
-    description: '此方世界名为"朝天大陆"，乃是一处天道完整、灵气充沛的上善之地。其核心法则是"万灵竞渡，一步登天"，无论是人、妖、精、怪，皆有缘法踏上修行之路，叩问长生。\n仙凡之别在此界泾渭分明，宛若天渊。凡人寿不过百载，受生老病死之苦，终归一抔黄土；而修士一旦踏入道途，便能吞吐天地灵气，淬炼己身，寿元动辄千载，更有大能者与天地同寿。凡俗王朝更迭，于修士而言不过是弹指一瞬间。在凡人眼中，修士是高悬于九天的仙神，一言可定一国兴衰，一念可引风雨雷霆。然而，这种力量并非毫无代价。\n此界奉行"大道争锋"的铁则，天道予万物机缘，却也降下无尽凶险。灵脉宝地、神功秘法、天材地宝，皆是有缘者居之，而"缘"字背后，往往是血与火的洗礼。修士之间，为求道途精进，争斗乃是常态。同门可能反目，挚友亦会背叛，杀人夺宝、斩草除根之事屡见不鲜。这是一个极度自由的世界，你可以选择成为守护一方的善仙，亦可成为肆虐八荒的魔头，只要你有足够的实力。但自由的背后，是无处不在的危险，一步踏错，便是万劫不复，身死道消。\n然天道亦有制衡，修士若无故以大法力干涉凡俗王朝更迭、屠戮凡人，便会与此方天地结下因果。虽无业报加身，却会在日后冲击更高境界、渡劫飞升之时，引来更强大的天劫，平添无数变数。故而多数修士选择在山门清修，或于红尘历练，以求勘破心障，证得大道。修仙百艺——炼丹、炼器、符箓、阵法，在此界发展到了极致，共同构筑了一个无比兴盛、却也无比残酷的修仙文明。',
+    description: '此方世界名为"朝天大陆"，法则完整、生机充沛，幅员辽阔，山川湖海间城邦与荒野交错。人、妖、精、怪并存：人族建王朝、开山门、兴百工；妖族据山林秘境，有的与世无争，有的与人类盟约或对峙；精怪多依附灵地，或为地祇，或为祸患。机缘与凶险同在——有人追求长生与超越，有人只求安身立命、一家温饱。\n\n阶层之别在此界泾渭分明。凡人寿不过百载，王朝更迭如走马灯，赋税、兵役、科举与市井生活构成日常；而掌握超凡之路的强者，寿命与影响力远超常人，坐镇宗门或隐于山林，一言可动风云、定一域规矩。然而力量并非无代价：机遇往往伴随争夺，同盟与背叛交织，宗门之间、王朝与山门之间、正邪之间，每一步都是取舍。此界亦有不成文的制衡——对凡人滥杀、对天地大逆，会结下因果，在日后关键节点反噬。\n\n地理上，大陆分域而治：中土多王朝与大宗，边陲则秘境、遗迹与蛮荒并存。宝地、传承、奇物散落四方，有缘者得之，无缘者踏破铁鞋亦无门。你可以选择守护一方、钻研炼药制器符纹阵法等百工之艺，也可以卷入纷争、步步为营；多数人或在山门中精进，或在红尘里历练，在因果与规矩的制衡下，寻找自己的路。百工之艺在此界极为兴盛，共同构筑了一个既繁荣又残酷的文明。',
   },
   {
     id: 2,
     name: '地球',
-    era: '灵气复苏元年',
-    description: '在2026年的一天，地球经历了一场前所未有的灵气复苏。曾经只存在于神话传说中的"灵气"，如潮水般涌入现代世界。科学无法解释的异象频频发生：城市上空出现极光般的能量波动，深山老林涌现出神秘的灵脉，普通动植物开始变异进化。\n在这个巨变的时代，你是极少数能感知并吸收灵气的"觉醒者"。当全世界还在用科学仪器研究这股神秘能量时，你已经能够将其炼化入体，走上了修真之路。现代化的都市、便捷的网络、发达的科技，与古老的修炼体系碰撞，产生了奇妙的化学反应。\n政府成立了"超自然事务管理局"，各国争相研究灵气应用技术，跨国企业试图将灵气商业化，而古老宗门的后裔们也纷纷出世。在这个灵气与科技并存的时代，你将在钢铁森林中独自修行，探索"科学修真"的奥秘。人类的寿命依然有限，普通人对觉醒者既敬畏又恐惧，而你，必须在两个世界之间找到自己的道路。',
+    era: '当代',
+    description: '这里是二十一世纪的当代地球。你生活在真实的都市社会之中：高楼林立、地铁通勤、手机与网络无处不在。早高峰挤进写字楼或工厂，晚归在便利店买便当；学区房、房贷、加班与KPI构成无数人的日常。教育从幼儿园卷到考研考公，职场里内卷与躺平并存，有人在大厂拿高薪熬秃头，有人在老家考编求稳，有人送外卖跑滴滴，有人创业九死一生。\n\n社会由法律与制度运转：户籍、社保、税收、合同、婚姻与继承，一切有章可循却也处处可见灰色地带。贫富差距悬殊——一线城市的霓虹与城中村的握手楼同在，精英阶层的酒会与打工人的群租房形成鲜明对比。媒体与舆论在社交媒体上发酵，热搜与短视频塑造着大众的注意力；真相与谣言齐飞，立场与利益交织。家庭结构多元：有人三代同堂，有人丁克或独居，有人为彩礼与婆媳关系烦恼，有人为子女教育与养老焦虑。\n\n没有超自然力量，没有觉醒与灵气。你的故事完全由现实逻辑展开：学历、人脉、机遇、性格与选择，决定你能走到哪里。你可以是一名刚毕业的大学生，在北上广深寻找立足之地；可以是一名小镇青年，在故乡与远方之间挣扎；可以是一名中年职场人，面对裁员与转型；也可以是一名退休者，在含饴弄孙与自我实现之间重新寻找意义。时代给予每个人不同的牌面，如何打牌，则取决于你的六维与抉择。',
   },
   {
     id: 3,
-    name: '赛博修真',
+    name: '赛博纪元',
     era: '新纪元2156',
-    description: '2156年，人类文明已经踏入星际时代。在赛博朋克的霓虹都市中，义体改造、神经接驳、意识上传已成为常态。然而，一次深空探索意外发现了"灵能水晶"——一种能够增强人类精神力的神秘矿石，彻底改变了世界。\n你是一名边缘跑者，在接触灵能水晶后觉醒了修炼天赋。与传统修真不同，这个时代的修行依托于"义体灵修"体系：将灵能与赛博义体结合，数据流就是灵气，神经网络就是经脉，意识核心就是丹田。你可以通过黑客手段"盗取"企业的修炼数据，可以在虚拟现实中进行"数据闭关"，也可以用纳米机器人构建"机械金丹"。\n巨型企业垄断了灵能资源，赛博修士们为了突破境界不得不接受危险任务。城市下层贫民窟中有人在破旧的胶囊旅馆里修炼，上层则是企业供养的"数据仙人"享受着无尽资源。这是一个孤独修士的时代，在霓虹闪烁、义体横行的世界里，你将用代码和灵能书写属于自己的飞升传说。',
+    description: '2156年，人类已踏入星际与赛博时代。地球母星仍有人居住，但更多人口分布在轨道站、月球城与火星殖民地；深空矿船、货运舰队与探险队穿梭于星门之间。在赛博朋克的巨型都市里，摩天楼与贫民窟垂直叠加，霓虹广告与全息投影遮蔽了真正的天空，义体改造、神经接驳与意识上传早已司空见惯——有人为工作装上效率芯片，有人为娱乐接入沉浸舱，有人因伤病换上机械肢体，有人将意识备份进云端以求"数字永生"。\n\n一次深空探索发现了能增强精神与意识的"灵能水晶"，彻底改写了权力与可能性的分布。巨型企业垄断开采与分配，军方与黑市各有渠道；普通人若想接触，要么签下卖身契般的长约，要么走地下渠道承担巨大风险。你是一名边缘人——可能是跑腿、佣兵、黑客或废弃站点的拾荒者——在某种契机下接触了灵能水晶，身体或意识发生了蜕变。这一代的成长依托于"义体—灵能"体系：数据流与神经网络成为新的"经脉"，意识核心成为新的支点。有人通过黑客手段窃取企业的灵能数据，有人在虚拟现实中淬炼意识，有人用纳米技术将灵能写入义体。\n\n社会结构撕裂：顶层住在空中庄园，享受近乎无限的灵能与医疗；底层在胶囊旅馆与地下管网中挣扎，为一次充电、一管营养液讨价还价。公司战争、帮派火并、意识绑架与数据犯罪屡见不鲜。在霓虹与义体横行的世界里，你将用代码、灵能与选择，书写属于自己的命运——是爬上企业阶梯、加入反抗军、还是成为游走于灰色地带的自由人，皆由你定。',
   },
   {
     id: 4,
     name: '魔法纪元',
     era: '第七魔法时代',
-    description: '这是一个魔法与灵气融合的奇幻世界。千年前，东方的"修真体系"与西方的"魔法体系"发生了史诗级的碰撞，最终两大文明达成了微妙的平衡。在这个世界，古老的修真宗门与魔法学院并存，道家的符箓与炼金术的魔法阵有着惊人的相似之处。\n你生于边境之地，这里是两大文明的交汇点。你可以选择传统的修真之路，炼气筑基金丹元婴；也可以学习西方的魔法体系，成为元素法师或是死灵术士。更有野心者，试图融合两种体系，创造前所未有的"魔修"之道。\n这个世界充满了机遇与危险。古老的龙族盘踞在灵脉之上，精灵王国守护着世界树的秘密，矮人在地底挖掘着魔晶矿脉，而人类帝国则在两大体系的碰撞中寻找平衡。魔法学院的学生可能会与修真宗门的弟子发生冲突，古老的修士可能需要面对掌握禁咒的大魔法师。在这个融合与冲突并存的时代，你将独自探索两种力量的奥秘，寻找超越极限的可能。',
+    description: '这是一个魔法与东方玄术并存的奇幻世界，历史可追溯至数千年前。大陆东西分明：西方诸国以魔法为根基，元素、炼金、死灵与预言等学派在学院与宫廷中传承，法师地位尊崇，贵族与教廷共享权力；东方则宗门林立，内炼、丹道、符箓与阵法自成体系，讲究根骨、悟性与机缘。千年以前，两大文明因贸易与战争碰撞，最终在边境拉锯与条约中达成微妙平衡：互通有无，也互相提防。\n\n你生于边境之地——可能是东西交界的自由城邦，可能是某国附庸的缓冲带——身处两大体系的交汇点。在这里，魔法学院的留学生与宗门的外门弟子可能在同一家酒馆喝酒；炼金阵与符纹在原理上有着惊人的相似，学者与修士时有交流也有争执。你可以走东方的内炼与丹道，也可以学西方的元素魔法或死灵学识；更有野心者尝试融合两脉，开辟新路，但往往被视为异端或奇才。\n\n世界地理与种族多元：龙族盘踞灵地，与人类有古老的盟约或世仇；精灵王国守护世界树，与矮人、兽人、人类诸国关系复杂；矮人深挖矿脉，掌握最好的锻造与机关术；人类帝国与王国在列强之间求存，边境摩擦与联姻并存。学院与宗门时有摩擦，探险、遗迹与秘境中机遇与危险同在。在这个融合与冲突的时代，你将探索两种力量的奥秘——不一定是战力登顶，也可以是技艺、智慧、贸易或羁绊。',
   },
   {
     id: 5,
     name: '洪荒末世',
-    era: '末法时代第三千纪',
-    description: '这是一个力量体系凋零的末世。远古时期，神魔横行，大能者手掌星辰、脚踏虚空。然而，随着一场席卷整个大陆的"天道浩劫"，灵气逐渐枯竭，曾经无敌的修真体系已经支离破碎。如今的世界，已是末法时代的第三千年。\n你生于这个衰败的时代，灵脉枯竭、天材地宝近乎绝迹。曾经辉煌的仙门大多已成废墟，唯有少数传承尚存，苟延残喘。修行之路艰难无比，炼气都需要数十年苦功。但正因如此，这是一个回归本真的时代——没有捷径，没有外丹，只有最朴素的苦修和磨砺。\n末法时代的残酷在于，每一次突破都可能是生死劫。资源稀缺，强者为了一株灵草可以血洗一座城。时间在这里变得更加沉重，修士闭关数十年醒来，可能发现整个宗门已经覆灭。这是一个适者生存的时代，也是最考验道心的时代。',
+    era: '衰退纪第三千载',
+    description: '这是一个力量与资源都在衰退的时代。远古传说中，曾有神魔横行、大能者手掌星辰；然而一场席卷整个大陆的浩劫——史称"天道崩殂"或"末劫"——之后，天地间的能量逐渐枯竭，灵脉断裂、奇物凋零，昔日辉煌的宗门与王朝体系支离破碎。如今已是衰退纪第三千年，世界只剩断壁残垣与零星的传承火种。\n\n地理上，大陆多荒漠、瘴地与无法耕种的废土；仅存的宜居地带被各大势力与散修据点割据。宝地难寻，奇物几近绝迹，昔日藏经阁与宝库大多已被搬空或毁于战火，唯有少数禁地仍藏着未解之谜。成长之路极其艰难：没有捷径，没有外物可依，只有最朴素的苦练与心性磨砺。老一辈常言"衰世出真人"——正因资源稀缺，每一次突破都可能是生死关，能活下来并精进者，根基往往比盛世之人更扎实。\n\n社会结构松散：没有大一统王朝，多为城邦、山寨与游牧聚落；律法靠拳头与口碑维持，交易以物易物或稀有货币为主。时间在这里格外沉重——有人闭关数十载冲击瓶颈，醒来时故人已老、势力已改、天下又换了一茬面孔。适者生存，道心与意志成为最硬的通货；你的选择将决定是在废土中建起一方秩序，还是在乱世中独善其身，抑或追寻传说中尚未完全熄灭的"起源之火"。',
   },
   {
     id: 6,
-    name: '星海修仙',
+    name: '星海纪元',
     era: '星际大航海时代',
-    description: '修真文明已经突破了星球的束缚，踏入无垠星海。数万年前，第一批渡劫期大能飞升失败，却意外发现了宇宙深处的无数修真星球，开启了星际大航海时代。\n在这个宇宙中，每颗星球都有独特的修真体系和力量源泉。有的星球灵气浓郁如海，有的星球则孕育着特殊的"星辰之力"。修士们驾驭飞舟穿梭星海，探索遗迹，争夺资源。星际势力林立，古老的修真宗门演变成跨星系的修真帝国。\n这里的时间跨度更加恐怖。炼虚期修士闭关百年，可能醒来时已经跨越了数光年。星际航行动辄数十年，修士们在飞舟中修炼、突破、衰老。有人耗尽千年寿元，也无法到达传说中的"道源星"。这是一个孤独的时代，星海茫茫，道路漫长，而时间是最无情的敌人。',
+    description: '文明早已突破母星，驶入星海。星门与跃迁技术将无数星系连接成网，人类与后来加入的异族共同书写着大航海时代的历史。每颗星球都有独特的环境、资源与传承：有的星球能量浓郁，适合某种修行或科技路线；有的依赖星辰之力或地核反应堆；有的则纯靠贸易与外交在联盟中立足。势力版图错综复杂——星际共和国、帝国余脉、企业联邦、宗教联盟、海盗与自由港，彼此合纵连横，战争与贸易并存。\n\n你可能是某艘星舰上的船员、某颗边境星球的殖民者、或某家跨星系商会的雇员。远航往往以年计：一次跃迁可能耗费数月，一次深空探索可能让你再回母星时故人已老。有人在星舟中成长、衰老、结婚生子；有人耗尽一生也到不了传说中的"起源星"或"道源星"。时间与距离重塑了人际关系与价值观念——故乡变得遥远，同船之人成为新的家人或敌人。\n\n星海茫茫，道路漫长。你将面对孤独、抉择与时间的考验。不是只有战力才能定义强者：探索者、商人、外交官、工程师与传火人，同样可以改写个人与时代的命运。遗迹、异族、未知星域与古老文明的遗产，等待着每一个敢于出发的人。',
   },
   {
     id: 7,
-    name: '武道苍穹',
-    era: '武道纪元',
-    description: '这是一个以武入道的世界，没有传统的灵气修炼，只有纯粹的武道体系。在这里，力量来源于对身体的极致淬炼和对武道真意的感悟。拳破山河、掌碎虚空，是武者的终极追求。\n武道修行分为淬体、凝气、通玄、化真、破虚、登天六大境界。每一次突破都需要经历生死磨砺，没有丹药捷径，只有血与汗的浇灌。淬体期需要十年打熬筋骨，凝气期需要三十年凝练真气，通玄期需要百年感悟武道真意。\n这个世界同样遵循时间的残酷法则。武者闭关苦修，出关时故人已老。高阶武者一次生死战，可能就是数十年寿命的代价。武道宗门的兴衰更迭，不过是百年一瞬。这里没有长生之道，只有燃烧生命追求武道极致的修罗之路。',
+    name: '武道纪元',
+    era: '武道纪年',
+    description: '这是一个以武为尊的世界，没有魔法与灵气，只有对身体的极致锤炼与对武道的领悟。力量来源于筋骨、气血与真气，以及更玄乎的"武意"与"心法"。拳掌之间，可开山断流、踏雪无痕；心性与体魄，决定能走多远。各国以武立国，宗门与流派把持着高阶传承，江湖与庙堂既合作又制衡。\n\n武道之路分阶而上，名目各异：有的称淬体、凝气、通玄、化真、破虚、登天；有的称外劲、内劲、化劲、丹劲、神劲。每一步都需血汗与悟性，没有丹药捷径——有也是辅助，核心仍是苦练与悟。打熬筋骨需数年，凝练真气需十载，感悟真意可能耗去半生。武者闭关苦修，出关时故人已老；高阶者一次生死抉择或论武，可能付出巨大代价。宗门与流派兴衰更迭，百年一瞬；王朝更替，往往也有武道世家的影子。\n\n这里没有长生术，寿元与凡人相去不远，只是体质更强、晚年不易卧床。你可以成为护国武圣、边关大将，也可以做逍遥散人、游历江湖；可以开宗立派、广收门徒，也可以只求不悔、与三五知己饮酒论武。江湖规矩、家国大义与个人恩怨交织，你的选择将决定你在这条路上留下怎样的名号。',
   },
   {
     id: 8,
     name: '诡异世界',
     era: '混沌纪元',
-    description: '这是一个被诡异力量侵蚀的扭曲世界。正常的修真体系已经崩坏，取而代之的是融合了诡异之力的"畸变修行"。修士们不再单纯追求境界突破，而是在保持理智与获得力量之间走钢丝。\n诡异之力无处不在，污染着灵脉、腐蚀着功法、扭曲着生灵。传统的修真路已经走不通，修士们必须学会与诡异共存，甚至主动融合诡异之力。但这条路充满代价——每一次力量提升，都伴随着理智的削弱和身体的异化。\n时间在这里变得更加压迫。诡异侵蚀不会停止，修士们必须在完全疯狂前突破到更高境界。有人闭关十年，出来时已经异化成怪物。有人苦修百年，终于登顶，却发现自己已经失去了人性。这是一个绝望的时代，也是最考验意志的修行之路。',
+    description: '这个世界被一种难以名状的"诡异"侵蚀，年代已不可考。旧有的秩序与力量体系早已崩坏：曾经辉煌的文明留下废墟与断章，如今的人类——或类人——在废墟上建起聚落，与诡异共存。诡异无处不在：它侵蚀土地，使某些区域成为禁地或扭曲空间；它扭曲生灵，接触过多者会异化、发狂或获得非人的能力；它改写规则，在诡异笼罩之处，常识与物理可能失效。\n\n人们无法根除诡异，只能学会在夹缝中生存。有人组建"守夜人"或"镇诡司"，用符箓、仪式与代价暂时压制扩散；有人主动接纳微量诡异之力，在保持理智与获取力量之间走钢丝——这类人被称为"借诡者"或"畸变者"，强于常人却随时可能越过临界点，变成怪物。传统路径已走不通，没有安稳的修行路，只有一次次与诡异的博弈。\n\n时间在这里格外压迫：侵蚀不会停止，禁地每年都在扩大；有人为求力量深入诡域，十年后归来已不成人形；有人苦撑百年，终于在某处站稳脚跟，却发现自己早已与"常人"不同。这是绝望与意志并存的年代。你的选择将决定自己是成为最后的"人"，还是坦然接受另一种存在——或者，在彻底疯狂之前，找到传说中能逆转侵蚀的"源头"。',
   },
   {
     id: 9,
     name: '斗罗大陆',
     era: '魂师纪元',
-    description: '这是一个以武魂为核心的奇幻世界。在这里，每个人都拥有与生俱来的武魂——有的是器武魂如昊天锤、七杀剑，有的是兽武魂如蓝银草、邪眸白虎。武魂的强弱决定了一个人的起点，但真正的强者还需要通过猎杀魂兽，吸收魂环来提升实力。\n\n斗罗大陆的力量体系分为魂师、魂尊、魂宗、魂王、魂帝、魂圣、魂斗罗、封号斗罗九大等级，每提升十级需要吸收一枚魂环。魂环分为十年、百年、千年、万年、十万年五种，魂环年限越高，提供的魂技越强大。但吸收过强的魂环也可能导致身体爆体而亡。\n\n在这个世界，武魂殿统治着整个大陆，两大帝国天斗与星罗分庭抗礼，各大宗门如昊天宗、七宝琉璃宗等暗流涌动。魂师是这个世界最尊贵的职业，但成为强者的道路充满凶险——每一次猎杀魂兽都是生死搏斗，每一次吸收魂环都可能走火入魔。\n\n时间在这里同样残酷。封号斗罗寿命不过三百年，而要从普通魂师修炼到封号斗罗，至少需要数十年甚至百年苦修。魂兽森林深处危机四伏，十万年魂兽更是可以化形为人，拥有不逊于封号斗罗的实力。这是一个天才辈出的时代，也是一个弱肉强食的修罗场。',
+    description: '这是一个以"武魂"为核心的奇幻世界。每个人在六岁时会觉醒武魂——或为器武魂，如锤、剑、塔；或为兽武魂，如虎、蛇、草。武魂的强弱与属性决定起点，但真正的成长还需历练与魂环：每突破十级，需猎杀魂兽、吸收魂环，才能获得魂技并继续进阶。魂师、魂尊、魂宗、魂王、魂帝、魂圣、魂斗罗、封号斗罗，等级森严；魂环年限分十年、百年、千年、万年、十万年，越强越难吸收，也越容易反噬。\n\n大陆势力错综：武魂殿掌控魂师认证与资源分配，影响力无远弗届；天斗与星罗两大帝国分庭抗礼，境内宗门林立——昊天宗、七宝琉璃宗、蓝电霸王龙家族等名震一方。魂师是大陆上最受瞩目的群体，平民以出魂师为荣，贵族以招揽魂师为权柄。强者之路充满凶险：猎取魂环可能丧命于魂兽之口，吸收过强魂环可能爆体而亡；从普通魂师到封号斗罗，往往需要数十年甚至百年，期间宗门恩怨、帝国争霸与魂兽暴动交织。\n\n你可以追求战力登顶，也可以钻研辅助、治疗或控制，在团队中不可或缺；可以经营势力、经商或从政，在魂师界与世俗间左右逢源；也可以探索秘境、追寻十万年魂兽与神祇传承的传说。天才辈出，弱肉强食，但命运从不只写一种答案。',
   },
   {
     id: 10,
     name: '夜的命名术',
     era: '联邦历776年',
-    description: '这是一个被联邦高墙所圈禁的赛博朋克世界。巨型城市在永恒的黑夜与霓虹中呼吸，机械神明在数据网络中俯瞰众生，基因锁链是每个人与生俱来的枷锁。你是在这座囚笼中长大的普通人，直到某一天，你意外觉醒了超凡序列的力量。\n\n在这里，力量意味着一切。财阀、帮派、雇佣兵、觉醒者……无数势力在城市的阴影中盘根错节。为了打破基因的束缚，为了在残酷的法则下活下去，你必须不断战斗、进化，攀登超凡序列的阶梯。\n\n这是一个没有退路的世界。每一次选择都可能通向死亡，每一次战斗都是在与命运豪赌。你将独自面对这个充满压迫与机遇的赛博世界，探索禁忌之地的秘密，成为食物链的顶端，或者，被时代的洪流彻底吞噬。',
+    description: '巨型城市被高墙与霓虹包裹，天空永远笼罩在人工天幕之下，昼夜由系统设定。数据网络渗透一切，其中存在着被称作"机械神明"或"序列意志"的存在，俯瞰并调控着社会运转。每个人从出生起就被打上"基因序列"的烙印——序列决定你能从事的职业、能进入的城区、能获得的资源；低序列者被圈禁在底层，高序列者享有特权与长寿。你本是这座囚笼中的普通人，直到某天因意外、实验或禁忌接触，觉醒了超越自身序列的力量，从此被各方盯上。\n\n财阀把持能源与基因技术，帮派控制地下秩序，雇佣兵与杀手在灰色地带接单；觉醒者则成为各方争抢或剿灭的对象——有人想将你收编，有人想将你解剖研究，有人想借你之名掀起革命。为了打破枷锁、在法则下活下去，你必须不断做出选择、承担代价，在序列的阶梯上攀爬，或与同路人一起撼动阶梯本身。\n\n每一次选择都可能通向死亡或蜕变，但不选也会被洪流吞没。你将面对压迫与机遇并存的赛博世界，探索禁忌与秘密——可以追求力量登顶，也可以追求自由、真相、复仇或羁绊。夜的命名术，为每一个在长夜中仍想为自己命名的人而存在。',
   },
 ];
 
 // =======================================================================
-//                           本地天资数据
+//                           本地天资数据（去修仙化，天命/人生语境）
 // =======================================================================
 export const LOCAL_TALENT_TIERS: Omit<TalentTier, 'source'>[] = [
-  { id: 1, name: '废柴', description: '资质平平，毫无出奇之处，仙路渺茫。虽有向道之心，奈何天赋所限，每一步都需付出常人百倍的努力。', total_points: 10, rarity: 1, color: '#718096' },
-  { id: 2, name: '凡人', description: '芸芸众生中的一员，不好不坏，有缘可入仙途。若有大机缘，亦可成就一番事业。', total_points: 20, rarity: 2, color: '#E2E8F0' },
-  { id: 3, name: '俊杰', description: '百里挑一的人才，略有不凡，在宗门中可为内门弟子。悟性尚可，勤勉修行有望窥得大道门径。', total_points: 35, rarity: 3, color: '#63B3ED' },
-  { id: 4, name: '天骄', description: '千年难遇的奇才，注定耀眼，是宗门未来的希望。天资聪颖，修行速度远超常人，往往能越阶而战。', total_points: 50, rarity: 4, color: '#9F7AEA' },
-  { id: 5, name: '妖孽', description: '万古无一的怪物，逆天而行，可与上古神魔比肩。打破常理的存在，天道似乎都对其格外宽容或格外严苛。', total_points: 70, rarity: 5, color: '#F6E05E' },
-  { id: 6, name: '谪仙转世', description: '仙人转世，天生道胎，记忆蒙尘但灵性不昧，修行一日千里。自带仙气，凡尘俗世的法则难以束缚。', total_points: 85, rarity: 6, color: '#F56565' },
-  { id: 7, name: '大道之子', description: '大道化身，天生与道相合，万法皆通，是此纪元的应劫之人。言出法随，气运逆天，整个世界都在为其让路。', total_points: 100, rarity: 7, color: '#ED8936' },
+  { id: 1, name: '平庸', description: '六维平平，毫无出奇之处，天命之路格外艰辛。虽有向上之心，奈何资质所限，每一步都需付出常人百倍的努力；正因如此，若肯坚持，往往根基最稳。', total_points: 10, rarity: 1, color: '#718096' },
+  { id: 2, name: '寻常', description: '芸芸众生中的一员，不好不坏。若有机缘与选择，亦可成就一番事业；人生多歧路，贵在取舍与坚持。', total_points: 20, rarity: 2, color: '#E2E8F0' },
+  { id: 3, name: '才俊', description: '百里挑一，悟性出众，学习与领悟快于常人。略有不凡，勤勉者有望在技艺或命运上更进一步。', total_points: 35, rarity: 3, color: '#63B3ED' },
+  { id: 4, name: '骄子', description: '千年难遇的奇才，注定耀眼。天资聪颖，成长速度远超常人，在关键抉择前往往能抢先一步。', total_points: 50, rarity: 4, color: '#9F7AEA' },
+  { id: 5, name: '异数', description: '打破常理的存在，命运对其格外苛刻或格外眷顾。万中无一，可与传奇比肩，却也可能背负常人难以想象的代价。', total_points: 70, rarity: 5, color: '#F6E05E' },
+  { id: 6, name: '宿慧', description: '仿佛带前世之忆，记忆蒙尘但灵性不昧，学什么都能一日千里。凡俗规则难以束缚，却也容易与当下世界格格不入。', total_points: 85, rarity: 6, color: '#F56565' },
+  { id: 7, name: '天命所钟', description: '气运逆天，与时代共鸣。仿佛整个世界都在为其让路，机缘与贵人接踵而至；但光环之下，也往往承担着常人看不见的重担。', total_points: 100, rarity: 7, color: '#ED8936' },
 ];
 
 // =======================================================================
-//                           本地出身数据
+//                           本地出身数据（去修仙化，多元身世与六维倾向）
 // =======================================================================
 export const LOCAL_ORIGINS: Omit<Origin, 'source'>[] = [
-  { id: 1, name: '山野遗孤', description: '自幼在山野中长大，与猛兽为伴，磨练出坚韧的意志和过人的体魄。', talent_cost: 0, attribute_modifiers: { root_bone: 1 }, rarity: 3 },
-  { id: 2, name: '书香门第', description: '出身于官宦世家，饱读诗书，对天地至理有超乎常人的理解力。', talent_cost: 2, attribute_modifiers: { comprehension: 2 }, rarity: 3 },
-  { id: 3, name: '商贾之子', description: '生于富贵之家，精通人情世故，处事圆滑，魅力非凡。', talent_cost: 2, attribute_modifiers: { charm: 2 }, rarity: 3 },
-  { id: 4, name: '将门之后', description: '名将的后代，血脉中流淌着勇武与煞气，心性坚定。', talent_cost: 3, attribute_modifiers: { temperament: 2, root_bone: 1 }, rarity: 3 },
-  { id: 5, name: '散修传人', description: '你的师父是一位游戏风尘的强大散修，你继承了他的部分衣钵和见识。', talent_cost: 4, attribute_modifiers: { comprehension: 1, temperament: 1 }, rarity: 4 },
-  { id: 6, name: '魔道卧底', description: '你出身名门正派，却被派往魔道执行卧底任务，心性远超常人。', talent_cost: 1, attribute_modifiers: { temperament: 3 }, rarity: 4 },
-  { id: 7, name: '重生者', description: '你保留着前世的记忆，虽然修为尽失，但对功法和未来的大事了如指掌。', talent_cost: 5, attribute_modifiers: { comprehension: 2, luck: 1 }, rarity: 5 },
-  { id: 8, name: '仙人后裔', description: '你的血脉中流淌着稀薄的仙人之血，天生灵性十足，修炼速度略快于常人。', talent_cost: 6, attribute_modifiers: { spirit: 2, root_bone: 1 }, rarity: 5 },
-  { id: 9, name: '夺舍老怪', description: '你是一名夺舍重生的老怪物，虽然占据了年轻的肉体，但灵魂中蕴含着庞大的神识力量。', talent_cost: 7, attribute_modifiers: { comprehension: 3, temperament: -1 }, rarity: 5 },
-  { id: 10, name: '山神庙祝', description: '你从小在山神庙长大，日夜与香火为伴，神魂受到滋养，对鬼神之事有特殊感应。', talent_cost: 2, attribute_modifiers: { spirit: 2 }, rarity: 3 },
-  { id: 11, name: '渔家少年', description: '常年在江河湖海中讨生活，水性极佳，体魄强健。', talent_cost: 1, attribute_modifiers: { root_bone: 2 }, rarity: 2 },
-  { id: 12, name: '王朝皇子', description: '生于凡人王朝的权力之巅，自幼享受锦衣玉食和最好的教育，但与修仙界的接触较少。', talent_cost: 3, attribute_modifiers: { charm: 2, temperament: 1 }, rarity: 4 },
-  { id: 13, name: '药童出身', description: '自幼在丹房长大，日夜与灵药为伴，对药理有超常的敏感。', talent_cost: 2, attribute_modifiers: { spirit: 1, comprehension: 1 }, rarity: 3 },
-  { id: 14, name: '阵法学徒', description: '师从阵法大师，自小研习阵法纹路，对空间感知极其敏锐。', talent_cost: 3, attribute_modifiers: { comprehension: 2, spirit: 1 }, rarity: 4 },
-  { id: 15, name: '猎妖世家', description: '祖上世代以猎妖为生，血脉中蕴含微弱的妖族之力，对妖气极其敏感。', talent_cost: 4, attribute_modifiers: { root_bone: 2, temperament: 1 }, rarity: 4 },
-  { id: 16, name: '流浪乞丐', description: '自幼流落街头，饱经风霜，磨练出超凡的意志和适应能力。', talent_cost: -1, attribute_modifiers: { temperament: 2, luck: -1 }, rarity: 2 },
-  { id: 17, name: '矿奴余生', description: '曾是灵矿奴隶，在暗无天日的矿洞中挣扎求生，体魄强健但缺乏灵性。', talent_cost: 0, attribute_modifiers: { root_bone: 3, spirit: -1 }, rarity: 2 },
-  { id: 18, name: '画师传人', description: '师承名家，精通丹青之道，对符箓有天生的理解力。', talent_cost: 3, attribute_modifiers: { comprehension: 1, charm: 2 }, rarity: 3 },
-  { id: 19, name: '古墓守陵人', description: '世代守护古墓，长期与死气阴气打交道，对鬼道有独特感悟。', talent_cost: 2, attribute_modifiers: { temperament: 2, spirit: 1 }, rarity: 4 },
-  { id: 20, name: '戏班伶人', description: '自幼学戏，擅长察言观色，魅力非凡，但修道之心不够坚定。', talent_cost: 1, attribute_modifiers: { charm: 3, temperament: -1 }, rarity: 2 },
-  { id: 21, name: '星象世家', description: '家族世代观星测运，你自小研习星象之术，对天地规律有独特理解。', talent_cost: 5, attribute_modifiers: { comprehension: 2, luck: 2 }, rarity: 5 },
-  { id: 22, name: '部落萨满', description: '出身蛮荒部落，继承了萨满的血脉，对自然之力有天生的亲和。', talent_cost: 4, attribute_modifiers: { spirit: 2, root_bone: 1 }, rarity: 4 },
-  { id: 23, name: '孤岛遗民', description: '生于与世隔绝的孤岛，保留着上古时代的原始修行法门。', talent_cost: 3, attribute_modifiers: { temperament: 2, comprehension: 1 }, rarity: 4 },
-  { id: 24, name: '亡国遗孤', description: '国破家亡，历经苦难，心性坚韧如铁，但背负着沉重的仇恨。', talent_cost: 2, attribute_modifiers: { temperament: 3, luck: -1 }, rarity: 3 }
+  { id: 1, name: '山野遗孤', description: '自幼在山野中长大，与自然和野兽为伴，体质与耐受力出众，意志坚韧；对城市与规矩略感疏离。', talent_cost: 0, attribute_modifiers: { root_bone: 1 }, rarity: 3 },
+  { id: 2, name: '书香门第', description: '出身于官宦或学者世家，饱读诗书，悟性超乎常人，对道理与规律有敏锐的理解力；有时略显清高。', talent_cost: 2, attribute_modifiers: { comprehension: 2 }, rarity: 3 },
+  { id: 3, name: '商贾之子', description: '生于富贵之家，精通人情世故，处事圆滑，魅力出众；在社交与利益场中如鱼得水。', talent_cost: 2, attribute_modifiers: { charm: 2 }, rarity: 3 },
+  { id: 4, name: '将门之后', description: '名将之后，体质与心性兼得：勇武果决，遇事不慌，能扛能打；血脉中自带一股不服输的韧劲。', talent_cost: 3, attribute_modifiers: { temperament: 2, root_bone: 1 }, rarity: 3 },
+  { id: 5, name: '游方师承', description: '师从一位游走四方的能人，继承了其部分本领与眼界；见多识广，悟性与心性皆有所得。', talent_cost: 4, attribute_modifiers: { comprehension: 1, temperament: 1 }, rarity: 4 },
+  { id: 6, name: '双面人生', description: '曾长期身处对立阵营之间，心性历练远超常人，善于在压力下保持冷静与伪装；代价是难以完全信任他人。', talent_cost: 1, attribute_modifiers: { temperament: 3 }, rarity: 4 },
+  { id: 7, name: '重生者', description: '你带着前世的记忆而来，对未来的大势与关键节点了如指掌；气运与悟性皆得益于此，但易与当下脱节。', talent_cost: 5, attribute_modifiers: { comprehension: 2, luck: 1 }, rarity: 5 },
+  { id: 8, name: '名门血脉', description: '血脉中流淌着某支古老或显赫家族的传承，灵性十足，成长略快于常人；有时会招致嫉妒或期待。', talent_cost: 6, attribute_modifiers: { spirit: 2, root_bone: 1 }, rarity: 5 },
+  { id: 9, name: '宿慧老者', description: '灵魂历经沧桑，虽居年轻之身，见识与悟性却远超同辈；心性偶显孤僻或与世不容。', talent_cost: 7, attribute_modifiers: { comprehension: 3, temperament: -1 }, rarity: 5 },
+  { id: 10, name: '庙祝之子', description: '从小在庙宇或祭祀之地长大，对不可言说之事直觉敏锐，灵性受滋养；介于世俗与神秘之间。', talent_cost: 2, attribute_modifiers: { spirit: 2 }, rarity: 3 },
+  { id: 11, name: '渔家少年', description: '常年在江河湖海讨生活，体质强健，水性极佳；吃苦耐劳，对风浪与变故习以为常。', talent_cost: 1, attribute_modifiers: { root_bone: 2 }, rarity: 2 },
+  { id: 12, name: '王朝皇子', description: '生于权力之巅，自幼锦衣玉食、受教于最好的师傅；魅力与心性皆有所长，但对民间疾苦未必亲历。', talent_cost: 3, attribute_modifiers: { charm: 2, temperament: 1 }, rarity: 4 },
+  { id: 13, name: '药坊学徒', description: '自幼在药坊或医馆长大，与草木、方剂为伴，对药理与调理有超常的敏感与悟性。', talent_cost: 2, attribute_modifiers: { spirit: 1, comprehension: 1 }, rarity: 3 },
+  { id: 14, name: '机关学徒', description: '师从机关或格致大师，自小研习结构与布局，对空间与逻辑极其敏锐；悟性与灵性兼得。', talent_cost: 3, attribute_modifiers: { comprehension: 2, spirit: 1 }, rarity: 4 },
+  { id: 15, name: '猎户世家', description: '祖上世代以狩猎或探险为生，体质与胆识出众，对危险与异动极其敏感；心性坚韧。', talent_cost: 4, attribute_modifiers: { root_bone: 2, temperament: 1 }, rarity: 4 },
+  { id: 16, name: '流浪乞丐', description: '自幼流落街头，饱经风霜；心性被磨得极韧，适应力惊人，但气运往往不佳，易遭冷眼。', talent_cost: -1, attribute_modifiers: { temperament: 2, luck: -1 }, rarity: 2 },
+  { id: 17, name: '矿工余生', description: '曾在矿洞或苦役中挣扎求生，体魄强健、能扛重活，但长期封闭环境也令灵性与社交略逊。', talent_cost: 0, attribute_modifiers: { root_bone: 3, spirit: -1 }, rarity: 2 },
+  { id: 18, name: '画师传人', description: '师承名家，精通丹青与造型，对线条、符号与意境有天生理解；悟性与魅力皆可用于表达。', talent_cost: 3, attribute_modifiers: { comprehension: 1, charm: 2 }, rarity: 3 },
+  { id: 19, name: '守陵人', description: '世代守护陵墓或遗迹，长期与寂静与禁忌为伴，心性沉稳、直觉敏锐；对生死与秘密有独特感悟。', talent_cost: 2, attribute_modifiers: { temperament: 2, spirit: 1 }, rarity: 4 },
+  { id: 20, name: '戏班伶人', description: '自幼学戏，擅长察言观色、以情动人，魅力非凡；心性易受他人评价左右，不够定锚。', talent_cost: 1, attribute_modifiers: { charm: 3, temperament: -1 }, rarity: 2 },
+  { id: 21, name: '星象世家', description: '家族世代观星测运，你自小研习历法与天象，对规律与气运有独特直觉；悟性与气运皆得益。', talent_cost: 5, attribute_modifiers: { comprehension: 2, luck: 2 }, rarity: 5 },
+  { id: 22, name: '部落萨满', description: '出身蛮荒或边地部落，继承萨满传承，对自然与灵性之力有天生亲和；体质与灵性兼得。', talent_cost: 4, attribute_modifiers: { spirit: 2, root_bone: 1 }, rarity: 4 },
+  { id: 23, name: '孤岛遗民', description: '生于与世隔绝的孤岛，保留着古老的生活方式与技艺；心性坚韧，悟性在独特环境中自成一路。', talent_cost: 3, attribute_modifiers: { temperament: 2, comprehension: 1 }, rarity: 4 },
+  { id: 24, name: '亡国遗孤', description: '国破家亡，历经苦难，心性坚韧如铁；背负仇恨或使命，气运多舛，却往往在绝境中爆发出惊人意志。', talent_cost: 2, attribute_modifiers: { temperament: 3, luck: -1 }, rarity: 3 }
 ];
 
 // =======================================================================
-//                           本地灵根数据 (品级优化版本)
+//                           本地特质数据（原灵根，去修仙化）
 // =======================================================================
+/** 特质预设数据，与存档字段「特质」对应；类型仍用 SpiritRoot 以兼容 store/创角逻辑。 */
 export const LOCAL_SPIRIT_ROOTS: Omit<SpiritRoot, 'source'>[] = [
-  // 上品灵根 - 基础五行
+  // 上品特质
   {
     id: 1,
-    name: '金灵根',
+    name: '坚毅',
     tier: '上品',
-    description: '金曰从革，操控金铁，锋锐无匹。修行金系功法事半功倍，是天生的剑修或刀客胚子，攻击性极强。',
+    description: '性格果决、坚韧不拔，擅长攻坚与坚持。遇事不轻易退缩，成长与行动效率突出。',
     cultivation_speed: '1.6x',
-    special_effects: ['金系法术威力+50%', '器物亲和+30%', '金属感知'],
+    special_effects: ['决断力+50%', '器物与技艺亲和+30%', '抗压感知'],
     base_multiplier: 1.6,
     talent_cost: 10,
     rarity: 3
   },
   {
     id: 2,
-    name: '木灵根',
+    name: '亲和',
     tier: '上品',
-    description: '木曰曲直，亲和草木，生机盎然。修行木系功法极快，擅长治疗、控制，且对灵植有天生的亲和力。',
+    description: '善于沟通与共情，富有生机感。擅长维系关系、恢复状态，对自然与生命有天然亲和。',
     cultivation_speed: '1.6x',
-    special_effects: ['木系法术威力+50%', '生命力恢复+40%', '植物沟通'],
+    special_effects: ['恢复与支持+50%', '生命力与状态恢复+40%', '沟通加成'],
     base_multiplier: 1.6,
     talent_cost: 10,
     rarity: 3
   },
   {
     id: 3,
-    name: '水灵根',
+    name: '柔韧',
     tier: '上品',
-    description: '水曰润下，御水之脉，绵延不绝。修行水系功法，法力悠长，变化多端，适应性极强。',
+    description: '适应力强，持久而善变通。能在不同环境中保持稳定输出，善于化解冲突、迂回达成目标。',
     cultivation_speed: '1.6x',
-    special_effects: ['水系法术威力+50%', '灵气恢复+40%', '水体感知'],
+    special_effects: ['适应性+50%', '精力恢复+40%', '环境感知'],
     base_multiplier: 1.6,
     talent_cost: 10,
     rarity: 3
   },
   {
     id: 4,
-    name: '火灵根',
+    name: '进取',
     tier: '上品',
-    description: '火曰炎上，天生火脉，焚尽八荒。修行火系功法，威力绝伦，爆发力强，是炼丹师的绝佳天赋。',
+    description: '行动力与热情充沛，爆发力强。善于在关键时刻挺身而出，推动事务与自身成长。',
     cultivation_speed: '1.6x',
-    special_effects: ['火系法术威力+50%', '爆发伤害+60%', '火焰免疫'],
+    special_effects: ['行动与爆发+50%', '关键时刻表现+60%', '热情不减'],
     base_multiplier: 1.6,
     talent_cost: 10,
     rarity: 3
   },
   {
     id: 5,
-    name: '土灵根',
+    name: '沉稳',
     tier: '上品',
-    description: '土爰稼穑，大地之子，厚德载物。修行土系功法，防御惊人，稳如泰山，是天生的阵法师材料。',
+    description: '稳重可靠，厚德载物。抗压与守护能力强，适合承担重任与长期规划。',
     cultivation_speed: '1.6x',
-    special_effects: ['土系法术威力+50%', '防御力+40%', '大地感知'],
+    special_effects: ['抗压与守护+50%', '防御与稳固+40%', '大局观'],
     base_multiplier: 1.6,
     talent_cost: 10,
     rarity: 3
   },
 
-  // 中品灵根 - 常见选择
+  // 中品特质
   {
     id: 9,
-    name: '金灵根',
+    name: '刚毅',
     tier: '中品',
-    description: '金行资质尚可，修行金系功法有一定天赋，虽不及上品，但也远超常人。',
+    description: '意志坚定，行事有度。虽非顶尖，但在坚持与攻坚方面优于常人。',
     cultivation_speed: '1.3x',
-    special_effects: ['金系法术威力+25%', '器物亲和+15%'],
+    special_effects: ['决断+25%', '器物亲和+15%'],
     base_multiplier: 1.3,
     talent_cost: 6,
     rarity: 2
   },
   {
     id: 10,
-    name: '火灵根',
+    name: '热情',
     tier: '中品',
-    description: '火行资质良好，对火系功法有不错的亲和力，能够顺利地踏上修行之路。',
+    description: '待人热情，行动力良好。能较顺利地在事务与社交中打开局面。',
     cultivation_speed: '1.3x',
-    special_effects: ['火系法术威力+25%', '爆发伤害+30%'],
+    special_effects: ['行动力+25%', '关键时刻+30%'],
+    base_multiplier: 1.3,
+    talent_cost: 6,
+    rarity: 2
+  },
+  {
+    id: 18,
+    name: '温和',
+    tier: '中品',
+    description: '性情温和，善于配合与恢复。人际关系与状态维持较为顺畅。',
+    cultivation_speed: '1.3x',
+    special_effects: ['恢复与支持+25%', '状态恢复+20%'],
+    base_multiplier: 1.3,
+    talent_cost: 6,
+    rarity: 2
+  },
+  {
+    id: 19,
+    name: '变通',
+    tier: '中品',
+    description: '善于变通，适应力良好。能在变化中保持稳定，迂回达成目标。',
+    cultivation_speed: '1.3x',
+    special_effects: ['适应性+25%', '精力恢复+20%'],
+    base_multiplier: 1.3,
+    talent_cost: 6,
+    rarity: 2
+  },
+  {
+    id: 20,
+    name: '踏实',
+    tier: '中品',
+    description: '脚踏实地，稳重可靠。抗压与长期规划能力不错。',
+    cultivation_speed: '1.3x',
+    special_effects: ['稳固+25%', '抗压+20%'],
     base_multiplier: 1.3,
     talent_cost: 6,
     rarity: 2
   },
 
-  // 极品灵根 - 稀有变异
+  // 极品特质
   {
     id: 11,
-    name: '雷灵根',
+    name: '迅捷',
     tier: '极品',
-    description: '万中无一的变异灵根，天生雷体，雷霆万钧。修行雷系功法速度极快，威力绝伦，是天劫的宠儿。',
+    description: '反应与行动极快，果敢决断。在节奏紧张的情境下表现突出。',
     cultivation_speed: '2.0x',
-    special_effects: ['雷系法术威力+80%', '雷霆免疫', '速度+50%', '穿透攻击'],
+    special_effects: ['反应与决断+80%', '抗干扰', '速度+50%', '穿透式应对'],
     base_multiplier: 2.0,
     talent_cost: 15,
     rarity: 4
   },
   {
     id: 12,
-    name: '冰灵根',
+    name: '冷静',
     tier: '极品',
-    description: '极为罕见的变异灵根，冰霜之躯，万物凋零。修行冰系功法，控制力超凡，能冰封千里。',
+    description: '理性克制，善于分析与控制局面。在复杂情境下保持清醒，化险为夷。',
     cultivation_speed: '2.0x',
-    special_effects: ['冰系法术威力+80%', '减速效果+100%', '冰霜免疫', '空间冻结'],
+    special_effects: ['理性与控制+80%', '节奏掌控+100%', '冷静免疫', '局面冻结'],
     base_multiplier: 2.0,
     talent_cost: 15,
     rarity: 4
   },
+  {
+    id: 14,
+    name: '隐秘',
+    tier: '极品',
+    description: '善于隐匿与洞察，在暗处观察与行动。信息收集与出其不意方面极强。',
+    cultivation_speed: '2.0x',
+    special_effects: ['隐匿与洞察+80%', '隐蔽行动', '夜间或逆境+50%', '脱身能力'],
+    base_multiplier: 2.0,
+    talent_cost: 15,
+    rarity: 4
+  },
+  {
+    id: 15,
+    name: '正直',
+    tier: '极品',
+    description: '心向光明，公正而有治愈力。善于抚平冲突、赢得信任，对不义之事有天然排斥。',
+    cultivation_speed: '2.0x',
+    special_effects: ['公正与治愈+80%', '化解恶意+100%', '治愈与支持', '庇护同伴'],
+    base_multiplier: 2.0,
+    talent_cost: 15,
+    rarity: 4
+  },
+  {
+    id: 21,
+    name: '抗性',
+    tier: '极品',
+    description: '对毒害与险境有较强耐受力，善于在边缘情境中求进。代价与收益并存。',
+    cultivation_speed: '2.0x',
+    special_effects: ['抗毒与险境+80%', '百毒不侵', '险中求进', '危机感知'],
+    base_multiplier: 2.0,
+    talent_cost: 15,
+    rarity: 4
+  },
+  {
+    id: 22,
+    name: '双面',
+    tier: '极品',
+    description: '兼有两种鲜明倾向，可在不同情境下切换风格。融合后表现更佳。',
+    cultivation_speed: '1.8x',
+    special_effects: ['双倾向亲和', '融合突破+30%', '双修加成'],
+    base_multiplier: 1.8,
+    talent_cost: 14,
+    rarity: 4
+  },
 
-  // 神品灵根 - 传说级别
+  // 神品特质
   {
     id: 6,
-    name: '混沌灵根',
+    name: '万象',
     tier: '神品',
-    description: '传说中的至高灵根，万法归一，包容万象。可修行所有属性功法，无瓶颈，但初期进展缓慢，后期一日千里。',
+    description: '多面手，包容万象。初期进展较慢，但无瓶颈，后期全面爆发，一日千里。',
     cultivation_speed: '0.8x(前期) → 2.8x(后期)',
-    special_effects: ['全系法术亲和', '无属性限制', '越阶战斗+50%', '突破概率+30%'],
+    special_effects: ['全方向亲和', '无属性限制', '逆境超越+50%', '突破概率+30%'],
     base_multiplier: 2.8,
     talent_cost: 25,
     rarity: 5
   },
+  {
+    id: 23,
+    name: '超然',
+    tier: '神品',
+    description: '格局宏大，善于抽离与俯瞰。在空间与层次感上天赋异禀，潜力无穷。',
+    cultivation_speed: '0.9x(前期) → 3.0x(后期)',
+    special_effects: ['格局与空间感', '脱困与转移', '锁定关键', '破局一击'],
+    base_multiplier: 3.0,
+    talent_cost: 25,
+    rarity: 5
+  },
+  {
+    id: 24,
+    name: '先见',
+    tier: '神品',
+    description: '对时间与因果有敏锐直觉，善于预判与推演。一旦成熟，可化险为夷、把握因果。',
+    cultivation_speed: '0.8x(前期) → 3.2x(后期)',
+    special_effects: ['预判与因果', '回溯与修正', '因果推演', '节奏加速'],
+    base_multiplier: 3.2,
+    talent_cost: 28,
+    rarity: 5
+  },
+  {
+    id: 25,
+    name: '远大',
+    tier: '神品',
+    description: '目标远大，与长远规划共鸣。进展稳健，善于借大势突破瓶颈。',
+    cultivation_speed: '0.85x(前期) → 2.9x(后期)',
+    special_effects: ['长远目标', '星图演化', '大势庇护', '关键一击'],
+    base_multiplier: 2.9,
+    talent_cost: 26,
+    rarity: 5
+  },
+  {
+    id: 26,
+    name: '平衡',
+    tier: '神品',
+    description: '阴阳调和，两极兼顾。可同时走两条路线，融合后威力倍增。',
+    cultivation_speed: '0.9x(前期) → 3.1x(后期)',
+    special_effects: ['阴阳调和', '两仪归一', '太极生威', '阴阳逆转'],
+    base_multiplier: 3.1,
+    talent_cost: 27,
+    rarity: 5
+  },
 
-  // 特殊灵根
+  // 特殊特质
   {
     id: 7,
-    name: '天妒之体',
+    name: '逆旅',
     tier: '特殊',
-    description: '天道所妒，灵气不亲。修行速度极为缓慢，常人难以忍受。但一旦突破，根基无比扎实，战力远超同阶。',
+    description: '前期成长极为缓慢，常人难以坚持。但一旦突破，根基无比扎实，后续表现远超同侪。',
     cultivation_speed: '0.5x',
-    special_effects: ['根基极其稳固', '突破后实力暴增+100%', '天劫抗性+80%', '逆天改命'],
+    special_effects: ['根基极其稳固', '突破后表现+100%', '逆境抗性+80%', '逆风翻盘'],
     base_multiplier: 0.5,
     talent_cost: -5,
     rarity: 4
   },
+  {
+    id: 16,
+    name: '执念',
+    tier: '特殊',
+    description: '对目标极为执着，成长迅速但往往伴随代价。需在欲望与代价之间取得平衡。',
+    cultivation_speed: '1.8x',
+    special_effects: ['执着加成+70%', '代价恢复', '强烈意志', '边缘亲和'],
+    base_multiplier: 1.8,
+    talent_cost: 10,
+    rarity: 4
+  },
+  {
+    id: 17,
+    name: '坚韧',
+    tier: '特殊',
+    description: '承受力与意志极强，能在极端情境下坚持。不被常规规则轻易束缚。',
+    cultivation_speed: '1.7x',
+    special_effects: ['承受与意志+60%', '骸骨般坚持', '逆境免疫', '绝境天赋'],
+    base_multiplier: 1.7,
+    talent_cost: 8,
+    rarity: 4
+  },
 
-  // 凡品和下品灵根
+  // 凡品 / 下品特质
   {
     id: 8,
-    name: '五行杂灵根',
+    name: '均衡',
     tier: '凡品',
-    description: '凡人中最常见的灵根，五行皆有，却驳杂不堪，修炼速度慢如龟爬，仙路渺茫。',
+    description: '最为常见的特质，各方面平平无奇，但胜在均衡。大器晚成者往往出自其中。',
     cultivation_speed: '1.0x',
     special_effects: ['平凡之道', '大器晚成'],
     base_multiplier: 1.0,
@@ -258,169 +402,26 @@ export const LOCAL_SPIRIT_ROOTS: Omit<SpiritRoot, 'source'>[] = [
   },
   {
     id: 13,
-    name: '风灵根',
+    name: '灵动',
     tier: '下品',
-    description: '较为常见的异种灵根，微风轻抚，虽然资质一般，但胜在灵活多变，身法迅捷。',
+    description: '灵活多变，反应较快。虽非顶尖，但胜在机敏与适应性。',
     cultivation_speed: '1.1x',
-    special_effects: ['风系法术威力+15%', '移动速度+20%'],
+    special_effects: ['灵活+15%', '移动与应变+20%'],
     base_multiplier: 1.1,
     talent_cost: 3,
     rarity: 1
-  },
-  {
-    id: 14,
-    name: '暗灵根',
-    tier: '极品',
-    description: '极为罕见的变异灵根，与黑暗为伴，掌控阴影之力。修行暗系功法速度极快，擅长隐匿和暗杀。',
-    cultivation_speed: '2.0x',
-    special_effects: ['暗系法术威力+80%', '隐身能力', '暗夜增幅+50%', '影遁'],
-    base_multiplier: 2.0,
-    talent_cost: 15,
-    rarity: 4
-  },
-  {
-    id: 15,
-    name: '光灵根',
-    tier: '极品',
-    description: '传说中的圣洁灵根，天生亲近光明，驱邪破煞。修行光系功法事半功倍，对邪祟有天然克制。',
-    cultivation_speed: '2.0x',
-    special_effects: ['光系法术威力+80%', '邪祟克制+100%', '治愈增幅', '圣光庇护'],
-    base_multiplier: 2.0,
-    talent_cost: 15,
-    rarity: 4
-  },
-  {
-    id: 16,
-    name: '血灵根',
-    tier: '特殊',
-    description: '邪道灵根，以血为引，修行迅速但需要大量鲜血滋养。容易走火入魔，但力量增长极快。',
-    cultivation_speed: '1.8x',
-    special_effects: ['血系法术威力+70%', '吸血恢复', '嗜血狂化', '魔道亲和'],
-    base_multiplier: 1.8,
-    talent_cost: 10,
-    rarity: 4
-  },
-  {
-    id: 17,
-    name: '骨灵根',
-    tier: '特殊',
-    description: '罕见的死灵根，天生亲近死气，能够操控骸骨。修行鬼道功法速度极快，但被正道所不容。',
-    cultivation_speed: '1.7x',
-    special_effects: ['死灵法术威力+60%', '骸骨操控', '死气免疫', '鬼道天赋'],
-    base_multiplier: 1.7,
-    talent_cost: 8,
-    rarity: 4
-  },
-  {
-    id: 18,
-    name: '木灵根',
-    tier: '中品',
-    description: '木行资质尚可，对木系功法有不错的亲和力，能够顺利踏上修行之路。',
-    cultivation_speed: '1.3x',
-    special_effects: ['木系法术威力+25%', '生命力恢复+20%'],
-    base_multiplier: 1.3,
-    talent_cost: 6,
-    rarity: 2
-  },
-  {
-    id: 19,
-    name: '水灵根',
-    tier: '中品',
-    description: '水行资质良好，法力绵延不绝，适应性强，修行较为顺畅。',
-    cultivation_speed: '1.3x',
-    special_effects: ['水系法术威力+25%', '灵气恢复+20%'],
-    base_multiplier: 1.3,
-    talent_cost: 6,
-    rarity: 2
-  },
-  {
-    id: 20,
-    name: '土灵根',
-    tier: '中品',
-    description: '土行资质不错，防御力强，稳扎稳打，是阵法师的良好资质。',
-    cultivation_speed: '1.3x',
-    special_effects: ['土系法术威力+25%', '防御力+20%'],
-    base_multiplier: 1.3,
-    talent_cost: 6,
-    rarity: 2
-  },
-  {
-    id: 21,
-    name: '毒灵根',
-    tier: '极品',
-    description: '极为罕见的变异灵根，天生百毒不侵，修行毒功速度极快，是毒道修士梦寐以求的体质。',
-    cultivation_speed: '2.0x',
-    special_effects: ['毒系法术威力+80%', '百毒不侵', '剧毒增幅', '毒素感知'],
-    base_multiplier: 2.0,
-    talent_cost: 15,
-    rarity: 4
-  },
-  {
-    id: 22,
-    name: '双生灵根',
-    tier: '极品',
-    description: '万中无一的双属性灵根，同时拥有两种基础灵根的力量。可修炼两系功法，但初期进展缓慢。',
-    cultivation_speed: '1.8x',
-    special_effects: ['双系法术亲和', '融合突破+30%', '双修加成'],
-    base_multiplier: 1.8,
-    talent_cost: 14,
-    rarity: 4
-  },
-  {
-    id: 23,
-    name: '虚空灵根',
-    tier: '神品',
-    description: '传说中的至高灵根之一，掌控虚空法则，可穿梭空间。修行极难但潜力无穷。',
-    cultivation_speed: '0.9x(前期) → 3.0x(后期)',
-    special_effects: ['空间法术精通', '虚空穿梭', '空间锁定', '次元斩'],
-    base_multiplier: 3.0,
-    talent_cost: 25,
-    rarity: 5
-  },
-  {
-    id: 24,
-    name: '时间灵根',
-    tier: '神品',
-    description: '最为稀有的传说灵根，触及时间法则。修炼艰难但一旦有成，可逆转岁月，掌控因果。',
-    cultivation_speed: '0.8x(前期) → 3.2x(后期)',
-    special_effects: ['时间法术精通', '时光倒流', '因果推演', '时间加速'],
-    base_multiplier: 3.2,
-    talent_cost: 28,
-    rarity: 5
-  },
-  {
-    id: 25,
-    name: '星辰灵根',
-    tier: '神品',
-    description: '吸纳星辰之力的稀世灵根，与星空共鸣。修行缓慢但境界稳固，可借星辰之力突破瓶颈。',
-    cultivation_speed: '0.85x(前期) → 2.9x(后期)',
-    special_effects: ['星辰之力', '星图演化', '星光庇护', '星陨术'],
-    base_multiplier: 2.9,
-    talent_cost: 26,
-    rarity: 5
-  },
-  {
-    id: 26,
-    name: '阴阳灵根',
-    tier: '神品',
-    description: '至高双生灵根，阴阳调和，太极生两仪。可同时修炼阴阳两种功法，融合后威力倍增。',
-    cultivation_speed: '0.9x(前期) → 3.1x(后期)',
-    special_effects: ['阴阳调和', '两仪归一', '太极生威', '阴阳逆转'],
-    base_multiplier: 3.1,
-    talent_cost: 27,
-    rarity: 5
   },
 ];
 
 
 // =======================================================================
-//                           本地天赋数据 (预留)
+//                           本地天赋数据（去修仙化，多元与六维兼顾）
 // =======================================================================
 export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 1,
     name: '天命主角',
-    description: '气运惊人，总是能在绝境中逢生，获得意想不到的机缘。',
+    description: '气运惊人，总能在绝境中逢生，获得意想不到的机缘与贵人；人生剧本仿佛总在关键处多写一笔。',
     talent_cost: 15,
     rarity: 5,
     effects: [
@@ -430,8 +431,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 2,
-    name: '剑道独尊',
-    description: '天生剑心通明，任何剑法一看便会，且威力倍增。',
+    name: '剑术精通',
+    description: '对剑类兵器有天生悟性，学得快、用得准，在需要决断与锋芒的场景下表现突出；体质也因常年练剑而受益。',
     talent_cost: 12,
     rarity: 5,
     effects: [
@@ -441,8 +442,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 3,
-    name: '丹道圣手',
-    description: '对药理有超凡的领悟力，炼丹成功率与品质大幅提升。',
+    name: '药理圣手',
+    description: '对药性与方剂有超凡领悟，调配与炼制成功率高、品质好；悟性在草木与剂量间格外敏锐。',
     talent_cost: 12,
     rarity: 5,
     effects: [
@@ -452,8 +453,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 4,
-    name: '阵法大师',
-    description: '对阵法有极高的天赋，学习和布置阵法的效率大大提高。',
+    name: '布局大师',
+    description: '对阵法、机关与空间布局有极高天赋，学习与布置效率大增；善于利用环境与结构达成目标。',
     talent_cost: 8,
     rarity: 4,
     effects: [
@@ -463,8 +464,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 5,
-    name: '炼器鬼才',
-    description: '天生对各种材料有敏锐的感知，炼器时更容易出现极品。',
+    name: '工艺鬼才',
+    description: '对材料与制作有敏锐感知，打造器物时更容易出精品；触觉与直觉在工匠活里格外管用。',
     talent_cost: 8,
     rarity: 4,
     effects: [
@@ -474,8 +475,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 6,
-    name: '多宝童子',
-    description: '出门历练时，更容易发现天材地宝。',
+    name: '寻宝直觉',
+    description: '出门在外时，更容易发现隐藏的宝物、线索与机遇；气运在"发现"这件事上格外眷顾你。',
     talent_cost: 7,
     rarity: 4,
     effects: [
@@ -485,8 +486,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 7,
-    name: '体修奇才',
-    description: '肉身天生强横，气血旺盛，适合修炼体修功法。',
+    name: '体魄强健',
+    description: '体质出众，耐打耐耗，适合需要体力与韧性的路线；六维中"体质"一枝独秀。',
     talent_cost: 5,
     rarity: 3,
     effects: [
@@ -496,8 +497,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 8,
-    name: '神识过人',
-    description: '天生神识强大，不易被心魔入侵，施展神识秘术效果更佳。',
+    name: '洞察过人',
+    description: '悟性与直觉兼得：思维清晰，不易被幻象与话术蛊惑，在需要看破本质时表现突出。',
     talent_cost: 5,
     rarity: 3,
     effects: [
@@ -507,8 +508,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 9,
-    name: '身法鬼魅',
-    description: '身法飘逸，战斗中闪避能力更强。',
+    name: '身法灵动',
+    description: '直觉在闪避与走位上格外敏锐，反应快、步法刁钻；在混乱与危机中更容易脱身。',
     talent_cost: 4,
     rarity: 3,
     effects: [
@@ -518,8 +519,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 10,
-    name: '农夫之子',
-    description: '出身凡人，心性坚韧，对灵植有额外的亲和力。',
+    name: '乡土根性',
+    description: '心性扎根于土地与劳作，坚韧、踏实；对植物与自然有额外亲和，不易被浮华动摇。',
     talent_cost: 2,
     rarity: 2,
     effects: [
@@ -530,7 +531,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 11,
     name: '过目不忘',
-    description: '记忆力超群，学习功法秘籍速度加快。',
+    description: '悟性在记忆与学习上格外突出，看过、听过的东西不易忘，学什么都比别人快一步。',
     talent_cost: 2,
     rarity: 2,
     effects: [
@@ -540,7 +541,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 12,
     name: '老实人',
-    description: '与人交易时，不容易被欺骗。',
+    description: '与人交易或打交道时，不易被欺骗；气质里自带一种"不好骗"的磁场。',
     talent_cost: 1,
     rarity: 1,
     effects: [
@@ -550,7 +551,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 13,
     name: '一诺千金',
-    description: '你的承诺极具分量，更容易获得他人的信任与好感。',
+    description: '魅力来自信誉：你的承诺极具分量，更容易获得他人信任与好感，合作与同盟更稳固。',
     talent_cost: 3,
     rarity: 2,
     effects: [
@@ -559,8 +560,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 14,
-    name: '天生毒体',
-    description: '百毒不侵，且能更好地驾驭毒功，但常人不敢轻易接近。',
+    name: '百毒不侵',
+    description: '体质对毒素与异常状态抗性极强，甚至能化毒为用；但气质偏冷峻，常人不敢轻易接近。',
     talent_cost: 6,
     rarity: 4,
     effects: [
@@ -571,8 +572,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 15,
-    name: '画龙点睛',
-    description: '在制作符箓时，有一定几率产生意想不到的强大效果。',
+    name: '符艺点睛',
+    description: '在绘制符纹、印记或符号时，有一定几率触发意想不到的强化效果；笔尖带一点玄机。',
     talent_cost: 4,
     rarity: 3,
     effects: [
@@ -583,7 +584,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 16,
     name: '顶级魅力',
-    description: '天生丽质，气质非凡，魅力超群。无论走到哪里都是众人瞩目的焦点，极容易获得他人的好感与信任。在社交场合如鱼得水，能够以言语和魅力化解大部分冲突。',
+    description: '魅力超群，气质夺人。走到哪里都是焦点，容易获得好感与信任，在社交与谈判中如鱼得水，常能化干戈为玉帛。',
     talent_cost: 8,
     rarity: 4,
     effects: [
@@ -594,8 +595,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 17,
-    name: '道心坚固',
-    description: '道心如铁，心魔难侵。突破时更不容易走火入魔，受到诱惑和幻术影响的几率大幅降低。',
+    name: '意志如铁',
+    description: '心性极稳，不易被诱惑与幻术动摇；在关键抉择与逆境中，更能守住本心、不崩盘。',
     talent_cost: 6,
     rarity: 4,
     effects: [
@@ -606,7 +607,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 18,
     name: '天生神力',
-    description: '天生力大无穷，体质远超常人。擅长近战搏杀，气血旺盛。',
+    description: '体质在力量与爆发上格外突出，力大耐扛，在需要体力与近身对抗的场景中占优。',
     talent_cost: 5,
     rarity: 3,
     effects: [
@@ -617,7 +618,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 19,
     name: '灵觉敏锐',
-    description: '六感超凡，对危险有本能的预感。在战斗和探险中能够提前感知到威胁。',
+    description: '直觉超凡，对危险与异常有本能预感；在探险与变故中能提前嗅到威胁，少踩坑。',
     talent_cost: 4,
     rarity: 3,
     effects: [
@@ -627,8 +628,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 20,
-    name: '夜猫子',
-    description: '夜晚精神百倍，修炼效率提升。但白天会感到困倦。',
+    name: '夜型人',
+    description: '夜晚精神与效率更高，适合在夜间行动或思考；白天则容易犯困，作息与常人略反。',
     talent_cost: 1,
     rarity: 2,
     effects: [
@@ -637,8 +638,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 21,
-    name: '天道眷顾',
-    description: '受天道眷顾，突破时成功率更高，遭遇天劫时威力减弱。',
+    name: '命运眷顾',
+    description: '气运眷顾，在关键突破与重大抉择时成功率更高，遭遇厄运时往往能化险为夷。',
     talent_cost: 10,
     rarity: 5,
     effects: [
@@ -650,7 +651,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 22,
     name: '剑骨天成',
-    description: '天生剑骨，与剑有莫名的契合。剑法威力倍增，领悟剑意速度极快。',
+    description: '体质与剑类兵器天生契合，剑法威力与领悟速度都远超常人；仿佛为剑而生。',
     talent_cost: 10,
     rarity: 5,
     effects: [
@@ -661,8 +662,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 23,
-    name: '天生道体',
-    description: '传说中的道体，天生契合天地大道，修炼任何功法都事半功倍。',
+    name: '通才',
+    description: '悟性与直觉双高，学什么都能触类旁通、事半功倍；没有明显短板，适合多线发展。',
     talent_cost: 18,
     rarity: 5,
     effects: [
@@ -673,8 +674,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 24,
-    name: '符道奇才',
-    description: '对符箓有超凡的领悟，绘制符箓成功率高，威力强大。',
+    name: '符艺奇才',
+    description: '对符纹与符号有超凡领悟，绘制成功率高、效果强；悟性在"规则与象征"上格外敏锐。',
     talent_cost: 7,
     rarity: 4,
     effects: [
@@ -685,8 +686,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 25,
-    name: '灵兽亲和',
-    description: '天生亲和灵兽，更容易收服和沟通灵兽，灵兽战力提升。',
+    name: '动物亲和',
+    description: '魅力对动物与灵兽格外有效，更容易建立信任与契约；伙伴在你身边时往往表现更佳。',
     talent_cost: 6,
     rarity: 4,
     effects: [
@@ -697,8 +698,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 26,
-    name: '天生魔心',
-    description: '心性偏向魔道，修炼魔功速度极快，但容易走火入魔。正道功法修炼困难。',
+    name: '执念之躯',
+    description: '心性偏执，在认定之事上进步极快，但容易走极端、被执念反噬；与"正道"或常规路线常有冲突。',
     talent_cost: 5,
     rarity: 4,
     effects: [
@@ -709,8 +710,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 27,
-    name: '器道宗师',
-    description: '对炼器有非凡的天赋，炼制的法器品质更高，成功率更高。',
+    name: '工艺宗师',
+    description: '对锻造与制作有非凡天赋，成品品质与成功率都高；悟性在"物"与"器"上发挥到极致。',
     talent_cost: 9,
     rarity: 4,
     effects: [
@@ -722,7 +723,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 28,
     name: '孤星命格',
-    description: '天煞孤星，注定孤独一生。气运极低，但在绝境中更容易突破。',
+    description: '气运极低，注定孤独，难得贵人；但在绝境与背水一战时，反而更容易爆发出惊人突破。',
     talent_cost: -3,
     rarity: 3,
     effects: [
@@ -733,7 +734,7 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   {
     id: 29,
     name: '先知梦境',
-    description: '偶尔能在梦中窥见未来的片段，提前规避危险或把握机缘。',
+    description: '偶尔在梦中窥见未来的片段，能提前规避危险或把握机缘；悟性与气运在"预知"上偶有交汇。',
     talent_cost: 8,
     rarity: 5,
     effects: [
@@ -744,8 +745,8 @@ export const LOCAL_TALENTS: Omit<Talent, 'source'>[] = [
   },
   {
     id: 30,
-    name: '长生体质',
-    description: '天生寿元悠长，比常人更不易衰老，有更多时间追求大道。',
+    name: '长寿之躯',
+    description: '体质偏于长寿，比常人更不易衰老，有更多时间打磨技艺、经营人生与关系。',
     talent_cost: 12,
     rarity: 5,
     effects: [

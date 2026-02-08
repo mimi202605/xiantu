@@ -1,6 +1,6 @@
 <template>
   <div class="spirit-root-selection-container">
-    <div v-if="store.isLoading" class="loading-state">{{ $t('天地玄黄，探查灵根...') }}</div>
+    <div v-if="store.isLoading" class="loading-state">{{ $t('加载特质中...') }}</div>
     <div v-else-if="store.error" class="error-state">{{ $t('天机混沌：') }}{{ store.error }}</div>
 
     <div v-else class="spirit-root-layout">
@@ -30,7 +30,7 @@
             @click="selectionMode = 'preset'"
             class="mode-tab"
           >
-            {{ $t('预设灵根') }}
+            {{ $t('预设特质') }}
           </button>
           <button
             :class="{ active: selectionMode === 'custom' }"
@@ -41,7 +41,7 @@
           </button>
         </div>
 
-        <!-- 预设灵根模式 -->
+        <!-- 预设特质模式 -->
         <div v-if="selectionMode === 'preset'" class="preset-mode">
           <div class="spirit-root-list-container">
             <div
@@ -50,7 +50,7 @@
               @click="handleSelectRandom"
               @mouseover="activeSpiritRoot = 'random'"
             >
-              <span class="spirit-root-name">{{ $t('随机灵根') }}</span>
+              <span class="spirit-root-name">{{ $t('随机特质') }}</span>
               <span class="spirit-root-cost">{{ $t('0 点') }}</span>
             </div>
             <div class="divider"></div>
@@ -89,9 +89,9 @@
         <!-- 组合选择模式 -->
         <div v-if="selectionMode === 'custom'" class="custom-mode">
           <div class="custom-selection-container">
-            <!-- 灵根类型选择 -->
+            <!-- 特质类型选择 -->
             <div class="selection-group">
-              <label class="selection-label">{{ $t('灵根类型') }}</label>
+              <label class="selection-label">{{ $t('特质类型') }}</label>
               <div class="spirit-type-grid">
                 <button
                   v-for="type in spiritRootTypes"
@@ -109,7 +109,7 @@
 
             <!-- 品级选择 -->
             <div class="selection-group">
-              <label class="selection-label">{{ $t('灵根品级') }}</label>
+              <label class="selection-label">{{ $t('特质品级') }}</label>
               <div class="tier-selection">
                 <button
                   v-for="tier in spiritRootTiers"
@@ -168,19 +168,19 @@
               <span class="stat-value">{{ getActiveMultiplier() }}x</span>
             </div>
             <div class="stat-item">
-              <span class="stat-label">{{ $t('消耗天道点:') }}</span>
+              <span class="stat-label">{{ $t('消耗天命点:') }}</span>
               <span class="stat-value">{{ getActiveCost() }}{{ $t('点') }}</span>
             </div>
           </div>
         </div>
-        <div v-else class="placeholder">{{ $t('请选择一种灵根，或听天由命。') }}</div>
+        <div v-else class="placeholder">{{ $t('请选择一种特质，或听天由命。') }}</div>
       </div>
     </div>
 
     <!-- 高级自定义模态框 -->
     <CustomCreationModal
       :visible="isAdvancedCustomVisible"
-      :title="$t('高级自定义灵根')"
+      :title="$t('高级自定义特质')"
       :fields="advancedCustomFields"
       :validationFn="validateAdvancedCustom"
       @close="isAdvancedCustomVisible = false"
@@ -190,7 +190,7 @@
     <!-- 编辑模态框 -->
     <CustomCreationModal
       :visible="isEditModalVisible"
-      :title="$t('编辑灵根')"
+      :title="$t('编辑特质')"
       :fields="advancedCustomFields"
       :validationFn="validateAdvancedCustom"
       :initialData="editInitialData"
@@ -209,6 +209,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive } from 'vue'
+import { useI18n } from '@/i18n'
 import { Trash2, Edit } from 'lucide-vue-next'
 import { useCharacterCreationStore } from '../../stores/characterCreationStore'
 import type { SpiritRoot } from '../../types'
@@ -220,6 +221,7 @@ import { SPIRIT_ROOT_ITEM_GENERATION_PROMPT } from '../../utils/prompts/tasks/ga
 import { parseJsonFromText } from '@/utils/jsonExtract'
 
 const emit = defineEmits(['ai-generate'])
+const { t } = useI18n()
 const store = useCharacterCreationStore()
 // UI状态
 const activeSpiritRoot = ref<SpiritRoot | 'random' | null>(null)
@@ -229,13 +231,13 @@ const isEditModalVisible = ref(false)
 const isAIPromptModalVisible = ref(false)
 const editingSpiritRoot = ref<SpiritRoot | null>(null)
 
-// 自定义灵根状态
+// 自定义特质状态
 const customSpirit = reactive({
   type: 'none' as string,
   tier: 'none' as string
 })
 
-// 灵根类型配置
+// 特质类型配置
 const spiritRootTypes = [
   { key: 'fire', name: '火', icon: '🔥', color: '#ef4444', desc: '烈火焚天，爆发力强' },
   { key: 'water', name: '水', icon: '💧', color: '#3b82f6', desc: '水流不息，绵延悠长' },
@@ -251,9 +253,9 @@ const spiritRootTypes = [
   { key: 'time', name: '时间', icon: '⏰', color: '#ec4899', desc: '时光流转，逆转乾坤' }
 ]
 
-// 灵根品级配置 - 完整的修仙品级体系
+// 特质品级配置
 const spiritRootTiers = [
-  { key: 'common', name: '凡品', multiplier: 1.0, cost: 0, desc: '平平无奇的普通灵根' },
+  { key: 'common', name: '凡品', multiplier: 1.0, cost: 0, desc: '平平无奇的普通特质' },
   { key: 'low', name: '下品', multiplier: 1.1, cost: 3, desc: '略有天赋，勉强可用' },
   { key: 'middle', name: '中品', multiplier: 1.3, cost: 6, desc: '资质尚可，小有成就' },
   { key: 'high', name: '上品', multiplier: 1.6, cost: 10, desc: '天赋卓越，前途无量' },
@@ -276,29 +278,29 @@ const filteredSpiritRoots = computed(() => {
 });
 
 // 高级自定义字段 - 使用动态列表格式
-// 根据 types/index.ts 中的 SpiritRoot 接口定义字段
-const advancedCustomFields: readonly ModalField[] = [
-  { key: 'name', label: '灵根名称', type: 'text', placeholder: '例如：混沌灵根' },
-  { key: 'tier', label: '品级', type: 'select', options: spiritRootTiers.map(t => ({ value: t.key, label: t.name })) },
-  { key: 'description', label: '灵根描述', type: 'textarea', placeholder: '描述这个灵根的特性和背景故事...' },
-  { key: 'cultivation_speed', label: '修炼速度', type: 'text', placeholder: '例如：极快、快速、普通、缓慢' },
-  { key: 'base_multiplier', label: '修炼倍率', type: 'number', placeholder: '例如：1.5' },
-  { key: 'talent_cost', label: '消耗天道点', type: 'number', placeholder: '例如：10' },
+// 根据 types/index.ts 中的 SpiritRoot 接口定义字段（展示为特质）
+const advancedCustomFields = computed<ModalField[]>(() => [
+  { key: 'name', label: t('特质名称'), type: 'text', placeholder: t('例如：万象') },
+  { key: 'tier', label: t('品级'), type: 'select', options: spiritRootTiers.map(tier => ({ value: tier.key, label: tier.name })) },
+  { key: 'description', label: t('特质描述'), type: 'textarea', placeholder: t('描述此特质的特性与背景...') },
+  { key: 'cultivation_speed', label: t('修炼倍率').split(/[：:]/)[0] || '成长速度', type: 'text', placeholder: '例如：极快、快速、普通、缓慢' },
+  { key: 'base_multiplier', label: t('修炼倍率:').split(':')[0].trim() || t('修炼倍率'), type: 'number', placeholder: '例如：1.5' },
+  { key: 'talent_cost', label: t('消耗天命点:').split(':')[0].trim() || t('消耗天命点'), type: 'number', placeholder: '例如：10' },
   { key: 'rarity', label: '稀有度', type: 'number', placeholder: '1-10，数值越高越稀有' },
   {
     key: 'special_effects',
-    label: '特殊效果',
+    label: t('特殊效果'),
     type: 'dynamic-list',
     columns: [
       {
         key: 'effect',
-        placeholder: '效果描述，如：雷系法术威力+80%'
+        placeholder: '效果描述，如：决断力+50%'
       }
     ]
   }
-]
+])
 
-// 为自定义灵根数据定义完整类型 - 与标准数据格式保持一致
+// 为自定义特质数据定义完整类型 - 与标准数据格式保持一致
 type CustomSpiritRootData = {
   name: string;
   tier: string;
@@ -314,9 +316,9 @@ function validateCustomSpiritRoot(data: Partial<CustomSpiritRootData>) {
     const errors: Record<string, string> = {};
 
     // 必填字段验证
-    if (!data.name?.trim()) errors.name = '灵根名称不可为空';
-    if (!data.tier) errors.tier = '请选择品级';
-    if (!data.description?.trim()) errors.description = '灵根描述不可为空';
+    if (!data.name?.trim()) errors.name = t('特质名称不可为空');
+    if (!data.tier) errors.tier = t('请选择品级');
+    if (!data.description?.trim()) errors.description = t('特质描述不可为空');
 
     // 数值字段验证
     const baseMultiplier = Number(data.base_multiplier);
@@ -348,7 +350,7 @@ async function handleCustomSubmit(data: CustomSpiritRootData) {
         .map(item => item.effect.trim())
     : [];
 
-  // 创建完整的标准化灵根对象
+  // 创建完整的标准化特质对象
   const newRoot: SpiritRoot = {
     id: Date.now(),
     name: data.name,
@@ -366,10 +368,10 @@ async function handleCustomSubmit(data: CustomSpiritRootData) {
     store.addTrait(newRoot);
     handleSelectSpiritRoot(newRoot);
     isAdvancedCustomVisible.value = false;
-    toast.success(`自定义灵根 "${newRoot.name}" 已保存！`);
+    toast.success(t('自定义特质 "{0}" 已保存！', [newRoot.name]));
   } catch (e) {
-    console.error('保存自定义灵根失败:', e);
-    toast.error('保存自定义灵根失败！');
+    console.error('保存自定义特质失败:', e);
+    toast.error(t('保存自定义特质失败！'));
   }
 }
 
@@ -377,16 +379,16 @@ const isRandomSelected = computed(() => store.characterPayload.trait_id === null
 
 // New computed properties for hover display
 const activeDisplayName = computed(() => {
- if (activeSpiritRoot.value === 'random') return '随机灵根'
+ if (activeSpiritRoot.value === 'random') return t('随机特质')
  if (activeSpiritRoot.value && typeof activeSpiritRoot.value === 'object') return activeSpiritRoot.value.name
  return ''
 });
 
 const activeDescription = computed(() => {
  if (activeSpiritRoot.value === 'random')
-   return '大道五十，天衍四九，人遁其一。选择此项，你的灵根将完全随机生成，可能一步登天，亦可能平庸无奇。'
- if (activeSpiritRoot.value && typeof activeSpiritRoot.value === 'object') return activeSpiritRoot.value.description || '灵根信息不明。'
- return '灵根信息不明。'
+   return t('天命难测。选择此项，特质将随机生成，可能出众，亦可能平凡。')
+ if (activeSpiritRoot.value && typeof activeSpiritRoot.value === 'object') return activeSpiritRoot.value.description || t('特质信息不明。')
+ return t('特质信息不明。')
 });
 
 const activeCost = computed(() => {
@@ -406,7 +408,7 @@ const canSelect = (root: SpiritRoot): boolean => {
 
 function handleSelectSpiritRoot(root: SpiritRoot) {
   if (!canSelect(root)) {
-    toast.warning('天道点不足，无法选择此灵根。')
+    toast.warning(t('天命点不足，无法选择此特质。'))
     return
   }
   const newRootId = store.characterPayload.trait_id === root.id ? null : root.id;
@@ -437,28 +439,28 @@ async function handleAIPromptSubmit(userPrompt: string) {
       return;
     }
 
-    console.log('【AI推演-灵根】完整响应:', aiResponse);
+    console.log('【AI推演-特质】完整响应:', aiResponse);
 
     // 解析AI返回的JSON
     let parsedRoot: Record<string, unknown>;
     try {
       parsedRoot = parseJsonFromText(aiResponse);
     } catch (parseError) {
-      console.error('【AI推演-灵根】JSON解析失败:', parseError);
+      console.error('【AI推演-特质】JSON解析失败:', parseError);
       toast.error('AI推演结果格式错误，无法解析', { id: toastId });
       return;
     }
 
     // 验证必需字段
     if (!parsedRoot.name && !parsedRoot.名称) {
-      toast.error('AI推演结果缺少灵根名称', { id: toastId });
+      toast.error(t('特质名称不可为空'), { id: toastId });
       return;
     }
 
-    // 创建灵根对象
+    // 创建特质对象
     const newRoot: SpiritRoot = {
       id: Date.now(),
-      name: String(parsedRoot.name || parsedRoot['名称'] || '未命名灵根'),
+      name: String(parsedRoot.name || parsedRoot['名称'] || t('特质名称')),
       tier: String(parsedRoot.tier || parsedRoot['品级'] || parsedRoot['等级'] || ''),
       description: String(parsedRoot.description || parsedRoot['描述'] || parsedRoot['说明'] || ''),
       base_multiplier: Number(parsedRoot.base_multiplier || parsedRoot['修炼倍率']) || 1.0,
@@ -467,21 +469,21 @@ async function handleAIPromptSubmit(userPrompt: string) {
       source: 'local'
     };
 
-    // 保存并选择灵根
+    // 保存并选择特质
     store.addTrait(newRoot);
     handleSelectSpiritRoot(newRoot);
     isAIPromptModalVisible.value = false;
 
-    toast.success(`AI推演完成！灵根 "${newRoot.name}" 已生成`, { id: toastId });
+    toast.success(t('AI推演完成！特质 "{0}" 已生成', [newRoot.name]), { id: toastId });
 
   } catch (e: unknown) {
-    console.error('【AI推演-灵根】失败:', e);
+    console.error('【AI推演-特质】失败:', e);
     const errorMessage = e instanceof Error ? e.message : '未知错误';
     toast.error(`AI推演失败: ${errorMessage}`, { id: toastId });
   }
 }
 
-// 解析灵根名称和等级
+// 解析特质名称和等级
 function getSpiritRootBaseName(name: string): string {
   // 现在名称中不再包含品级前缀，直接返回名称
   return name;
@@ -492,11 +494,11 @@ function getSpiritRootTier(root: SpiritRoot): string {
   return root.tier || '';
 }
 
-// 自定义灵根相关函数
+// 自定义特质相关函数
 function getCustomSpiritName(): string {
-  if (customSpirit.type === 'none') return '请选择灵根类型';
-  const typeInfo = spiritRootTypes.find(t => t.key === customSpirit.type);
-  return typeInfo ? `${typeInfo.name}灵根` : '未知灵根';
+  if (customSpirit.type === 'none') return t('请选择特质类型');
+  const typeInfo = spiritRootTypes.find(ty => ty.key === customSpirit.type);
+  return typeInfo ? `${typeInfo.name}特质` : t('未知特质');
 }
 
 function getCustomSpiritMultiplier(): number {
@@ -522,7 +524,7 @@ function isCustomSpiritValid(): boolean {
 
 function confirmCustomSpirit() {
   if (!isCustomSpiritValid()) {
-    toast.warning('请完整选择灵根类型和品级');
+    toast.warning(t('请完整选择特质类型与品级'));
     return;
   }
   
@@ -530,13 +532,13 @@ function confirmCustomSpirit() {
   const tierInfo = spiritRootTiers.find(t => t.key === customSpirit.tier);
   
   if (!typeInfo || !tierInfo) {
-    toast.error('选择的灵根配置无效');
+    toast.error(t('选择的特质配置无效'));
     return;
   }
   
   const newRoot: SpiritRoot = {
     id: Date.now(),
-    name: `${typeInfo.name}灵根`,
+    name: `${typeInfo.name}特质`,
     description: `${tierInfo.desc}的${typeInfo.desc}`,
     base_multiplier: tierInfo.multiplier,
     talent_cost: tierInfo.cost,
@@ -546,7 +548,7 @@ function confirmCustomSpirit() {
   
   store.addTrait(newRoot);
   handleSelectSpiritRoot(newRoot);
-  toast.success(`自定义灵根 "${newRoot.name}" 已创建！`);
+  toast.success(t('自定义特质 "{0}" 已创建！', [newRoot.name]));
   
   // 重置选择
   customSpirit.type = 'none';
@@ -570,7 +572,7 @@ function getActiveDescription(): string {
     } else if (typeInfo) {
       return typeInfo.desc;
     }
-    return '请选择灵根品级';
+    return t('请选择品级');
   }
   return activeDescription.value;
 }
@@ -610,9 +612,9 @@ function openEditModal(root: SpiritRoot) {
 async function handleDeleteSpiritRoot(id: number) {
   try {
     await store.removeTrait(id);
-    console.log(`【灵根选择】成功删除灵根 ID: ${id}`);
+    console.log(`【特质选择】成功删除 ID: ${id}`);
   } catch (error) {
-    console.error(`【灵根选择】删除灵根失败 ID: ${id}`, error);
+    console.error(`【特质选择】删除失败 ID: ${id}`, error);
   }
 }
 
@@ -642,13 +644,13 @@ async function handleEditSubmit(data: CustomSpiritRootData) {
     if (success) {
       isEditModalVisible.value = false;
       editingSpiritRoot.value = null;
-      toast.success(`灵根 "${updateData.name}" 已更新！`);
+      toast.success(t('特质 "{0}" 已更新！', [updateData.name]));
     } else {
-      toast.error('更新灵根失败！');
+      toast.error(t('更新特质失败！'));
     }
   } catch (e) {
-    console.error('更新灵根失败:', e);
-    toast.error('更新灵根失败！');
+    console.error('更新特质失败:', e);
+    toast.error(t('更新特质失败！'));
   }
 }
 

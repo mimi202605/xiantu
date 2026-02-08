@@ -3,7 +3,7 @@
     <div class="header">
       <h2>{{ $t('先天六命分配') }}</h2>
       <div class="points-display">
-        {{ $t('剩余天道点:') }}
+        {{ $t('剩余天命点:') }}
         <span :class="{ negative: store.remainingTalentPoints < 0 }">{{
           store.remainingTalentPoints
         }}</span>

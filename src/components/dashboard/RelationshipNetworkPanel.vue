@@ -982,7 +982,7 @@ onActivated(() => {
   isTavernEnvFlag.value = isTavernEnv();
 });
 const { t } = useI18n();
-const traitOrRootLabel = computed(() => t(USE_MING_PROMPTS ? '特质' : '灵根'));
+const traitOrRootLabel = computed(() => t('特质'));
 const characterData = computed(() => gameStateStore.getCurrentSaveData());
 const actionQueue = useActionQueueStore();
 const uiStore = useUIStore();
@@ -1126,7 +1126,7 @@ const getNpcRealm = (npc: NpcProfile): string => {
   return '凡人';
 };
 
-// 获取NPC特质/灵根信息
+// 获取NPC特质信息
 const getNpcSpiritRoot = (npc: NpcProfile): string => {
   return formatSpiritRoot((npc as any).特质 ?? (npc as any).灵根);
 };
@@ -1212,7 +1212,7 @@ const getNpcRecentMemories = (npc: NpcProfile): string[] => {
   return [];
 };
 
-// 格式化灵根显示
+// 格式化特质品级显示
 const formatSpiritRootTier = (tier: unknown): string => {
   if (!tier) return '';
   if (typeof tier === 'string') return tier;
@@ -1236,7 +1236,7 @@ const formatSpiritRootTier = (tier: unknown): string => {
   return '';
 };
 
-// 格式化灵根显示
+// 格式化特质显示
 const formatSpiritRoot = (spiritRoot: string | SpiritRoot | { 名称?: string; 品级?: string; 描述?: string } | undefined): string => {
   if (!spiritRoot) return '未知';
   if (typeof spiritRoot === 'string') return spiritRoot;
@@ -2032,7 +2032,7 @@ const exportToWorldBook = async () => {
       entryContent += `- 出生日期：${birthDate.年}年${birthDate.月}月${birthDate.日}日\n`;
     }
     entryContent += `- 地位：${getNpcRealm(npc)}\n`;
-    entryContent += `- ${t(USE_MING_PROMPTS ? '特质' : '灵根')}：${getNpcSpiritRoot(npc)}\n`;
+    entryContent += `- ${t('特质')}：${getNpcSpiritRoot(npc)}\n`;
     if (npc.势力归属) entryContent += `- 势力：${npc.势力归属}\n`;
     if (npc.出生) entryContent += `- 出生地：${getNpcOrigin(npc.出生)}\n`;
     if (npc.当前位置?.描述) entryContent += `- 当前位置：${npc.当前位置.描述}\n`;

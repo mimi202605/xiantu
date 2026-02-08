@@ -95,16 +95,16 @@ export const IMPROVED_ORIGIN_PROMPT = `${BASE_INSTRUCTION}
 \`\`\`
 `;
 
-// 4. 灵根类型 - 优化版
+// 4. 特质类型 - 优化版（原灵根）
 export const IMPROVED_SPIRIT_ROOT_PROMPT = `${BASE_INSTRUCTION}
 
-【任务】生成核心天赋类型（如灵根、血统等）
+【任务】生成角色特质类型（如性格倾向、成长特质等，勿使用修仙用语）
 
 【字段要求】
-- name (字符串): 灵根名称，不含等级前缀
-- tier (字符串): 等级，可选值：凡品、下品、中品、上品、极品、神品
-- description (字符串): 50-200字的灵根描述
-- cultivation_speed (字符串): 修炼速度，格式为"数字x"
+- name (字符串): 特质名称，不含等级前缀
+- tier (字符串): 品级，可选值：凡品、下品、中品、上品、极品、神品
+- description (字符串): 50-200字的特质描述
+- cultivation_speed (字符串): 成长加成，格式为"数字x"
 - special_effects (数组): 1-3个特殊效果
 - base_multiplier (数字): 基础倍率，纯数字
 - talent_cost (数字): 3-30之间的整数
@@ -113,12 +113,12 @@ export const IMPROVED_SPIRIT_ROOT_PROMPT = `${BASE_INSTRUCTION}
 【输出示例】
 \`\`\`json
 {
-  "name": "雷灵根",
-  "tier": "上品",
-  "description": "天生雷属性灵根，修炼雷法事半功倍，雷霆之力刚猛霸道...",
-  "cultivation_speed": "1.8x",
-  "special_effects": ["雷法威力提升30%", "抗雷属性伤害", "修炼速度加快"],
-  "base_multiplier": 1.8,
+  "name": "迅捷",
+  "tier": "极品",
+  "description": "反应与行动极快，果敢决断，在节奏紧张的情境下表现突出...",
+  "cultivation_speed": "2.0x",
+  "special_effects": ["反应与决断+80%", "速度+50%", "穿透式应对"],
+  "base_multiplier": 2.0,
   "talent_cost": 15,
   "rarity": 4
 }

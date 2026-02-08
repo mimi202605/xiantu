@@ -4,6 +4,30 @@
 
 ---
 
+## [0.2.35] - 2026-02-08
+
+### 创角：天命点用语、剩余点数显示、七步四字命名
+
+- **天命点显示**
+  - 界面中「天道点」统一改为「天命点」（剩余天命点、消耗天命点、天命点消耗等）。
+  - i18n 增加 天命点、剩余天命点、消耗天命点、天命点消耗 等键及英文；Step2/Step3/Step4/Step5/Step6、CharacterCreation 中标签与提示均改用天命点相关文案；数据解析仍兼容旧字段名。
+- **剩余天命点显示范围**
+  - 创角导航区「剩余天命点」由仅 Step3–7 显示改为 **Step1–7** 均显示，Step1/Step2 也可看到当前剩余点数。
+- **七步进度命名（四字、诗意）**
+  - 进度条步骤名改为：**万象择一**（选世界）、**禀赋天成**（天资）、**因果前缘**（出身）、**性灵所钟**（特质）、**才情所钟**（天赋）、**命格初成**（属性分配）、**一览终章**（预览）；i18n 补充对应英文（One Among Myriad, Gifts of Nature, Cause and Karma, Nature's Calling, Gifts Revealed, Fate Takes Form, Glimpse the End）。
+
+#### 涉及文件
+
+- `src/views/CharacterCreation.vue`
+- `src/i18n/index.ts`
+- `src/components/character-creation/Step2_TalentTierSelection.vue`
+- `src/components/character-creation/Step3_OriginSelection.vue`
+- `src/components/character-creation/Step4_SpiritRootSelection.vue`
+- `src/components/character-creation/Step5_TalentSelection.vue`
+- `src/components/character-creation/Step6_AttributeAllocation.vue`
+
+---
+
 ## [0.2.34] - 2026-02-08
 
 ### 探索地图：当前位置图例改为红圈

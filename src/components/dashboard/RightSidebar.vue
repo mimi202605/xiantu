@@ -744,7 +744,7 @@ const getReputationClass = (): string => {
   font-weight: 600;
 }
 
-/* 六维灵根区域样式 */
+/* 六维与特质区域样式 */
 .attributes-section {
   margin-bottom: 16px;
   padding: 12px;
@@ -834,7 +834,7 @@ const getReputationClass = (): string => {
   border-color: #6b7280;
 }
 
-/* 灵根和声望信息 */
+/* 特质和声望信息 */
 .spiritual-info {
   border-top: 1px solid var(--color-border);
   padding-top: 8px;
