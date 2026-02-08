@@ -310,12 +310,13 @@ watch(() => props.editingItem, (newItem) => {
   background: var(--color-background);
   border-radius: 12px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  max-width: 500px;
+  max-width: 560px;
   width: 90%;
   max-height: 80vh;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .modal-header {
@@ -349,13 +350,17 @@ watch(() => props.editingItem, (newItem) => {
 }
 
 .modal-body {
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .form-group {
   margin-bottom: 1rem;
+  min-width: 0;
 }
 
 .form-group label {
@@ -363,11 +368,13 @@ watch(() => props.editingItem, (newItem) => {
   margin-bottom: 0.5rem;
   font-weight: 500;
   color: var(--color-text);
+  padding-left: 0;
 }
 
 .form-input {
   width: 100%;
-  padding: 0.75rem;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
   background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -375,6 +382,7 @@ watch(() => props.editingItem, (newItem) => {
   font-size: 0.875rem;
   outline: none;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 
 .form-input:focus {
@@ -383,8 +391,9 @@ watch(() => props.editingItem, (newItem) => {
 
 .form-textarea {
   width: 100%;
+  box-sizing: border-box;
   min-height: 150px;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -394,6 +403,8 @@ watch(() => props.editingItem, (newItem) => {
   outline: none;
   transition: border-color 0.2s;
   resize: vertical;
+  min-width: 0;
+  overflow-x: auto;
 }
 
 .form-textarea:focus {
@@ -477,7 +488,7 @@ watch(() => props.editingItem, (newItem) => {
 
 .preview-content {
   margin: 0;
-  padding: 0.75rem;
+  padding: 0.75rem 1rem;
   background: var(--color-code-bg);
   border: 1px solid var(--color-border);
   border-radius: 6px;
@@ -488,6 +499,10 @@ watch(() => props.editingItem, (newItem) => {
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
+  box-sizing: border-box;
+  min-width: 0;
+  text-align: left;
+  direction: ltr;
 }
 
 .modal-footer {

@@ -4,6 +4,19 @@
 
 ---
 
+## [0.2.30] - 2026-02-07
+
+### 游戏变量编辑弹窗 UI 修复
+
+- **问题**：编辑变量弹窗中变量名、变量值输入框与预览区内容在左侧贴边或裁切，JSON 首字符显示不全。
+- **修改**：`GameVariableEditModal.vue` 样式调整——弹窗 `max-width` 增至 560px，`modal-content`/`modal-body` 使用 `box-sizing: border-box`；表单项与 `form-input`/`form-textarea` 增加水平内边距（1rem）、`box-sizing: border-box` 与 `min-width: 0`；变量值文本框增加 `overflow-x: auto`；预览区 `preview-content` 增加水平内边距、`text-align: left`、`direction: ltr`，避免内容贴边与裁切。
+
+#### 涉及文件
+
+- `src/components/dashboard/components/GameVariableEditModal.vue`
+
+---
+
 ## [0.2.29] - 2026-02-07
 
 ### 大版本迁移：修仙命名 → 通用命名（不兼容旧存档）
