@@ -197,6 +197,19 @@ function focusSubtreeIds(focusId: string, nodeMap: Map<string, MapLocationNode>)
   return set;
 }
 
+/** 收集某节点的所有祖先 id（父、祖父、…），用于细化时排除：子层不应因「被父层包含」而缩小 */
+function collectAncestorIds(
+  nodeMap: Map<string, MapLocationNode>,
+  nodeId: string,
+  out: Set<string> = new Set()
+): Set<string> {
+  const node = nodeMap.get(nodeId);
+  if (!node?.parentId) return out;
+  out.add(node.parentId);
+  collectAncestorIds(nodeMap, node.parentId, out);
+  return out;
+}
+
 /** 细化簇相对 focus 中心的最大延伸半径（focus 框 + 最远子节点） */
 function clusterRadius(focusR: number, spread: number): number {
   return Math.max(focusR, spread + REFINED_CHILD_CONTAINER_RADIUS);
@@ -302,12 +315,15 @@ export function buildLocationMapNodes(
     const focus = refinedMap.get(focusId);
     if (!focus || focus.childIds.length === 0) continue;
     const subtreeIds = focusSubtreeIds(focusId, refinedMap);
+    /** 祖先 id：当前层在父层「内部」是预期行为，不应因与父层重叠而缩小本层 */
+    const ancestorIds = collectAncestorIds(refinedMap, focusId);
     let focusR = focusRadii[level];
     let spread = childrenSpread;
     const maxClusterR = clusterRadius(focusR, spread);
     let minClearance = Infinity;
     for (const node of refinedMap.values()) {
       if (subtreeIds.has(node.id)) continue;
+      if (ancestorIds.has(node.id)) continue;
       const dist = Math.hypot(node.x - focus.x, node.y - focus.y);
       const clearance = dist - node.radius - REFINED_CLUSTER_MARGIN;
       if (clearance < minClearance) minClearance = clearance;
@@ -344,22 +360,39 @@ export function buildLocationMapNodes(
 
   const topFocusId = focusStack[focusStack.length - 1];
   const topFocus = refinedMap.get(topFocusId);
-  /** 单次遍历：收集细化子树 id 并计算 bbox（同级/父级不参与） */
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+
+  /** 收集完整子树 id（用于其他判断） */
   const queue: string[] = [topFocusId];
   for (let i = 0; i < queue.length; i++) {
     const id = queue[i];
     refinedSubtreeIds.add(id);
     const node = refinedMap.get(id);
     if (node) {
-      minX = Math.min(minX, node.x - node.radius);
-      minY = Math.min(minY, node.y - node.radius);
-      maxX = Math.max(maxX, node.x + node.radius);
-      maxY = Math.max(maxY, node.y + node.radius);
       for (const cid of node.childIds) queue.push(cid);
+    }
+  }
+
+  /** bbox 计算「focus + 直接子 + 孙」范围（与前端可见节点一致），用于视口适配与居中。 */
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  if (topFocus) {
+    const visibleIds = new Set<string>([topFocusId, ...topFocus.childIds]);
+    for (const cid of topFocus.childIds) {
+      const c = refinedMap.get(cid);
+      if (c?.childIds?.length) {
+        c.childIds.forEach((gid) => visibleIds.add(gid));
+      }
+    }
+    for (const id of visibleIds) {
+      const node = refinedMap.get(id);
+      if (node) {
+        minX = Math.min(minX, node.x - node.radius);
+        minY = Math.min(minY, node.y - node.radius);
+        maxX = Math.max(maxX, node.x + node.radius);
+        maxY = Math.max(maxY, node.y + node.radius);
+      }
     }
   }
   const refinedSubtreeCenter =
@@ -404,3 +437,12 @@ export const ZOOM_THRESHOLD_REFINED = 1.4;
 
 /** 某结构占视口面积比例超过此值时视为「focus」并应用细化（入栈）；低于此值则允许出栈（缩小时分层级逐层取消） */
 export const FOCUS_OCCUPY_RATIO = 0.35;
+
+/** 出栈用的更低阈值：当前 focus 占视口低于此比例时才出栈一层，降低缩小灵敏度，各层统一。数值越小需缩得越多才回退。 */
+export const FOCUS_OCCUPY_RATIO_POP = 0.16;
+
+/** 缩放低于此值时每轮只出栈一层（用于最终缩回最外层）；高于此值时仅按 FOCUS_OCCUPY_RATIO_POP 出栈，避免「稍微一缩就回退」。 */
+export const ZOOM_THRESHOLD_POP_BY_SCALE = 1.0;
+
+/** 入栈用的更低阈值：小半径节点（如深层地点）需达到此比例才可被滚轮放大「进入」。低于 FOCUS_OCCUPY_RATIO 以形成滞后，避免误入/误出。 */
+export const FOCUS_OCCUPY_RATIO_ENTER = 0.12;
