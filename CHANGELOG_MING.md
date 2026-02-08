@@ -4,6 +4,23 @@
 
 ---
 
+## [0.2.40] - 2026-02-08
+
+### README：本地图片、天命/MING 内容、徽章占位
+
+- **图片本地化**：封面与双主题截图由线上链接改为本地 **`public/天命-cover.jpg`**、**`public/天命-dark.png`**、**`public/天命-light.png`**，README 内引用 `./public/...`。
+- **内容更新**：主标题改为「天命（MING）」；副标题与功能概览按通用版、特质/地位/六维/天命点、探索地图、亮色柔光半透明等与 changelog 一致；技术栈、快速开始（含封面视频 `ming_background.mp4`）、更新日志要点与贡献/许可证表述更新；移除原项目专属链接（QQ 群、游戏介绍、在线体验）。
+- **徽章**：visitors、stars、forks 链接改为占位 **`your-username/ming`**（及 visitor 的 `page_id=your-username.ming`），README 内注明将 `your-username` 替换为本人 GitHub 用户名即可。
+
+#### 涉及文件
+
+- `README.md`
+- `public/天命-cover.jpg`（新增）
+- `public/天命-dark.png`（新增）
+- `public/天命-light.png`（新增）
+
+---
+
 ## [0.2.39] - 2026-02-08
 
 ### 亮色主题：柔光、边框可见、半透明透出视频

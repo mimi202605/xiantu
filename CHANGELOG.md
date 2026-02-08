@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.40 (2026-02-08)
+
+- **README**：封面与主题截图改为本地 `public/`（天命-cover.jpg、天命-dark.png、天命-light.png）；标题与功能概览按天命/MING 通用版与 changelog 更新；visitors/stars/forks 改为占位 `your-username/ming` 便于替换。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.39 (2026-02-08)
 
 - **亮色主题**：降低亮度、加强边框可见性（全局 token 柔光；创角各步与 step-selection 统一用变量）；创角主区与模式选择主区改为半透明 + 毛玻璃，与暗色一致透出视频背景。  
