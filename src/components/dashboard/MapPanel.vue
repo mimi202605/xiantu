@@ -267,8 +267,9 @@ const hasLocations = computed(() => locationEntries.value.length > 0);
 }
 
 .legend-dot.current {
-  background: var(--color-primary, #3b82f6);
-  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+  background: transparent;
+  border: 2px solid #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
 }
 
 .map-content {
