@@ -255,10 +255,11 @@ export async function runSingleHeartbeat(
   };
 
   if (心跳 && typeof 心跳 === 'object') {
-    if (!Array.isArray(心跳.历史)) (心跳 as any).历史 = [];
-    心跳.历史.push(record);
+    const hist = Array.isArray(心跳.历史) ? 心跳.历史 : [];
+    if (!Array.isArray(心跳.历史)) (心跳 as any).历史 = hist;
+    hist.push(record);
     const maxLen = Math.max(1, 心跳.历史条数 ?? 10);
-    if (心跳.历史.length > maxLen) (心跳 as any).历史 = 心跳.历史.slice(-maxLen);
+    if (hist.length > maxLen) (心跳 as any).历史 = hist.slice(-maxLen);
     // 周期触发时记录「刚结束的回合」；事件/手动记录当前回合
     (心跳 as any).上次心跳回合序号 = options.triggerMode === '周期' ? Math.max(0, 回合序号 - 1) : 回合序号;
   }

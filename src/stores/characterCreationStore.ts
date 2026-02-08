@@ -459,7 +459,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         const savedCloudWorlds = savedData.worlds.map(w => ({...w, source: 'cloud' as DataSource}));
         const savedCloudTalentTiers = savedData.talentTiers.map(t => ({...t, source: 'cloud' as DataSource}));
         const savedCloudOrigins = savedData.origins.map(o => ({...o, source: 'cloud' as DataSource}));
-        const savedCloudTraits = (savedData.traits ?? (savedData as any).spiritRoots ?? []).map((s: SpiritRootWithSource) => ({ ...s, source: 'cloud' as DataSource }));
+        const savedCloudTraits = (savedData.traits ?? (savedData as any).spiritRoots ?? []).map((s: SpiritRoot) => ({ ...s, source: 'cloud' as DataSource }));
         const savedCloudTalents = savedData.talents.map(t => ({...t, source: 'cloud' as DataSource}));
         
         // 合并本地数据和自定义数据

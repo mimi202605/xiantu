@@ -458,9 +458,9 @@ function repairNpc(npc: NpcProfile): NpcProfile {
       寿元上限: 100
     };
   } else {
-    repaired.属性.体力 = repairValuePair(repaired.属性.体力 ?? repaired.属性.气血, 100, 100);
-    repaired.属性.精力 = repairValuePair(repaired.属性.精力 ?? repaired.属性.灵气, 50, 50);
-    repaired.属性.洞察力 = repairValuePair(repaired.属性.洞察力 ?? repaired.属性.神识, 30, 30);
+    repaired.属性.体力 = repairValuePair(repaired.属性.体力 ?? (repaired.属性 as any).气血, 100, 100);
+    repaired.属性.精力 = repairValuePair(repaired.属性.精力 ?? (repaired.属性 as any).灵气, 50, 50);
+    repaired.属性.洞察力 = repairValuePair(repaired.属性.洞察力 ?? (repaired.属性 as any).神识, 30, 30);
     repaired.属性.寿元上限 = typeof repaired.属性.寿元上限 === 'number' ? repaired.属性.寿元上限 : 100;
   }
   if ((repaired as any).气血 || (repaired as any).灵气 || (repaired as any).神识 || (repaired as any).寿元) {

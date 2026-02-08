@@ -15,10 +15,10 @@ export async function initializeCharacterOffline(
 ): Promise<SaveData> {
   console.log('[离线初始化] 开始执行本地角色创建...');
 
-  // 确保后天六司存在，开局默认全为0
-  if (!baseInfo.后天六司) {
-    baseInfo.后天六司 = { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
-    console.log('[离线初始化] 初始化后天六司为全0');
+  // 确保后天六维属性存在，开局默认全为0
+  if (!baseInfo.后天六维属性) {
+    baseInfo.后天六维属性 = { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
+    console.log('[离线初始化] 初始化后天六维属性为全0');
   }
 
   // 1) 计算基础属性
@@ -48,11 +48,11 @@ export async function initializeCharacterOffline(
     角色: {
       身份: baseInfo,
       属性: {
-        境界: playerStatus.境界,
+        地位: playerStatus.地位,
         声望: playerStatus.声望,
-        气血: playerStatus.气血,
-        灵气: playerStatus.灵气,
-        神识: playerStatus.神识,
+        体力: playerStatus.体力,
+        精力: playerStatus.精力,
+        洞察力: playerStatus.洞察力,
         寿命: playerStatus.寿命,
       },
       位置: playerStatus.位置 as any,
