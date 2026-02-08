@@ -4,6 +4,21 @@
 
 ---
 
+## [0.2.37] - 2026-02-08
+
+### 封面背景：默认视频文件名改为 ming_background.mp4
+
+- 封面视频默认文件由 **`public/background.mp4`** 改为 **`public/ming_background.mp4`**；`VideoBackground.vue` 默认 `src` 与 `public/README.md` 说明已同步更新。
+
+#### 涉及文件
+
+- `public/README.md`
+- `src/components/common/VideoBackground.vue`
+- `public/background.mp4`（删除）
+- `public/ming_background.mp4`（新增）
+
+---
+
 ## [0.2.36] - 2026-02-08
 
 ### 封面背景改为本地资源

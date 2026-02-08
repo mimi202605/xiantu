@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.37 (2026-02-08)
+
+- **封面背景**：默认视频文件名改为 `ming_background.mp4`（仍置于 `public/`），VideoBackground 默认 src 与 public/README 已同步。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.36 (2026-02-08)
 
 - **封面背景本地化**：封面视频改为优先使用本地 `public/background.mp4`；新增 `public/` 静态目录，构建时复制到 dist，开发时由 devServer 提供；VideoBackground 默认 src 改为 `./background.mp4`；新增 copy-webpack-plugin 依赖。  
