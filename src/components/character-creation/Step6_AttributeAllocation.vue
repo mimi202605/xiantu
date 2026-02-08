@@ -520,14 +520,14 @@ h2 {
   }
 }
 
-/* ========== 亮色主题适配 ========== */
+/* ========== 亮色主题适配（柔光、边框可见） ========== */
 [data-theme="light"] .attribute-allocation-container {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .header {
-  border-bottom-color: rgba(59, 130, 246, 0.2);
+  border-bottom: 1px solid var(--color-border);
 }
 
 [data-theme="light"] h2 {
@@ -543,12 +543,13 @@ h2 {
 }
 
 [data-theme="light"] .attribute-item {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .attribute-item:hover {
-  background: rgba(241, 245, 249, 0.95);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: var(--color-surface-hover);
+  border-color: rgba(59, 130, 246, 0.35);
 }
 
 [data-theme="light"] .attribute-name {
@@ -564,8 +565,8 @@ h2 {
 }
 
 [data-theme="light"] .attribute-controls button {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   color: #2563eb;
 }
 
@@ -575,13 +576,13 @@ h2 {
 }
 
 [data-theme="light"] .actions button {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   color: #1e293b;
 }
 
 [data-theme="light"] .actions button:hover {
-  background: rgba(241, 245, 249, 0.95);
+  background: var(--color-surface-hover);
   border-color: rgba(59, 130, 246, 0.5);
 }
 </style>

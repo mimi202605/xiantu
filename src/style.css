@@ -1,28 +1,28 @@
 /* --- Design Tokens (The Alchemist's Formula) --- */
 :root {
-  /* --- Light Theme Colors (明亮版) --- */
-  --color-background: #f5f2ed; /* 更白的基底色 */
-  --color-background-transparent: rgba(245, 242, 237, 0.92);
-  --color-surface: #ffffff; /* 纯白面板色 */
-  --color-surface-transparent: rgba(255, 255, 255, 0.88);
-  --color-surface-light: #f0ede8; /* 浅灰做层次 */
+  /* --- Light Theme Colors（柔光版：降低亮度、加强边框可见） --- */
+  --color-background: #e8e6e1; /* 略深基底，减轻刺眼 */
+  --color-background-transparent: rgba(232, 230, 225, 0.94);
+  --color-surface: #ebe9e4; /* 柔白面板，非纯白 */
+  --color-surface-transparent: rgba(235, 233, 228, 0.92);
+  --color-surface-light: #e2e0db; /* 浅灰层次，便于区分边框 */
   /* Derived/interactive states (light) */
-  --color-surface-hover: #faf8f5; /* 悬浮时的柔和色 */
+  --color-surface-hover: #f0ede8; /* 悬浮略亮 */
   --color-primary: #1e4a9a; /* 更深的主色调 */
   --color-primary-rgb: 30, 74, 154;
   --color-primary-hover: #163d82;
   --color-primary-active: #0f2f6a;
   /* Lighten variant used by some components */
   --color-primary-light: rgba(30, 74, 154, 0.15);
-  --color-accent: #2e8b57; /* 翠玉绿 - 修仙风格 */
+  --color-accent: #2e8b57; /* 翠玉绿 */
   --color-accent-hover: #267349;
   --color-accent-light: rgba(46, 139, 87, 0.18);
   --color-text: #1a1a1a;
-  --color-text-secondary: #4a4a4a; /* 更深，提高对比度 */
-  --color-text-muted: #5a5a5a; /* 更深，提高对比度 */
-  --color-white-soft: #f1eee7; /* 柔和的白色 */
-  --color-border: rgba(0, 0, 0, 0.15); /* 更明显的边框 */
-  --color-border-hover: rgba(0, 0, 0, 0.28);
+  --color-text-secondary: #4a4a4a;
+  --color-text-muted: #5a5a5a;
+  --color-white-soft: #e8e6e1;
+  --color-border: rgba(0, 0, 0, 0.22); /* 更明显的边框 */
+  --color-border-hover: rgba(0, 0, 0, 0.35);
   --color-success: #2e8b32; /* 更深的绿色，提高可读性 */
   --color-success-hover: #267529;
   --color-warning: #e68a00; /* 更深的橙色 */
@@ -50,8 +50,8 @@
   --vital-lifespan: #c253ff; /* 寿元(紫色) */
 
   /* Derived RGB triplets for rgba() usage (light) */
-  --color-background-rgb: 245, 242, 237;
-  --color-surface-rgb: 255, 255, 255;
+  --color-background-rgb: 232, 230, 225;
+  --color-surface-rgb: 235, 233, 228;
   --color-accent-rgb: 46, 139, 87;
   --color-border-rgb: 0, 0, 0;
   --color-success-rgb: 46, 139, 50;

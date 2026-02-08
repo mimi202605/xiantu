@@ -4,6 +4,35 @@
 
 ---
 
+## [0.2.39] - 2026-02-08
+
+### 亮色主题：柔光、边框可见、半透明透出视频
+
+- **全局亮色 token（style.css :root）**
+  - 降低亮度：`--color-background`、`--color-surface`、`--color-surface-light` 改为柔光色（#e8e6e1、#ebe9e4、#e2e0db），减轻刺眼。
+  - 加强边框：`--color-border` 改为 `rgba(0,0,0,0.22)`，`--color-border-hover` 改为 0.35，便于区分面板与列表项。
+- **创角流程亮色样式**
+  - CharacterCreation、Step1～Step7、step-selection.css 中亮色块统一使用 `var(--color-surface)` / `var(--color-surface-light)` / `var(--color-border)`，列表项与按钮显式 `border: 1px solid var(--color-border)`，保证边框清晰。
+- **亮色主区与暗色一致：半透明透出视频**
+  - 创角页 `.creation-scroll` 亮色下改为 `var(--color-background-transparent)` + `backdrop-filter`，不再使用不透明底色。
+  - 模式选择页 `.selection-content` 亮色下改为半透明渐变（柔光色 0.88/0.85）+ `backdrop-filter`，与暗色一致可透出封面视频。
+
+#### 涉及文件
+
+- `src/style.css`
+- `src/views/CharacterCreation.vue`
+- `src/views/ModeSelection.vue`
+- `src/styles/step-selection.css`
+- `src/components/character-creation/Step1_WorldSelection.vue`
+- `src/components/character-creation/Step2_TalentTierSelection.vue`
+- `src/components/character-creation/Step3_OriginSelection.vue`
+- `src/components/character-creation/Step4_SpiritRootSelection.vue`
+- `src/components/character-creation/Step5_TalentSelection.vue`
+- `src/components/character-creation/Step6_AttributeAllocation.vue`
+- `src/components/character-creation/Step7_Preview.vue`
+
+---
+
 ## [0.2.38] - 2026-02-08
 
 ### 封面与模式选择：天命意象文案

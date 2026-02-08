@@ -700,20 +700,20 @@ const validateAge = () => {
   }
 }
 
-/* ========== 亮色主题适配 ========== */
+/* ========== 亮色主题适配（柔光、边框可见） ========== */
 [data-theme="light"] .preview-item {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .preview-item:hover {
-  background: rgba(241, 245, 249, 0.95);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: var(--color-surface-hover);
+  border-color: rgba(59, 130, 246, 0.35);
 }
 
 [data-theme="light"] .preview-item h3 {
   color: #2563eb;
-  border-bottom-color: rgba(59, 130, 246, 0.2);
+  border-bottom: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .preview-item h4 {
@@ -738,24 +738,25 @@ const validateAge = () => {
 
 [data-theme="light"] .name-item input,
 [data-theme="light"] .input-field input {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   color: #1e293b;
 }
 
 [data-theme="light"] .gender-label {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
   color: #1e293b;
 }
 
 [data-theme="light"] .gender-label:hover {
-  background: rgba(241, 245, 249, 0.95);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: var(--color-surface-hover);
+  border-color: rgba(59, 130, 246, 0.35);
 }
 
 [data-theme="light"] .age-btn {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   color: #2563eb;
 }
 
@@ -765,18 +766,19 @@ const validateAge = () => {
 }
 
 [data-theme="light"] .age-input {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   color: #1e293b;
 }
 
 [data-theme="light"] .preview-item li {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
   color: #1e293b;
 }
 
 [data-theme="light"] .preview-item li:hover {
-  background: rgba(241, 245, 249, 0.95);
+  background: var(--color-surface-hover);
 }
 
 [data-theme="light"] .preview-item li strong {
@@ -784,8 +786,8 @@ const validateAge = () => {
 }
 
 [data-theme="light"] .cloud-info-item {
-  background: rgba(248, 250, 252, 0.6);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .cloud-info-text {

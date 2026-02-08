@@ -639,10 +639,12 @@ button {
   transform: translateY(8px);
 }
 
-/* 亮色主题 */
+/* 亮色主题（半透明以透出视频，与暗色一致） */
 [data-theme="light"] .selection-content {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.92) 100%);
-  border-color: rgba(59, 130, 246, 0.15);
+  background: linear-gradient(135deg, rgba(232, 230, 225, 0.88) 0%, rgba(235, 233, 228, 0.85) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
   box-shadow: 0 24px 48px -12px rgba(0, 0, 0, 0.12);
 }
 

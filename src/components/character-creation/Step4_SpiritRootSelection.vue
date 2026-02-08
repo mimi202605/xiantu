@@ -1296,15 +1296,15 @@ const editInitialData = computed(() => {
   color: #f1f5f9;
 }
 
-/* 亮色主题顶部按钮 */
+/* 亮色主题顶部按钮（柔光、边框可见） */
 [data-theme="light"] .top-actions-container {
-  background: rgba(241, 245, 249, 0.6);
-  border-bottom-color: rgba(59, 130, 246, 0.15);
+  background: var(--color-surface-light);
+  border-bottom: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .top-actions-container .action-item {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: rgba(59, 130, 246, 0.3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   color: #2563eb;
 }
 
@@ -1564,25 +1564,26 @@ const editInitialData = computed(() => {
 /* 兼容新等级名称"仙品" */
 .spirit-root-tier.tier-仙品 { background: linear-gradient(135deg, #EF4444, #F87171); color: white; }
 
-/* ========== 亮色主题适配 ========== */
+/* ========== 亮色主题适配（柔光、边框可见） ========== */
 [data-theme="light"] .spirit-root-left-panel,
 [data-theme="light"] .spirit-root-details-container {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .spirit-root-item {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .spirit-root-item:hover {
-  background: rgba(241, 245, 249, 0.95);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: var(--color-surface-hover);
+  border-color: rgba(59, 130, 246, 0.35);
 }
 
 [data-theme="light"] .spirit-root-item.selected {
   background: rgba(219, 234, 254, 0.8);
-  border-color: rgba(59, 130, 246, 0.4);
+  border: 1px solid rgba(59, 130, 246, 0.5);
 }
 
 [data-theme="light"] .spirit-root-name {
@@ -1604,20 +1605,20 @@ const editInitialData = computed(() => {
 /* 亮色主题下的编辑/删除按钮 */
 [data-theme="light"] .edit-btn,
 [data-theme="light"] .delete-btn {
-  background: rgba(241, 245, 249, 0.8);
-  border: 1px solid rgba(59, 130, 246, 0.15);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
   color: #475569;
 }
 
 [data-theme="light"] .edit-btn:hover {
   color: #2563eb;
   background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 
 [data-theme="light"] .delete-btn:hover {
   color: #dc2626;
   background: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.4);
 }
 </style>

@@ -1102,21 +1102,23 @@ async function onLoadCompleted(result: { success: boolean; message: string; pres
   50% { opacity: 0.5; }
 }
 
-/* ========== 亮色主题适配 ========== */
+/* ========== 亮色主题适配（柔光：降低亮度、边框可见，半透明以透出视频） ========== */
 [data-theme="light"] .creation-scroll {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--color-background-transparent);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .mode-indicator {
   color: #d97706;
   background: rgba(251, 191, 36, 0.15);
-  border-color: rgba(251, 191, 36, 0.3);
+  border: 1px solid rgba(251, 191, 36, 0.4);
 }
 
 [data-theme="light"] .step-circle {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.1);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
   color: #64748b;
 }
 
@@ -1126,7 +1128,7 @@ async function onLoadCompleted(result: { success: boolean; message: string; pres
 }
 
 [data-theme="light"] .step-label {
-  color: #94a3b8;
+  color: #64748b;
 }
 
 [data-theme="light"] .step.active .step-label {
@@ -1134,16 +1136,16 @@ async function onLoadCompleted(result: { success: boolean; message: string; pres
 }
 
 [data-theme="light"] .step-content {
-  border-color: rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .destiny-points {
-  background: rgba(248, 250, 252, 0.8);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: var(--color-surface-light);
+  border: 1px solid var(--color-border);
 }
 
 [data-theme="light"] .points-label {
-  color: #64748b;
+  color: #475569;
 }
 
 [data-theme="light"] .points-value {
