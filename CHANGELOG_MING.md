@@ -4,6 +4,34 @@
 
 ---
 
+## [0.2.44] - 2026-02-08
+
+### 类型与数据结构对齐（type-check 修复）
+
+- **命名与类型统一**
+  - 境界 → 地位（SaveSlot、PlayerAttributes、NpcProfile 等）
+  - 气血/灵气/神识 → 体力/精力/洞察力（PlayerStatus、NpcProfile 属性、存档角色.属性）
+  - 后天六司 → 后天六维属性（CharacterBaseInfo）
+  - 灵石 → 金钱（CurrencyFourTier）；灵根 → 特质（NpcProfile，SpiritRoot 结构）
+- **涉及模块**
+  - `specialNpcs.ts`：NpcProfile 使用 地位、特质、先天六维属性、属性（体力/精力/洞察力）、背包.金钱
+  - `offlineInitialization.ts`：后天六维属性、角色.属性 使用 地位/体力/精力/洞察力/寿命
+  - `worldHeartbeatService.ts`：心跳.历史 可能为 undefined，改为先写入局部数组再赋回
+  - `characterCreationStore.ts`：云特质 map 参数类型 SpiritRoot（非 SpiritRootWithSource）
+  - `characterStore.ts`：存档槽位与角色信息全部使用 地位、后天六维属性
+  - `dataRepair.ts`：迁移旧 气血/灵气/神识 时通过 `(repaired.属性 as any)` 访问
+
+#### 涉及文件
+
+- `src/data/specialNpcs.ts`
+- `src/services/offlineInitialization.ts`
+- `src/services/worldHeartbeatService.ts`
+- `src/stores/characterCreationStore.ts`
+- `src/stores/characterStore.ts`
+- `src/utils/dataRepair.ts`
+
+---
+
 ## [0.2.43] - 2026-02-08
 
 ### GitHub Pages 部署修复与构建产物更名

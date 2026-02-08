@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.44 (2026-02-08)
+
+- **类型与数据结构对齐**：修复 type-check 报错，代码与当前类型定义一致。境界→地位、气血/灵气/神识→体力/精力/洞察力、后天六司→后天六维属性；specialNpcs（NpcProfile 属性/背包/地位/特质）、offlineInitialization、worldHeartbeatService、characterStore、dataRepair、characterCreationStore 等已按新 schema 更新。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.43 (2026-02-08)
 
 - **GitHub Pages**：修复部署后空白页；构建时设置 BASE_PATH（如 `/ming/`），publicPath 与 `<base href>` 使资源在子路径正确加载；新增 404.html 作 SPA 回退；README 注明 Pages 访问地址。
