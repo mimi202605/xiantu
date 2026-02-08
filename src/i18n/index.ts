@@ -29,10 +29,17 @@ const autoTranslateMap: Record<string, string> = {
   '初来乍到？注册道号': 'New? Register', '注册新道号，踏入修仙之路。': 'Register to begin cultivation',
   '验证道友身份，以便同步云端天机。': 'Login to sync progress',
 
-  // === 模式选择 ===
+  // === 模式选择（天命意象） ===
   '正式版': 'Release', '仙路漫漫 · 逆行九天': 'Path to Immortality', '单机闭关': 'Offline',
   '避世清修·心无旁骛': 'Solo Cultivation', '独居洞府，专心致志炼就大道根基': 'Cultivate alone',
   '所有进度本地存储，断网亦可修行': 'All progress saved locally', '联机共修': 'Online',
+  '命数自定，前路在握': 'Your fate, your path', '择一天命': 'Choose Your Path', '独行己命': 'Solo Path',
+  '一人一命 · 本地书写': 'One path, local story', '独写命书，进度存于本地': 'Write your story alone, all progress saved locally',
+  '共书天命': 'Shared Destiny', '与友共书 · 同写命途': 'With friends, one story', '云端未启 · 暂不可入': 'Cloud unavailable',
+  '云端存档，多端同步，与友人共写天命': 'Cloud saves, sync across devices, write destiny with others',
+  '开启天命': 'Begin Your Path', '续写前缘': 'Continue Your Story',
+  '未配置后端服务器，无法使用共书天命与登录功能。请先选择「独行己命」。': 'Backend not configured. Use Solo Path first.',
+  '共书天命需要先登录账号，是否前往登录？': 'Shared Destiny requires login. Go to login?',
   '未开放': 'Coming Soon', '功能研发中，敬请期待': 'Under development',
   '当前版本已封锁联机入口，不影响单机闭关体验': 'Online locked', '已授权': 'Authorized', '未授权': 'Unauthorized',
 

@@ -15,15 +15,15 @@
 
       <!-- 标题区域 -->
       <div class="header-section">
-        <h1 class="main-title"><span class="header-title">仙</span> 途</h1>
-        <p class="sub-title">闲时坐看涛生灭，千秋不过酒一壶</p>
+        <h1 class="main-title"><span class="header-title">天</span> 命</h1>
+        <p class="sub-title">{{ $t('命数自定，前路在握') }}</p>
       </div>
 
-      <!-- 道途选择 -->
+      <!-- 天命选择 -->
       <div class="paths-section">
         <div class="section-header">
           <span class="line"></span>
-          <span class="text">择一道途</span>
+          <span class="text">{{ $t('择一天命') }}</span>
           <span class="line"></span>
         </div>
 
@@ -39,9 +39,9 @@
               <User :size="36" :stroke-width="1.5" />
             </div>
             <div class="gate-info">
-              <h2 class="gate-title">{{ $t('独自修行') }}</h2>
-              <p class="gate-desc">避世清修 · 心无旁骛</p>
-              <p class="gate-detail">独居洞府，专心修炼，所有进度本地存储</p>
+              <h2 class="gate-title">{{ $t('独行己命') }}</h2>
+              <p class="gate-desc">{{ $t('一人一命 · 本地书写') }}</p>
+              <p class="gate-detail">{{ $t('独写命书，进度存于本地') }}</p>
               <div class="gate-tags">
                 <span class="tag-local">本地存储</span>
                 <span class="tag-offline">离线可用</span>
@@ -63,9 +63,9 @@
               <Users :size="36" :stroke-width="1.5" />
             </div>
             <div class="gate-info">
-              <h2 class="gate-title">{{ $t('联机共修') }}</h2>
-              <p class="gate-desc">{{ backendReady ? '与友共游 · 一起冒险' : '仙门未启 · 暂不可入' }}</p>
-              <p class="gate-detail">云端存档，多端同步，与道友共闯仙途</p>
+              <h2 class="gate-title">{{ $t('共书天命') }}</h2>
+              <p class="gate-desc">{{ backendReady ? $t('与友共书 · 同写命途') : $t('云端未启 · 暂不可入') }}</p>
+              <p class="gate-detail">{{ $t('云端存档，多端同步，与友人共写天命') }}</p>
               <div class="gate-tags">
                 <span class="tag-cloud">云端同步</span>
                 <span class="tag-secure">数据安全</span>
@@ -88,17 +88,17 @@
           <div v-if="selectedMode" class="action-group">
             <button class="btn-primary" @click="startNewGame">
               <Sparkles :size="18" />
-              <span>{{ $t('初入仙途') }}</span>
+              <span>{{ $t('开启天命') }}</span>
             </button>
             <button class="btn-secondary" @click="enterCharacterSelection">
               <History :size="18" />
-              <span>{{ $t('续前世因缘') }}</span>
+              <span>{{ $t('续写前缘') }}</span>
             </button>
           </div>
         </transition>
         <button v-if="!selectedMode" class="btn-ghost" @click="enterCharacterSelection">
           <History :size="18" />
-          <span>{{ $t('续前世因缘') }}</span>
+          <span>{{ $t('续写前缘') }}</span>
         </button>
       </div>
     </div>
@@ -107,9 +107,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import { useI18n } from '@/i18n';
 import VideoBackground from '@/components/common/VideoBackground.vue';
 import { Sparkles, History, User, Users, Check, Lock } from 'lucide-vue-next';
 import { useUIStore } from '@/stores/uiStore';
+
+const { t } = useI18n();
 // [MING] Removed: import { isBackendConfigured, fetchBackendVersion } from '@/services/backendConfig';
 const isBackendConfigured = (): boolean => false;
 const fetchBackendVersion = async (): Promise<string | null> => null;
@@ -154,7 +157,7 @@ const selectPath = async (mode: 'single' | 'cloud') => {
   if (mode === 'cloud' && !backendReady.value) {
     uiStore.showRetryDialog({
       title: '联机未启用',
-      message: '未配置后端服务器，无法使用联机共修与登录功能。请先选择"单机闯关"。',
+      message: t('未配置后端服务器，无法使用共书天命与登录功能。请先选择「独行己命」。'),
       confirmText: '知道了',
       cancelText: '取消',
       onConfirm: () => {},
@@ -193,7 +196,7 @@ const startNewGame = async () => {
     if (!isValid) {
       uiStore.showRetryDialog({
         title: '请先登录',
-        message: '联机共修需要先登录账号，是否前往登录？',
+        message: t('共书天命需要先登录账号，是否前往登录？'),
         confirmText: '前往登录',
         cancelText: '取消',
         onConfirm: () => {
@@ -354,7 +357,7 @@ const enterCharacterSelection = async () => {
   margin: 0;
 }
 
-/* 道途选择 */
+/* 天命选择 */
 .paths-section {
   display: flex;
   flex-direction: column;
