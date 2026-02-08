@@ -4,6 +4,24 @@
 
 ---
 
+## [0.2.36] - 2026-02-08
+
+### 封面背景改为本地资源
+
+- **素材位置**：将封面背景视频放在项目根目录 **`public/background.mp4`**，创角页、模式选择页等处的 VideoBackground 将使用该本地文件（不再依赖第三方链接）。
+- **构建与开发**
+  - 新增 **`public/`** 目录，内含 README 说明与 `.gitkeep`；生产构建通过 **copy-webpack-plugin** 将 `public/` 复制到 `dist/`；开发时 devServer 增加对 `public/` 的 static 配置，使 `./background.mp4` 可访问。
+- **组件**：`VideoBackground.vue` 默认 `src` 由 `https://ddct.top/backgroundvedio.mp4` 改为 **`./background.mp4`**；若需自定义仍可传入 `src` 覆盖。
+
+#### 涉及文件
+
+- `public/`（新建，含 README.md、.gitkeep）
+- `webpack.config.js`
+- `package.json`（devDependencies 增加 copy-webpack-plugin）
+- `src/components/common/VideoBackground.vue`
+
+---
+
 ## [0.2.35] - 2026-02-08
 
 ### 创角：天命点用语、剩余点数显示、七步四字命名

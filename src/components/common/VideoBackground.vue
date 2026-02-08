@@ -22,7 +22,8 @@ import { getVideo, setVideo } from '@/utils/videoCache'
 const props = withDefaults(defineProps<{
   src?: string
 }>(), {
-  src: 'https://ddct.top/backgroundvedio.mp4'
+  // 本地封面：将视频放在项目根目录 public/background.mp4；否则可传入自定义 URL
+  src: './background.mp4'
 })
 
 const videoRef = ref<HTMLVideoElement>()

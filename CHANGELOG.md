@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.36 (2026-02-08)
+
+- **封面背景本地化**：封面视频改为优先使用本地 `public/background.mp4`；新增 `public/` 静态目录，构建时复制到 dist，开发时由 devServer 提供；VideoBackground 默认 src 改为 `./background.mp4`；新增 copy-webpack-plugin 依赖。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.35 (2026-02-08)
 
 - **创角流程**：天道点界面统一改为「天命点」；Step1/Step2 起显示剩余天命点；七步进度改为四字诗意命名（万象择一、禀赋天成、因果前缘、性灵所钟、才情所钟、命格初成、一览终章）并补充 i18n。  

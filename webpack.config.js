@@ -4,6 +4,7 @@ import fs from 'fs'
 import { VueLoaderPlugin } from 'vue-loader'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
 import HtmlInlineScriptPlugin from 'html-inline-script-webpack-plugin'
+import CopyPlugin from 'copy-webpack-plugin'
 // [MING] Removed TavernLiveReloadPlugin - requires socket.io which is removed
 // import TavernLiveReloadPlugin from './webpack/TavernLiveReloadPlugin.js'
 import { fileURLToPath } from 'url'
@@ -145,11 +146,16 @@ export default (env, argv) => {
         }
       } : null,
       // !isProduction && !isWatch ? new TavernLiveReloadPlugin({ port: 6620 }) : null,
+      // 将 public/ 复制到 dist（封面视频等静态资源）
+      new CopyPlugin({
+        patterns: [{ from: 'public', to: '.', noErrorOnMissing: true, globOptions: { dot: true } }],
+      }),
     ].filter(Boolean),
     devServer: {
-      static: {
-        directory: path.join(__dirname, 'dist'),
-      },
+      static: [
+        { directory: path.join(__dirname, 'public') },
+        { directory: path.join(__dirname, 'dist') },
+      ],
       compress: true,
       port: 9091,  // [MING] Changed to 9091 to avoid conflict
       hot: true,
