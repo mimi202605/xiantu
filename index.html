@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="">
   <head>
+    <% if (htmlWebpackPlugin.options.basePath) { %><base href="<%= htmlWebpackPlugin.options.basePath %>"><% } %>
     <script>
       // IIFE to set the initial theme and prevent FOUC
       (function() {

@@ -1,5 +1,13 @@
 # 更新日志
 
+## [MING] 通用版 0.2.43 (2026-02-08)
+
+- **GitHub Pages**：修复部署后空白页；构建时设置 BASE_PATH（如 `/ming/`），publicPath 与 `<base href>` 使资源在子路径正确加载；新增 404.html 作 SPA 回退；README 注明 Pages 访问地址。
+- **构建产物**：生产环境打包输出由 `XianTu.js` 更名为 `ming.js`。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.42 (2026-02-08)
 
 - **README 致谢**：文末增加致谢小节，注明 MING 基于 [仙途（XianTu）](https://github.com/qianye60/XianTu) 衍生，感谢千叶大佬原作与开源。  

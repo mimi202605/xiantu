@@ -34,12 +34,21 @@ jobs:
         run: npm ci
 
       - name: Build
+        env:
+          # GitHub Pages serves at /<repo-name>/; assets must use this base path
+          BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build
 
       - name: Add extra static pages
         run: |
           if [ -f "游戏介绍.html" ]; then
             cp "游戏介绍.html" "dist/游戏介绍.html"
+          fi
+
+      - name: SPA 404 fallback
+        run: |
+          if [ -d dist ]; then
+            echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><script>sessionStorage.redirect = location.href;</script><meta http-equiv="refresh" content="0;url=/${{ github.event.repository.name }}/"></head><body>Redirecting…</body></html>' > dist/404.html
           fi
 
       - name: Disable Jekyll

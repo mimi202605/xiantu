@@ -19,14 +19,21 @@ export default (env, argv) => {
   const isWatch = argv.watch === true // 检测是否是 watch 模式
   const isSingleFile = env?.single === true // 检测是否是单文件模式
 
+  // GitHub Pages: set BASE_PATH to e.g. "/ming/" when building for Pages so assets load correctly
+  // (relative './' can break when URL has no trailing slash: /ming -> ./ming.js resolves to /ming.js)
+  const basePath = process.env.BASE_PATH
+  const publicPath = basePath != null && basePath !== ''
+    ? (basePath.endsWith('/') ? basePath : basePath + '/')
+    : (isProduction ? './' : '/')
+
   return {
     mode: isProduction ? 'production' : 'development',
     entry: './src/main.ts',
     output: {
       path: path.resolve(__dirname, 'dist'),
-      filename: (isWatch || isSingleFile) ? 'inline.js' : 'XianTu.js',
+      filename: (isWatch || isSingleFile) ? 'inline.js' : 'ming.js',
       clean: true,
-      publicPath: isProduction ? './' : '/', // [MING] Use absolute path for dev server, relative for production
+      publicPath,
     },
     devtool: isProduction ? false : (isWatch ? false : 'eval-source-map'),
     optimization: {
@@ -116,6 +123,7 @@ export default (env, argv) => {
       new HtmlWebpackPlugin({
         template: './index.html',
         inject: 'body',
+        basePath: basePath != null && basePath !== '' ? (basePath.endsWith('/') ? basePath : basePath + '/') : '',
         minify: isProduction ? {
           removeComments: true,
           collapseWhitespace: true,

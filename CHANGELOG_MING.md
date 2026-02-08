@@ -4,6 +4,27 @@
 
 ---
 
+## [0.2.43] - 2026-02-08
+
+### GitHub Pages 部署修复与构建产物更名
+
+- **GitHub Pages 空白页修复**
+  - 构建时通过环境变量 `BASE_PATH`（如 `/ming/`）设置 Webpack `publicPath`，避免相对路径在无尾斜杠 URL 下解析错误导致脚本 404。
+  - Pages 工作流中为 build 步骤设置 `BASE_PATH=/${{ github.event.repository.name }}/`；HTML 模板在存在 basePath 时注入 `<base href="...">`。
+  - 新增 `dist/404.html` 作为 SPA 回退，子路径请求重定向到应用根路径。
+  - README 快速开始中注明 Pages 访问地址为 `https://<username>.github.io/ming/`。
+- **构建产物更名**
+  - 生产环境打包主输出由 **XianTu.js** 更名为 **ming.js**。
+
+#### 涉及文件
+
+- `webpack.config.js`
+- `index.html`
+- `.github/workflows/pages.yml`
+- `README.md`
+
+---
+
 ## [0.2.42] - 2026-02-08
 
 ### README 致谢：仙途 / 千叶 credit
