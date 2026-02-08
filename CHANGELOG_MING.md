@@ -4,6 +4,18 @@
 
 ---
 
+## [0.2.42] - 2026-02-08
+
+### README 致谢：仙途 / 千叶 credit
+
+- README 文末（许可证之后）增加 **🙏 致谢** 小节：MING 基于 [仙途（XianTu）](https://github.com/qianye60/XianTu) 衍生开发，感谢 [千叶](https://github.com/qianye60) 大佬的原作与开源。
+
+#### 涉及文件
+
+- `README.md`
+
+---
+
 ## [0.2.41] - 2026-02-08
 
 ### README 功能概览：突出 MING 与原版差异

@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.42 (2026-02-08)
+
+- **README 致谢**：文末增加致谢小节，注明 MING 基于 [仙途（XianTu）](https://github.com/qianye60/XianTu) 衍生，感谢千叶大佬原作与开源。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.41 (2026-02-08)
 
 - **README 功能概览**：突出 MING 与原版差异——强化 NPC 与世界的互动；前置 NPC 与关系网、动态地图与探索、世界心跳三块，再接 AI 叙事与通用框架等。  

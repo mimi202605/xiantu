@@ -167,6 +167,12 @@ uvicorn server.main:app --reload --port 12345
 
 ---
 
+## 🙏 致谢
+
+MING 基于 [**仙途（XianTu）**](https://github.com/qianye60/XianTu) 衍生开发。感谢 [千叶](https://github.com/qianye60) 大佬的原作与开源。
+
+---
+
 <p align="center">
   <sub>如果觉得有帮助，请给个 ⭐ Star 支持一下！</sub>
 </p>
