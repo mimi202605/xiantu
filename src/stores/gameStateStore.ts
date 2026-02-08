@@ -230,7 +230,7 @@ export const useGameStateStore = defineStore('gameState', {
       }
       const inventory: Inventory | null = v3?.角色?.背包 ? deepCopy(v3.角色.背包) : null;
       const equipment: Equipment | null = v3?.角色?.装备 ? deepCopy(v3.角色.装备) : null;
-      let relationships: Record<string, NpcProfile> | null = v3?.社交?.关系 ? deepCopy(v3.社交.关系) : null;
+      const relationships: Record<string, NpcProfile> | null = v3?.社交?.关系 ? deepCopy(v3.社交.关系) : null;
       // 迁移：游戏实体索引.relationships → 社交.关系[fromId].关系[toId]（仅 NPC–NPC，fromId/toId 均在 社交.关系）
       const 扩展 = v3?.系统?.扩展;
       const oldRels = 扩展 && typeof 扩展 === 'object' ? (扩展 as any).游戏实体索引?.relationships : null;

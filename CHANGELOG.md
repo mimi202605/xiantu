@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.45 (2026-02-08)
+
+- **gameStateStore**：存档加载中 `relationships` 未再赋值，改为 `const`。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.44 (2026-02-08)
 
 - **类型与数据结构对齐**：修复 type-check 报错，代码与当前类型定义一致。境界→地位、气血/灵气/神识→体力/精力/洞察力、后天六司→后天六维属性；specialNpcs（NpcProfile 属性/背包/地位/特质）、offlineInitialization、worldHeartbeatService、characterStore、dataRepair、characterCreationStore 等已按新 schema 更新。  

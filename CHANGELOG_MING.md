@@ -4,6 +4,18 @@
 
 ---
 
+## [0.2.45] - 2026-02-08
+
+### gameStateStore：relationships 改为 const
+
+- 存档加载时 `relationships` 仅赋值一次、不再修改，由 `let` 改为 `const`。
+
+#### 涉及文件
+
+- `src/stores/gameStateStore.ts`
+
+---
+
 ## [0.2.44] - 2026-02-08
 
 ### 类型与数据结构对齐（type-check 修复）
