@@ -12,7 +12,7 @@
 <h1 align="center">天命（MING）</h1>
 
 <p align="center">
-  <strong>AI 驱动的沉浸式文字冒险 · 通用版（不绑定修仙）</strong>
+  <strong>AI 驱动的沉浸式文字冒险 · 通用版</strong>
 </p>
 
 <p align="center">
@@ -35,31 +35,37 @@
   <img src="https://img.shields.io/badge/AI-Gemini-4285F4?style=flat-square&logo=google&logoColor=white" alt="Gemini"/>
   <img src="https://img.shields.io/badge/AI-Claude-orange?style=flat-square&logo=anthropic&logoColor=white" alt="Claude"/>
   <img src="https://img.shields.io/badge/AI-OpenAI-412991?style=flat-square&logo=openai&logoColor=white" alt="OpenAI"/>
-  <img src="https://img.shields.io/badge/AI-DeepSeek-1a1a1a?style=flat-square" alt="DeepSeek"/>
+  <img src="https://img.shields.io/badge/SillyTavern-兼容-purple?style=flat-square" alt="SillyTavern"/>
 </p>
 
 <p align="center">
   <!-- 将 your-username 替换为你的 GitHub 用户名 -->
-  <img src="https://visitor-badge.laobi.icu/badge?page_id=your-username.ming&left_color=gray&right_color=blue" alt="visitors"/>
-  <img src="https://img.shields.io/github/stars/your-username/ming?style=flat-square&color=yellow" alt="stars"/>
-  <img src="https://img.shields.io/github/forks/your-username/ming?style=flat-square" alt="forks"/>
+  <img src="https://visitor-badge.laobi.icu/badge?page_id=michael2221807.ming&left_color=gray&right_color=blue" alt="visitors"/>
+  <img src="https://img.shields.io/github/stars/michael2221807/ming?style=flat-square&color=yellow" alt="stars"/>
+  <img src="https://img.shields.io/github/forks/michael2221807/ming?style=flat-square" alt="forks"/>
 </p>
 
 ---
 
 ## ✨ 功能概览
 
+MING 在原版基础上**强化 NPC 与世界的互动**，让角色、地点与时间更有机地联动：
+
+👥 **NPC 与关系** — NPC 重新设计，拥有关系网络、当前位置与动态状态；关系图可视化（Cytoscape），支持人物关系、在做事项与历史；NPC 与地点双向绑定，移动与校准一致
+
+🗺️ **动态地图与探索** — 世界地点按层级动态生成；探索地图支持缩放、平移、双击钻取与回退，色系区分区域、红色高亮当前位置；探索状态（已探索/未探索/部分探索）与教程说明
+
+💓 **世界心跳** — 可配置周期（如每 N 回合）间歇性推进世界与 NPC 变化：关系与情感、在做事项、地点-NPC 同步、记忆与遗忘，让世界随时间「呼吸」
+
 🤖 **AI 动态叙事** — 支持 Gemini / Claude / OpenAI / DeepSeek 等多种大模型，实时生成个性化剧情
 
-📜 **通用叙事框架** — 不绑定修仙设定；特质、地位、六维属性、体力/精力/洞察力、金钱体系，可适配多种世界观
+📜 **通用叙事框架** — 特质、地位、六维属性、体力/精力/洞察力、金钱体系，可适配多种世界观
 
 🎲 **智能判定系统** — 基于属性、装备、状态等多维度计算判定结果
 
 💾 **多存档管理** — 多角色、多存档槽位，支持导入导出与云同步（可选后端）
 
-🗺️ **探索地图** — 层级化世界地点结构，缩放/平移/双击钻取，色系区分与当前位置高亮，支持探索状态与教程说明
-
-📱 **全平台与双主题** — 桌面端与移动端适配；亮色主题柔光、边框清晰、半透明透出封面视频，与暗色一致
+📱 **全平台与双主题** — 桌面端与移动端适配；亮色主题柔光、边框清晰、半透明透出封面视频
 
 🍺 **酒馆兼容** — 支持 SillyTavern 嵌入式环境与独立网页版
 
@@ -82,10 +88,10 @@
 ### Docker 部署（推荐）
 
 ```bash
-docker run -d -p 8080:80 your-username/ming:latest
+docker run -d -p 8080:80 michael2221807/ming:latest
 ```
 
-访问 http://localhost:8080 即可使用。（若使用自有镜像，请将 `your-username` 换为实际仓库名。）
+访问 http://localhost:8080 即可使用。（若使用自有镜像，请将 `michael2221807` 换为实际仓库名。）
 
 ### 本地开发
 
@@ -140,10 +146,8 @@ uvicorn server.main:app --reload --port 12345
 
 - **天命意象**：封面与模式选择改为「天命」主标题与择一天命/独行己命/共书天命等表述；创角七步四字命名（万象择一、禀赋天成、因果前缘、性灵所钟、才情所钟、命格初成、一览终章）；天命点显示与消耗
 - **通用命名**：特质（原灵根）、地位（原境界）、六维属性、体力/精力/洞察力、金钱四档；创角数据去修仙化
-- **亮色主题**：柔光、边框可见、创角/模式选择主区半透明透出封面视频
 - **探索地图**：层级结构、色系与当前位置高亮、教程弹窗、探索状态 tooltip
 - **世界心跳**：可配置周期与历史条数，关系网络扩展
-- **封面本地化**：`public/ming_background.mp4`，不再依赖第三方视频链接
 
 ---
 
@@ -159,7 +163,7 @@ uvicorn server.main:app --reload --port 12345
 
 本项目采用 Apache-2.0 许可证。个人学习、研究免费使用；商业用途请先联系作者。
 
-详见 [LICENSE](./LICENSE)
+详见 [LICENSE](./LICENSE) | 联系方式：QQ 1154424983
 
 ---
 

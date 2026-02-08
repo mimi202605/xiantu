@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.41 (2026-02-08)
+
+- **README 功能概览**：突出 MING 与原版差异——强化 NPC 与世界的互动；前置 NPC 与关系网、动态地图与探索、世界心跳三块，再接 AI 叙事与通用框架等。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.40 (2026-02-08)
 
 - **README**：封面与主题截图改为本地 `public/`（天命-cover.jpg、天命-dark.png、天命-light.png）；标题与功能概览按天命/MING 通用版与 changelog 更新；visitors/stars/forks 改为占位 `your-username/ming` 便于替换。  
