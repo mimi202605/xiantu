@@ -80,7 +80,7 @@
                     </div>
                   </div>
                   <div class="person-realm">
-                    <span class="realm-label">境界:</span>
+                    <span class="realm-label">{{ t('地位') }}:</span>
                     <span class="realm-value">{{ getNpcRealm(person) }}</span>
                   </div>
                   <div class="intimacy-info">
@@ -176,7 +176,7 @@
                     <h5 class="section-title">📋 基本信息</h5>
                     <div class="info-grid-responsive">
                       <div class="info-item-row">
-                        <span class="info-label">境界</span
+                        <span class="info-label">{{ t('地位') }}</span
                         ><span class="info-value">{{ getNpcRealm(selectedPerson) }}</span>
                       </div>
                       <div class="info-item-row">
@@ -224,13 +224,13 @@
                           <div class="npc-vital-bar blue-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '精力') + '%' }"></div>
                         </div>
                       </div>
-                      <div class="npc-vital-row" v-if="hasNpcStatPair(selectedPerson, '神识')">
+                      <div class="npc-vital-row" v-if="hasNpcStatPair(selectedPerson, '洞察力')">
                         <div class="npc-vital-meta">
-                          <span class="npc-vital-name">{{ t('神识') }}</span>
-                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '神识') }}</span>
+                          <span class="npc-vital-name">{{ t('洞察力') }}</span>
+                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '洞察力') }}</span>
                         </div>
                         <div class="npc-vital-track">
-                          <div class="npc-vital-bar gold-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '神识') + '%' }"></div>
+                          <div class="npc-vital-bar gold-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '洞察力') + '%' }"></div>
                         </div>
                       </div>
                       <div class="npc-vital-row">
@@ -268,12 +268,12 @@
                     </div>
                   </div>
 
-                  <!-- 天赋与六司 -->
+                  <!-- 天赋与六维属性 -->
                   <div
                     class="detail-section"
-                    v-if="selectedPerson.天赋?.length || selectedPerson.先天六司"
+                    v-if="selectedPerson.天赋?.length || (selectedPerson as any).先天六维属性 || (selectedPerson as any).先天六司"
                   >
-                    <h5 class="section-title">天赋与六司</h5>
+                    <h5 class="section-title">{{ t('天赋与六维属性') }}</h5>
                     <div v-if="selectedPerson.天赋?.length">
                       <h6 class="subsection-title">天赋能力</h6>
                       <div class="talents-grid">
@@ -288,32 +288,32 @@
                         </span>
                       </div>
                     </div>
-                    <div v-if="selectedPerson.先天六司" style="margin-top: 1rem">
-                      <h6 class="subsection-title">先天六司</h6>
+                    <div v-if="(selectedPerson as any).先天六维属性 || (selectedPerson as any).先天六司" style="margin-top: 1rem">
+                      <h6 class="subsection-title">{{ t('先天六维属性') }}</h6>
                       <div class="attributes-grid">
                         <div class="attribute-item">
                           <span class="attr-label">体质</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.体质 ?? selectedPerson.先天六司.根骨 ?? 0 }}</span>
+                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).体质 ?? (npcInnateAttrs(selectedPerson) as any).根骨 ?? 0 }}</span>
                         </div>
                         <div class="attribute-item">
                           <span class="attr-label">直觉</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.直觉 ?? selectedPerson.先天六司.灵性 ?? 0 }}</span>
+                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).直觉 ?? (npcInnateAttrs(selectedPerson) as any).灵性 ?? 0 }}</span>
                         </div>
                         <div class="attribute-item">
                           <span class="attr-label">悟性</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.悟性 || 0 }}</span>
+                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).悟性 || 0 }}</span>
                         </div>
                         <div class="attribute-item">
                           <span class="attr-label">气运</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.气运 || 0 }}</span>
+                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).气运 || 0 }}</span>
                         </div>
                         <div class="attribute-item">
                           <span class="attr-label">魅力</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.魅力 || 0 }}</span>
+                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).魅力 || 0 }}</span>
                         </div>
                         <div class="attribute-item">
                           <span class="attr-label">心性</span
-                          ><span class="attr-value">{{ selectedPerson.先天六司.心性 || 0 }}</span>
+                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).心性 || 0 }}</span>
                         </div>
                       </div>
                     </div>
@@ -770,9 +770,9 @@
                 <div v-show="activeTab === 'inventory'" class="tab-panel">
                   <div class="detail-section">
                     <h5 class="section-title">背包</h5>
-                    <div v-if="selectedPerson.背包?.金钱 || selectedPerson.背包?.灵石" class="spirit-stones-grid">
-                      <div class="spirit-stone-item" v-for="g in ['下品','中品','上品','极品']" :key="g">
-                        <span>{{ g }}金钱</span><span>{{ (selectedPerson.背包.金钱 ?? selectedPerson.背包.灵石)?.[g] || 0 }}</span>
+                    <div v-if="selectedPerson.背包?.金钱 || (selectedPerson.背包 as any)?.灵石" class="spirit-stones-grid">
+                      <div class="spirit-stone-item" v-for="g in ['现金','铜','银','金']" :key="g">
+                        <span>{{ t(g) }}{{ t('金钱') }}</span><span>{{ getNpcCurrencyTier(selectedPerson, g) }}</span>
                       </div>
                     </div>
                     <div class="npc-inventory" style="margin-top: 1rem">
@@ -1101,9 +1101,14 @@ const resetMemoryPagination = () => {
 };
 
 
-// 获取NPC境界信息（未生成时显示默认「凡人」）
+const npcInnateAttrs = (npc: NpcProfile): Record<string, number> => {
+  const raw = (npc as any).先天六维属性 ?? (npc as any).先天六司;
+  return raw && typeof raw === 'object' ? raw : {};
+};
+
+// 获取NPC地位信息（未生成时显示默认「凡人」）
 const getNpcRealm = (npc: NpcProfile): string => {
-  const realmField = npc.境界;
+  const realmField = (npc as any).地位 ?? (npc as any).境界;
   if (!realmField) return '凡人';
 
   if (typeof realmField === 'object' && realmField !== null) {
@@ -1121,9 +1126,9 @@ const getNpcRealm = (npc: NpcProfile): string => {
   return '凡人';
 };
 
-// 获取NPC灵根信息
+// 获取NPC特质/灵根信息
 const getNpcSpiritRoot = (npc: NpcProfile): string => {
-  return formatSpiritRoot(npc.灵根);
+  return formatSpiritRoot((npc as any).特质 ?? (npc as any).灵根);
 };
 
 // 获取NPC出生信息
@@ -1136,17 +1141,27 @@ const getNpcOrigin = (origin: string | { 名称?: string; 描述?: string; name?
   return '未知';
 };
 
+const CURRENCY_TIERS = ['现金', '铜', '银', '金'] as const;
+const LEGACY_CURRENCY_MAP: Record<string, string> = { 下品: '现金', 中品: '铜', 上品: '银', 极品: '金' };
+const getNpcCurrencyTier = (npc: NpcProfile, tier: string): number => {
+  const bag = npc.背包?.金钱 ?? (npc.背包 as any)?.灵石;
+  if (!bag || typeof bag !== 'object') return 0;
+  const key = LEGACY_CURRENCY_MAP[tier] ?? tier;
+  return Number((bag as Record<string, unknown>)[key] ?? (bag as Record<string, unknown>)[tier] ?? 0) || 0;
+};
+
 const toFiniteNumber = (value: unknown): number | null => {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 };
 
-type NpcCoreStatKey = '体力' | '精力' | '神识' | '气血' | '灵气';
+type NpcCoreStatKey = '体力' | '精力' | '神识' | '洞察力' | '气血' | '灵气';
 
 const getNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): { current: number | null; max: number | null } => {
   const attrs = (npc as any)?.属性;
   let raw: unknown = attrs?.[key];
   if (key === '体力') raw = attrs?.体力 ?? attrs?.气血;
   else if (key === '精力') raw = attrs?.精力 ?? attrs?.灵气;
+  else if (key === '洞察力') raw = attrs?.洞察力 ?? attrs?.神识;
   if (!raw || typeof raw !== 'object') {
     return { current: null, max: null };
   }
@@ -1174,7 +1189,7 @@ const hasNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): boolean => {
 };
 
 const hasNpcCoreStats = (npc: NpcProfile): boolean => {
-  return hasNpcStatPair(npc, '体力') || hasNpcStatPair(npc, '精力') || hasNpcStatPair(npc, '神识') || getNpcLifespanMax(npc) !== null;
+  return hasNpcStatPair(npc, '体力') || hasNpcStatPair(npc, '精力') || hasNpcStatPair(npc, '洞察力') || getNpcLifespanMax(npc) !== null;
 };
 
 // 获取NPC最近三条记忆
@@ -2016,7 +2031,7 @@ const exportToWorldBook = async () => {
       const birthDate = npc.出生日期;
       entryContent += `- 出生日期：${birthDate.年}年${birthDate.月}月${birthDate.日}日\n`;
     }
-    entryContent += `- 境界：${getNpcRealm(npc)}\n`;
+    entryContent += `- 地位：${getNpcRealm(npc)}\n`;
     entryContent += `- ${t(USE_MING_PROMPTS ? '特质' : '灵根')}：${getNpcSpiritRoot(npc)}\n`;
     if (npc.势力归属) entryContent += `- 势力：${npc.势力归属}\n`;
     if (npc.出生) entryContent += `- 出生地：${getNpcOrigin(npc.出生)}\n`;
@@ -2036,15 +2051,15 @@ const exportToWorldBook = async () => {
       entryContent += `\n**天赋能力**\n${npc.天赋.map(t => `- ${getTalentName(t)}${getTalentDescription(t) ? ': ' + getTalentDescription(t) : ''}`).join('\n')}\n`;
     }
 
-    // 先天六司
-    if (npc.先天六司) {
-      entryContent += `\n**先天六司**\n`;
-      entryContent += `- 体质：${npc.先天六司.体质 ?? npc.先天六司.根骨 ?? 0}\n`;
-      entryContent += `- 直觉：${npc.先天六司.直觉 ?? npc.先天六司.灵性 ?? 0}\n`;
-      entryContent += `- 悟性：${npc.先天六司.悟性 || 0}\n`;
-      entryContent += `- 气运：${npc.先天六司.气运 || 0}\n`;
-      entryContent += `- 魅力：${npc.先天六司.魅力 || 0}\n`;
-      entryContent += `- 心性：${npc.先天六司.心性 || 0}\n`;
+    const innate = (npc as any).先天六维属性 ?? (npc as any).先天六司;
+    if (innate && typeof innate === 'object') {
+      entryContent += `\n**先天六维属性**\n`;
+      entryContent += `- 体质：${innate.体质 ?? (innate as any).根骨 ?? 0}\n`;
+      entryContent += `- 直觉：${innate.直觉 ?? (innate as any).灵性 ?? 0}\n`;
+      entryContent += `- 悟性：${innate.悟性 || 0}\n`;
+      entryContent += `- 气运：${innate.气运 || 0}\n`;
+      entryContent += `- 魅力：${innate.魅力 || 0}\n`;
+      entryContent += `- 心性：${innate.心性 || 0}\n`;
     }
 
     // 人格底线
@@ -2070,16 +2085,20 @@ const exportToWorldBook = async () => {
       });
     }
 
-    // 货币（金钱 ?? 灵石）
-    const stones = npc.背包?.金钱 ?? npc.背包?.灵石;
-    if (stones) {
-      const total = (stones.下品 || 0) + (stones.中品 || 0) + (stones.上品 || 0) + (stones.极品 || 0);
+    const stones = npc.背包?.金钱 ?? (npc.背包 as any)?.灵石;
+    if (stones && typeof stones === 'object') {
+      const s = stones as Record<string, number>;
+      const 现金 = s.现金 ?? s.下品 ?? 0;
+      const 铜 = s.铜 ?? s.中品 ?? 0;
+      const 银 = s.银 ?? s.上品 ?? 0;
+      const 金 = s.金 ?? s.极品 ?? 0;
+      const total = 现金 + 铜 + 银 + 金;
       if (total > 0) {
         entryContent += `\n**金钱**\n`;
-        if (stones.下品) entryContent += `- 下品：${stones.下品}\n`;
-        if (stones.中品) entryContent += `- 中品：${stones.中品}\n`;
-        if (stones.上品) entryContent += `- 上品：${stones.上品}\n`;
-        if (stones.极品) entryContent += `- 极品：${stones.极品}\n`;
+        if (现金) entryContent += `- 现金：${现金}\n`;
+        if (铜) entryContent += `- 铜：${铜}\n`;
+        if (银) entryContent += `- 银：${银}\n`;
+        if (金) entryContent += `- 金：${金}\n`;
       }
     }
 

@@ -19,7 +19,7 @@ export interface AIMetadata {}
 
 // --- 系统与规则（可嵌入提示与限制） ---
 export interface AttributeLimitConfig {
-  先天六司?: {
+  先天六维属性?: {
     每项上限: number; // 六项单项最大值（默认10）
   };
 }
@@ -150,7 +150,7 @@ export interface ItemQuality {
 }
 
 
-// --- 先天六司 ---
+// --- 六维属性（原先天六司）---
 
 export interface InnateAttributes {
   体质: number;
@@ -178,10 +178,10 @@ export type AttributeKey = keyof InnateAttributesEnglish;
 
 /** 装备增幅或功法属性加成 */
 export interface AttributeBonus {
-  气血上限?: number;
-  灵气上限?: number;
-  神识上限?: number;
-  后天六司?: Partial<InnateAttributes>;
+  体力上限?: number;
+  精力上限?: number;
+  洞察力上限?: number;
+  后天六维属性?: Partial<InnateAttributes>;
   [key: string]: any; // 允许其他动态属性
 }
 
@@ -262,19 +262,17 @@ export interface MasteredSkill {
   使用次数: number; // 使用次数统计
 }
 
-/** 货币四档（通用：可对应铜钱/银两/金币等，Ming 使用 金钱） */
+/** 货币四档：现金、铜、银、金 */
 export interface CurrencyFourTier {
-  下品: number;
-  中品: number;
-  上品: number;
-  极品: number;
+  现金: number;
+  铜: number;
+  银: number;
+  金: number;
 }
 
 export interface Inventory extends AIMetadata {
-  /** 通用货币（Ming 使用；旧存档可能为 灵石，读取时 金钱 ?? 灵石） */
+  /** 通用货币（四档：现金、铜、银、金） */
   金钱?: CurrencyFourTier;
-  /** @deprecated 已改为 金钱，仅兼容旧存档 */
-  灵石?: CurrencyFourTier;
   物品: Record<string, Item>; // 物品现在是对象结构，key为物品ID，value为Item对象
 }
 
@@ -311,10 +309,10 @@ export interface EquipmentSlot {
   物品ID: string;
   装备特效?: string[];
   装备增幅?: {
-    气血上限?: number;
-    灵气上限?: number;
-    神识上限?: number;
-    后天六司?: Partial<InnateAttributes>;
+    体力上限?: number;
+    精力上限?: number;
+    洞察力上限?: number;
+    后天六维属性?: Partial<InnateAttributes>;
   };
   耐久度?: ValuePair<number>;
   品质?: ItemQuality;
@@ -353,14 +351,15 @@ export interface StatusEffect {
 
 // --- 角色实时状态 ---
 
+/** 地位（原境界）结构 */
 export interface Realm {
-  名称: string;        // 境界名称，如"练气"、"筑基"
-  阶段: string;        // 境界阶段，如"初期"、"中期"、"后期"、"圆满"
-  当前进度: number;    // 当前修炼进度
+  名称: string;        // 地位名称
+  阶段: string;        // 阶段，如"初期"、"中期"、"后期"、"圆满"
+  当前进度: number;    // 当前进度
   下一级所需: number;  // 突破到下一阶段所需进度
-  突破描述: string;    // 突破到下一阶段的描述
+  突破描述: string;    // 突破描述
 }
-// 境界子阶段类型
+// 地位子阶段类型
 export type RealmStage = '初期' | '中期' | '后期' | '圆满' | '极境';
 
 // 境界子阶段定义
@@ -368,7 +367,7 @@ export interface RealmStageDefinition {
   stage: RealmStage;
   title: string;
   breakthrough_difficulty: '简单' | '普通' | '困难' | '极难' | '逆天';
-  resource_multiplier: number; // 资源倍数（气血、灵气、神识）
+  resource_multiplier: number; // 资源倍数（体力、精力、洞察力）
   lifespan_bonus: number; // 寿命加成
   special_abilities: string[]; // 特殊能力
   can_cross_realm_battle?: boolean; // 是否可越阶战斗
@@ -388,19 +387,17 @@ export interface RealmDefinition {
 
 
 export interface PlayerStatus extends AIMetadata {
-  境界?: Realm; // 境界（可选，偏修仙）
+  地位?: Realm; // 地位（可选）
   声望: number;
   位置: {
     描述: string;
     x?: number; // 经度坐标 (Longitude, 通常 100-115)
     y?: number; // 纬度坐标 (Latitude, 通常 25-35)
-    灵气浓度?: number; // 当前位置的灵气浓度，1-100，影响修炼速度
+    灵气浓度?: number; // 环境强度 1-100（可选）
   };
-  气血: ValuePair<number>; // 生命/体力，通用（Legacy）
-  灵气: ValuePair<number>; // 精力/能量，通用（Legacy）
-  体力?: ValuePair<number>; // Ming/通用：体力，读取时 体力 ?? 气血
-  精力?: ValuePair<number>; // Ming/通用：精力，读取时 精力 ?? 灵气
-  神识?: ValuePair<number>; // 精神力（可选，偏修仙；Ming 不使用）
+  体力: ValuePair<number>;
+  精力: ValuePair<number>;
+  洞察力?: ValuePair<number>;
   寿命: ValuePair<number>;
   状态效果?: StatusEffect[];
   事件系统?: EventSystem;
@@ -408,19 +405,18 @@ export interface PlayerStatus extends AIMetadata {
 }
 
 // --- MECE短路径：拆分“属性/位置/效果” ---
-// 属性：动态数值（气血/灵气/寿命/声望 为通用核心；境界/神识 可选，偏修仙）
-export type PlayerAttributes = Pick<PlayerStatus, '境界' | '声望' | '气血' | '灵气' | '神识' | '寿命'>;
+export type PlayerAttributes = Pick<PlayerStatus, '地位' | '声望' | '体力' | '精力' | '洞察力' | '寿命'>;
 // 位置：空间信息（从 PlayerStatus.位置 提取）
 export type PlayerLocation = PlayerStatus['位置'];
 
 /** 用于UI组件显示的角色状态信息 */
 export interface CharacterStatusForDisplay {
   name: string;
-  realm: Realm;
+  realm: Realm; // 地位结构
   age: number; // 来自寿命的当前值
   hp: string;
   mana: string;
-  spirit: string;
+  spirit: string; // 洞察力
   lifespan: ValuePair<number>;
   声望: number;
   cultivation_exp: number;
@@ -533,14 +529,11 @@ export interface WorldGenerationInfo {
   版本: string;
 }
 
-/** 完整的世界信息数据结构 */
+/** 完整的世界信息数据结构（不含大陆/势力，开局不生成） */
 export interface WorldInfo {
   世界名称: string;
-  大陆信息: WorldContinent[];
-  continents?: WorldContinent[]; // 兼容旧数据
-  势力信息: WorldFaction[];
   地点信息: (WorldLocation | LocationEntry)[]; // 顶层并列；每项可有 内部 递归子地点；地点NPC 存于各地点内
-  地图配置?: WorldMapConfig; // 新增地图配置
+  地图配置?: WorldMapConfig;
   // 从 WorldGenerationInfo 扁平化
   生成时间: string;
   世界背景: string;
@@ -718,26 +711,22 @@ export interface NpcProfile {
   性别: '男' | '女' | '其他';
   出生日期: { 年: number; 月: number; 日: number; 小时?: number; 分钟?: number }; // 出生日期（用于自动计算年龄）
   种族?: string; // 如：人族、妖族、魔族
-  出生: string | { 名称?: string; 描述?: string }; // 出生背景，如："焚天林氏遗孤"（必填）
+  出生: string | { 名称?: string; 描述?: string }; // 出生背景（必填）
   外貌描述: string; // AI生成的外貌描述，必填
   性格特征: string[]; // 如：['冷静', '谨慎', '好色']
 
-  // === 修炼属性（已退役，保留以兼容旧存档）===
-  /** @deprecated 境界已退役，通用故事不再使用 */
-  境界?: Realm;
-  /** @deprecated 灵根已退役，通用故事不再使用 */
-  灵根?: CharacterBaseInfo['灵根'];
-  天赋?: CharacterBaseInfo['天赋']; // 天赋列表
-  /** @deprecated 先天六司已退役，通用故事不再使用 */
-  先天六司?: InnateAttributes;
+  // === 身份与属性 ===
+  地位?: Realm; // 地位（可选）
+  特质?: string | SpiritRoot; // 角色特质
+  天赋?: CharacterBaseInfo['天赋'];
+  先天六维属性?: InnateAttributes;
+  后天六维属性?: InnateAttributes;
 
   // === 核心数值（整合为属性对象）===
   属性: {
-    气血?: ValuePair<number>; // Legacy
-    灵气?: ValuePair<number>; // Legacy
-    体力?: ValuePair<number>; // Ming/通用：体力
-    精力?: ValuePair<number>; // Ming/通用：精力
-    神识?: ValuePair<number>; // 可选；Ming 不使用
+    体力?: ValuePair<number>;
+    精力?: ValuePair<number>;
+    洞察力?: ValuePair<number>;
     寿元上限: number; // 最大寿命（当前年龄由出生日期自动计算）
   };
 
@@ -745,14 +734,14 @@ export interface NpcProfile {
   与玩家关系: string; // 如：道侣、师徒、朋友、敌人、陌生人
   /** 重点/普通；缺省视为重点；普通 NPC 仅在地点、提及、重要 NPC 关系网中出现 */
   类型?: '重点' | '普通';
-  /** 本 NPC 对其他 NPC 的关系；key=对方名字，value=关系标签；仅经 tavern_commands 写：set 社交.关系.{npc}.关系.{其他} 或 set 社交.关系.{npc}.关系 对象合并 */
+  /** 本 NPC 对其他 NPC 的关系；key=对方名字，value=关系标签 */
   关系?: Record<string, string>;
   好感度: number; // -100 到 100
   当前位置: {
     描述: string;
     x?: number; // 经度坐标 (Longitude, 通常 100-115)
     y?: number; // 纬度坐标 (Latitude, 通常 25-35)
-    灵气浓度?: number; // 当前位置的灵气浓度，1-100
+    灵气浓度?: number; // 环境强度 1-100（可选）
   };
   势力归属?: string;
 
@@ -773,8 +762,7 @@ export interface NpcProfile {
 
   // === 资产物品 ===
   背包: {
-    金钱?: { 下品: number; 中品: number; 上品: number; 极品: number };
-    灵石?: { 下品: number; 中品: number; 上品: number; 极品: number };
+    金钱?: CurrencyFourTier; // 现金、铜、银、金
     物品: Record<string, Item>;
   };
 
@@ -848,9 +836,9 @@ export interface SaveSlot {
   游戏内时间?: string;
   游戏时长?: number; // 游戏时长（秒）
   角色名字?: string; // 角色名字
-  境界?: string; // 当前境界
+  地位?: string; // 当前地位
   位置?: string; // 当前位置
-  修为进度?: number; // 修为进度
+  修为进度?: number; // 进度
   世界地图?: WorldMap;
   存档数据?: SaveData | null;
   // 联机模式专属字段
@@ -868,18 +856,19 @@ export interface CharacterBaseInfo extends AIMetadata {
   名字: string;
   性别: '男' | '女' | '其他' | string;
   出生日期: { 年: number; 月: number; 日: number; 小时?: number; 分钟?: number }; // 出生日期（用于自动计算年龄）
-  种族?: string; // 添加种族字段
-  境界?: string; // NPC当前境界
+  种族?: string;
+  地位?: Realm; // 地位（可选）
   世界: World;
   天资: TalentTier;
   出生: Origin | string;
-  灵根?: SpiritRoot | string; // Legacy/修仙；Ming 使用 特质
-  特质?: string; // Ming/通用：角色特质，替代灵根
+  特质?: string | SpiritRoot; // 角色特质（创角页用 SpiritRoot 结构，存档可存 string）
+  /** @deprecated 已迁移为 特质，仅兼容旧创角/存档 */
+  灵根?: string | SpiritRoot;
   天赋: Talent[];
-  先天六司: InnateAttributes;
-  后天六司: InnateAttributes; // 后天获得的六司加成（装备、天赋等），开局默认全为0
-  创建时间?: string; // 添加创建时间字段
-  描述?: string; // 添加描述字段
+  先天六维属性: InnateAttributes;
+  后天六维属性: InnateAttributes; // 后天获得的六维属性加成，开局默认全为0
+  创建时间?: string;
+  描述?: string;
 }
 
 
@@ -967,9 +956,9 @@ export type Location = WorldLocation;
 
 /** 修炼速度影响因子 */
 export interface CultivationSpeedFactors {
-  灵气浓度系数: number;    // 0.1 - 2.0，基于位置灵气浓度(1-100)
-  先天六司系数: number;    // 0.5 - 2.0，基于先天六司综合值
-  后天六司系数: number;    // 0.0 - 0.6，基于后天六司综合值（额外加成）
+  灵气浓度系数: number;    // 0.1 - 2.0，基于位置环境强度(1-100)
+  先天六维属性系数: number;    // 0.5 - 2.0，基于先天六维属性综合值
+  后天六维属性系数: number;    // 0.0 - 0.6，基于后天六维属性综合值（额外加成）
   状态效果系数: number;    // 0.5 - 2.0，基于buff/debuff
   功法加成系数: number;    // 0.0 - 1.0，基于当前修炼功法
   环境加成系数: number;    // 0.0 - 0.5，洞府、宗门福地等
@@ -998,16 +987,16 @@ export interface RealmBreakthroughTime {
   突破难度?: '简单' | '普通' | '困难' | '极难' | '逆天';
 }
 
-// --- 六司系统约束 ---
+// --- 六维属性系统约束 ---
 
-/** 六司约束配置 */
+/** 六维属性约束配置 */
 export interface SixSiConstraints {
-  先天六司: {
+  先天六维属性: {
     每项上限: 10;          // 固定值，不可修改
     总分上限: 60;          // 6项 × 10
     对加成权重: 0.7;       // 占总加成的70%
   };
-  后天六司: {
+  后天六维属性: {
     每项上限: 20;          // 单项最大值
     单次增加上限: 3;       // 每次最多增加1-3点（极稀有机缘可达5点）
     单次减少上限: 5;       // 每次最多减少1-5点（惩罚）
@@ -1016,7 +1005,7 @@ export interface SixSiConstraints {
   };
 }
 
-/** 六司加成结果 */
+/** 六维属性加成结果 */
 export interface SixSiBonus {
   修炼速度加成: number;    // 百分比 0-100
   战斗力加成: number;      // 百分比 0-100
@@ -1025,7 +1014,7 @@ export interface SixSiBonus {
   机缘概率加成: number;    // 百分比 0-100
 }
 
-/** 六司权重配置 */
+/** 六维属性权重配置 */
 export interface SixSiWeights {
   体质: number;
   直觉: number;

@@ -7,7 +7,7 @@ import { DICE_ROLLING_RULES } from '../definitions/ming/textFormatsMing';
  *
  * 【更新日志】
  * - v5.2.0: 增强变量更新全面性
- *   - 新增NPC属性变化指令（气血/灵气/神识/境界/位置）
+ *   - 新增NPC属性变化指令（体力/精力/洞察力/地位/位置）
  *   - 新增战斗与消耗的NPC更新提醒
  *   - 新增变量更新全面性检查清单
  * - v5.1.0: 适配 v4.0 新功能
@@ -42,7 +42,7 @@ export function getCotCorePromptMing(userInput: string, enableActionOptions: boo
 ### 基础同步（V3短路径）- 必须全面更新！
 □ 位置变化 → set \`角色.位置\`
 □ 时间流逝 → add \`元数据.时间.分钟\`
-□ 金钱变化 → add \`角色.背包.金钱.下品/中品/上品/极品\`
+□ 金钱变化 → add \`角色.背包.金钱.现金/铜/银/金\`
 □ 物品增删 → push/delete \`角色.背包.物品\`
 
 ### 冲突与消耗 - 必须更新所有参与者！

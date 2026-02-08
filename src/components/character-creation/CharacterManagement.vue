@@ -298,7 +298,7 @@
 
                         <div class="save-badges">
                           <span class="realm-badge">{{
-                            getRealmName(normalizeSaveDataV3(slot.存档数据)?.角色?.属性?.境界)
+                            getRealmName((normalizeSaveDataV3(slot.存档数据)?.角色?.属性 as any)?.地位 ?? (normalizeSaveDataV3(slot.存档数据)?.角色?.属性 as any)?.境界)
                           }}</span>
                           <span class="age-badge"
                             >{{ normalizeSaveDataV3(slot.存档数据)?.角色?.属性?.寿命?.当前 ?? 18 }}岁</span
@@ -308,10 +308,10 @@
                         <div class="save-stats">
                           <div class="stat-grid">
                             <div class="stat">
-                              <span class="label">气血</span>
+                              <span class="label">{{ t('体力') }}</span>
                               <span class="value"
-                                >{{ normalizeSaveDataV3(slot.存档数据)?.角色?.属性?.气血?.当前 ?? 0 }}/{{
-                                  normalizeSaveDataV3(slot.存档数据)?.角色?.属性?.气血?.上限 ?? 0
+                                >{{ (normalizeSaveDataV3(slot.存档数据)?.角色?.属性 as any)?.体力?.当前 ?? (normalizeSaveDataV3(slot.存档数据)?.角色?.属性 as any)?.气血?.当前 ?? 0 }}/{{
+                                  (normalizeSaveDataV3(slot.存档数据)?.角色?.属性 as any)?.体力?.上限 ?? (normalizeSaveDataV3(slot.存档数据)?.角色?.属性 as any)?.气血?.上限 ?? 0
                                 }}</span
                               >
                             </div>
@@ -391,10 +391,10 @@
                   <div class="save-stats">
                     <div class="stat-grid">
                       <div class="stat">
-                        <span class="label">气血</span>
+                        <span class="label">{{ t('体力') }}</span>
                         <span class="value"
-                          >{{ normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性?.气血?.当前 ?? 0 }}/{{
-                            normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性?.气血?.上限 ?? 0
+                          >{{ ((normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性) as any)?.体力?.当前 ?? ((normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性) as any)?.气血?.当前 ?? 0 }}/{{
+                            ((normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性) as any)?.体力?.上限 ?? ((normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性) as any)?.气血?.上限 ?? 0
                           }}</span
                         >
                       </div>

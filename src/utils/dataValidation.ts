@@ -14,6 +14,7 @@
 import type { GameTime, NpcProfile, SaveData } from '@/types/game';
 import type { TavernHelper } from '@/types';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
+import { DEFAULT_CURRENCY, normalizeCurrency } from '@/utils/currencyDefaults';
 
 export function deepCleanForClone<T>(obj: T): T {
   return JSON.parse(JSON.stringify(obj));
@@ -34,23 +35,14 @@ export function validateAndFixSaveData(saveData: SaveData): SaveData {
   const anySave = saveData as any;
   if (!anySave.角色 || typeof anySave.角色 !== 'object') anySave.角色 = {};
   if (!anySave.角色.背包 || typeof anySave.角色.背包 !== 'object') {
-    anySave.角色.背包 = {
-      灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 },
-      物品: {}
-    };
+    anySave.角色.背包 = { 金钱: { ...DEFAULT_CURRENCY }, 物品: {} };
   }
 
   if (!anySave.角色.背包.物品 || typeof anySave.角色.背包.物品 !== 'object') {
     anySave.角色.背包.物品 = {};
   }
 
-  const defaultCur = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 };
-  const cur = anySave.角色.背包.金钱 ?? anySave.角色.背包.灵石;
-  if (!cur || typeof cur !== 'object') {
-    anySave.角色.背包.金钱 = { ...defaultCur };
-  } else {
-    anySave.角色.背包.金钱 = { 下品: cur.下品 ?? 0, 中品: cur.中品 ?? 0, 上品: cur.上品 ?? 0, 极品: cur.极品 ?? 0 };
-  }
+  anySave.角色.背包.金钱 = normalizeCurrency(anySave.角色.背包.金钱 ?? anySave.角色.背包.灵石);
 
   // 清理无效的物品数据
   if (anySave.角色?.背包?.物品) {
@@ -193,16 +185,20 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
         repairedNpc.属性 = {
           体力: { 当前: 100, 上限: 100 },
           精力: { 当前: 50, 上限: 50 },
+          洞察力: { 当前: 30, 上限: 30 },
           寿元上限: 100
         };
       } else {
         const attrs = repairedNpc.属性 as any;
         const hp = attrs.体力 ?? attrs.气血;
         const mp = attrs.精力 ?? attrs.灵气;
+        const insight = attrs.洞察力 ?? attrs.神识;
         if (!hp || typeof hp !== 'object') attrs.体力 = { 当前: 100, 上限: 100 };
         else attrs.体力 = { 当前: hp.当前 ?? 100, 上限: hp.上限 ?? 100 };
         if (!mp || typeof mp !== 'object') attrs.精力 = { 当前: 50, 上限: 50 };
         else attrs.精力 = { 当前: mp.当前 ?? 50, 上限: mp.上限 ?? 50 };
+        if (!insight || typeof insight !== 'object') attrs.洞察力 = { 当前: 30, 上限: 30 };
+        else attrs.洞察力 = { 当前: insight.当前 ?? 30, 上限: insight.上限 ?? 30 };
         if (typeof attrs.寿元上限 !== 'number' || !Number.isFinite(attrs.寿元上限)) attrs.寿元上限 = 100;
         repairedNpc.属性 = attrs;
       }
@@ -210,6 +206,7 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
       repairedNpc.属性 = {
         体力: { 当前: 100, 上限: 100 },
         精力: { 当前: 50, 上限: 50 },
+        洞察力: { 当前: 30, 上限: 30 },
         寿元上限: 100
       };
     }
@@ -270,21 +267,19 @@ export function validateAndRepairNpcProfile(npcData: unknown, gameTime?: GameTim
       repairedNpc.种族 = '人族';
     }
 
-    // 4. 结构检查与修复 (背包) - 防御性处理
+    // 4. 结构检查与修复 (背包) - 金钱四档：现金/铜/银/金
     try {
-      const defaultCur = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 };
       if (typeof repairedNpc.背包 !== 'object' || repairedNpc.背包 === null) {
-        repairedNpc.背包 = { 金钱: { ...defaultCur }, 物品: {} };
+        repairedNpc.背包 = { 金钱: { ...DEFAULT_CURRENCY }, 物品: {} };
       } else {
-        const cur = repairedNpc.背包.金钱 ?? repairedNpc.背包.灵石;
-        repairedNpc.背包.金钱 = (cur && typeof cur === 'object') ? { 下品: cur.下品 ?? 0, 中品: cur.中品 ?? 0, 上品: cur.上品 ?? 0, 极品: cur.极品 ?? 0 } : { ...defaultCur };
+        repairedNpc.背包.金钱 = normalizeCurrency(repairedNpc.背包.金钱 ?? (repairedNpc.背包 as any).灵石);
         if (typeof repairedNpc.背包.物品 !== 'object' || repairedNpc.背包.物品 === null) {
           repairedNpc.背包.物品 = {};
         }
       }
     } catch (e) {
       console.warn('[NPC校验] 背包字段修复失败，使用默认值:', e);
-      repairedNpc.背包 = { 金钱: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }, 物品: {} };
+      repairedNpc.背包 = { 金钱: { ...DEFAULT_CURRENCY }, 物品: {} };
     }
 
     // 5. 确保实时关注是布尔值
@@ -336,8 +331,8 @@ export function validateGameData(
   if (context === 'creation') {
     const loc = (saveData as any)?.角色?.位置;
     if (!loc || typeof loc !== 'object') errors.push('角色.位置 缺失');
-    const realm = (saveData as any)?.角色?.属性?.境界;
-    if (!realm || typeof realm !== 'object') errors.push('角色.属性.境界 缺失');
+    const attrs = (saveData as any)?.角色?.属性;
+    if (!attrs || typeof attrs !== 'object') errors.push('角色.属性 缺失');
   }
 
   return { isValid: errors.length === 0, errors };

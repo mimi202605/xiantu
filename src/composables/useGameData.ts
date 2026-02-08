@@ -94,7 +94,7 @@ export function useGameData() {
   /**
    * 当前境界
    */
-  const currentRealm = computed(() => gameState.attributes?.境界?.名称 || '凡人');
+  const currentRealm = computed(() => gameState.attributes?.地位?.名称 || '凡人');
 
   /**
    * 当前位置
@@ -104,7 +104,7 @@ export function useGameData() {
   /**
    * 灵石（分品阶）
    */
-  const spiritStones = computed(() => gameState.inventory?.金钱 ?? gameState.inventory?.灵石 ?? { 下品: 0, 中品: 0, 上品: 0, 极品: 0 });
+  const spiritStones = computed(() => gameState.inventory?.金钱 ?? { 现金: 0, 铜: 0, 银: 0, 金: 0 });
 
   /**
    * 背包物品数量

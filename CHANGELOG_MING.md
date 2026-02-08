@@ -4,6 +4,48 @@
 
 ---
 
+## [0.2.29] - 2026-02-07
+
+### 大版本迁移：修仙命名 → 通用命名（不兼容旧存档）
+
+- **数据与类型**
+  - 灵根 → **特质**：Ming 模式下身份仅读写 `角色.身份.特质`，不再写入 `灵根`；特质支持完整对象结构（name/tier/description 等），开局创角数据正确写入。
+  - 境界 → **地位**：属性与状态、NPC、提示词、UI 统一为「地位」；兼容读取旧键 `境界`。
+  - 先天六司/后天六司 → **先天六维属性/后天六维属性**：类型、迁移、修复、校验、初始化与 UI 已统一；兼容读取旧键。
+  - 气血/灵气/神识 → **体力/精力/洞察力**：属性路径与 UI 已统一；兼容读取旧键。
+  - 灵石四档（下品/中品/上品/极品）→ **金钱四档（现金/铜/银/金）**：类型 `CurrencyFourTier`、`currencyDefaults.normalizeCurrency`、迁移/修复/校验、提示词、背包与人物详情/关系网络 UI 已统一。
+  - 世界信息：移除大陆信息、势力信息与 `continents`（未使用）。
+- **初始化与创角**
+  - `characterInitialization`：Ming 分支仅写 `特质`；`deriveBaseFieldsFromDetails` 权威同步仅写 `特质`（Legacy 仍写 `灵根`）；随机判断改为 `isRandomTrait`，开局特质对象完整落入 角色.身份.特质。
+  - 创角 store 已为 trait_id / selectedTrait / traits；App/CharacterCreation 仍可传 `spiritRoot` 入参，初始化内优先 `特质` 再兼容 `灵根`。
+- **提示词与 AI**
+  - CoT、dataDefinitionsMing、characterInitializationPromptsMing、locationNpcGenerationPromptsMing：路径与文案为 地位/特质/六维属性/体力/精力/洞察力/金钱.现金|铜|银|金。
+  - AIBidirectionalSystem：状态摘要、世界主人档案、货币保护与功法技能默认消耗使用新命名。
+- **UI 与 i18n**
+  - 人物详情、关系网络、右侧栏、背包、创角预览/管理：地位、特质、六维属性、洞察力、金钱四档展示与兑换。
+  - i18n：新增 地位、地位状态、现金/铜/银/金、六维属性、先天六维属性、天赋与六维属性、洞察力 等键。
+- **其他**
+  - stateChangeFormatter：货币与地位突破标题、洞察力路径。
+  - 类型中 `CharacterBaseInfo.灵根` 保留为 `@deprecated` 仅兼容读取。
+
+#### 涉及文件（选列）
+
+- `src/types/game.d.ts`, `src/types/index.ts`
+- `src/utils/currencyDefaults.ts`, `src/utils/saveMigration.ts`, `src/utils/dataRepair.ts`, `src/utils/dataValidation.ts`
+- `src/utils/stateChangeFormatter.ts`
+- `src/stores/gameStateStore.ts`, `src/stores/characterCreationStore.ts`, `src/stores/characterStore.ts`
+- `src/composables/useGameData.ts`
+- `src/services/characterInitialization.ts`, `src/services/offlineInitialization.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/utils/prompts/cot/cotCore.ts`, `src/utils/prompts/definitions/ming/dataDefinitionsMing.ts`
+- `src/utils/prompts/tasks/characterInitializationPromptsMing.ts`, `src/utils/prompts/tasks/locationNpcGenerationPromptsMing.ts`
+- `src/components/dashboard/InventoryPanel.vue`, `CharacterDetailsPanel.vue`, `RelationshipNetworkPanel.vue`, `RightSidebar.vue`, `LeftSidebar.vue`
+- `src/components/character-creation/Step7_Preview.vue`, `CharacterManagement.vue`
+- `src/i18n/index.ts`
+- `docs/migration-plan-cultivation-to-ming.md`
+
+---
+
 ## [0.2.28] - 2026-02-07
 
 ### 世界心跳功能落地与贡献指南

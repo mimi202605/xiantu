@@ -381,7 +381,7 @@ const characterDataForPreset = computed(() => ({
   world: store.selectedWorld,
   talentTier: store.selectedTalentTier,
   origin: store.selectedOrigin,
-  spiritRoot: store.selectedSpiritRoot,
+  spiritRoot: store.selectedTrait,
   talents: store.selectedTalents,
 
   // 先天六司
@@ -490,7 +490,7 @@ async function createCharacter() {
   console.log('[DEBUG] 选中的世界:', store.selectedWorld);
   console.log('[DEBUG] 选中的天资:', store.selectedTalentTier);
   console.log('[DEBUG] 选中的出身:', store.selectedOrigin);
-  console.log('[DEBUG] 选中的灵根:', store.selectedSpiritRoot);
+  console.log('[DEBUG] 选中的特质:', store.selectedTrait);
 
   // 角色名自动获取，如果为空则使用默认值
   if (!store.characterPayload.character_name) {
@@ -507,7 +507,7 @@ async function createCharacter() {
 
   // 出身和灵根可以为空（表示随机选择）
   console.log('[DEBUG] selectedOrigin:', store.selectedOrigin, '(可为空，表示随机出生)');
-  console.log('[DEBUG] selectedSpiritRoot:', store.selectedSpiritRoot, '(可为空，表示随机灵根)');
+  console.log('[DEBUG] selectedTrait:', store.selectedTrait, '(可为空，表示随机特质)');
 
   // 进入创建流程后锁定按钮，防止重复点击/重复请求
   store.startCreation();
@@ -542,7 +542,7 @@ async function createCharacter() {
       世界: store.selectedWorld,
       天资: store.selectedTalentTier,
       出生: store.selectedOrigin || '随机出身', // service层会处理字符串
-      灵根: store.selectedSpiritRoot || '随机灵根', // service层会处理字符串
+      灵根: store.selectedTrait || '随机灵根', // service层会处理字符串（键名保留兼容，值为特质）
       天赋: store.selectedTalents,
       先天六司: {
         体质: store.attributes.root_bone,
@@ -570,7 +570,7 @@ async function createCharacter() {
       world: store.selectedWorld,
       talentTier: store.selectedTalentTier,
       origin: store.selectedOrigin,
-      spiritRoot: store.selectedSpiritRoot,
+      spiritRoot: store.selectedTrait,
       talents: store.selectedTalents,
       baseAttributes: {
         root_bone: store.attributes.root_bone,
@@ -643,7 +643,7 @@ async function onStoreCompleted(result: { success: boolean; message: string; pre
           world: store.selectedWorld ?? null,
           talentTier: store.selectedTalentTier ?? null,
           origin: store.selectedOrigin ?? null,
-          spiritRoot: store.selectedSpiritRoot ?? null,
+          spiritRoot: store.selectedTrait ?? null,
           talents: store.selectedTalents ?? [],
           baseAttributes: {
             root_bone: store.attributes.root_bone,
@@ -729,13 +729,13 @@ async function populatePresetDataToStore(presetData: CharacterPreset['data']): P
 
   // Import spiritRoot if it doesn't exist
   if (presetData.spiritRoot && presetData.spiritRoot.name) {
-    const existingSpiritRoot = store.creationData.spiritRoots.find(s => s.name === presetData.spiritRoot!.name);
+    const existingSpiritRoot = store.creationData.traits.find(s => s.name === presetData.spiritRoot!.name);
     if (!existingSpiritRoot) {
       const newSpiritRoot = {
         ...presetData.spiritRoot,
         id: generateId(),
       };
-      store.addSpiritRoot(newSpiritRoot);
+      store.addTrait(newSpiritRoot);
       imported.push(`灵根「${newSpiritRoot.name}」`);
       console.log('[角色创建] 已导入预设中的灵根:', newSpiritRoot.name);
     } else {
@@ -805,7 +805,7 @@ async function onLoadCompleted(result: { success: boolean; message: string; pres
     const world = store.creationData.worlds.find(w => w.name === presetData.world?.name);
     const talentTier = store.creationData.talentTiers.find(t => t.name === presetData.talentTier?.name);
     const origin = store.creationData.origins.find(o => o.name === presetData.origin?.name);
-    const spiritRoot = store.creationData.spiritRoots.find(s => s.name === presetData.spiritRoot?.name);
+    const spiritRoot = store.creationData.traits.find(s => s.name === presetData.spiritRoot?.name);
 
     // 2. 显式注解类型来解决 TypeScript 推断问题
     const worldId: number | '' = world ? world.id : '';
@@ -828,7 +828,7 @@ async function onLoadCompleted(result: { success: boolean; message: string; pres
       world_id: worldId,
       talent_tier_id: talentTierId,
       origin_id: origin ? origin.id : null,
-      spirit_root_id: spiritRoot ? spiritRoot.id : null,
+      trait_id: spiritRoot ? spiritRoot.id : null,
       selected_talent_ids: talentIds,
       root_bone: presetData.baseAttributes?.root_bone ?? 0,
       spirituality: presetData.baseAttributes?.spirituality ?? 0,

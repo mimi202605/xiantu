@@ -58,7 +58,7 @@ export async function initializeCharacterOffline(
       位置: playerStatus.位置 as any,
       效果: [],
       背包: {
-        灵石: { 下品: 10, 中品: 0, 上品: 0, 极品: 0 },
+        金钱: { 现金: 10, 铜: 0, 银: 0, 金: 0 },
         物品: {
           consumable_xinshou_danyao_01: {
             物品ID: 'consumable_xinshou_danyao_01',
@@ -100,8 +100,6 @@ export async function initializeCharacterOffline(
     世界: {
       信息: {
         世界名称: world.name,
-        大陆信息: [],
-        势力信息: [],
         地点信息: [],
         生成时间: nowIso,
         世界背景: world.description ?? '',
@@ -113,9 +111,9 @@ export async function initializeCharacterOffline(
     },
     系统: {
       配置: {
-        规则: { 属性上限: { 先天六司: { 每项上限: 10 } } },
+        规则: { 属性上限: { 先天六维属性: { 每项上限: 10 } } },
         提示: [
-          '系统规则：先天六司每项上限为10（NPC同样适用），如超限需裁剪至上限。',
+          '系统规则：先天六维属性每项上限为10（NPC同样适用），如超限需裁剪至上限。',
           '系统会根据时间自动计算当前年龄，无需手动更新寿命.当前字段。',
         ],
       } as any,

@@ -1,5 +1,6 @@
 import type { SaveData, GameTime, EventSystem } from '@/types/game';
 import type { SaveDataV3 } from '@/types/saveSchemaV3';
+import { DEFAULT_CURRENCY, normalizeCurrency } from '@/utils/currencyDefaults';
 
 export type SaveMigrationIssue =
   | 'legacy-root-keys'
@@ -166,8 +167,6 @@ const buildDefaultOnline = (): SaveDataV3['系统']['联机'] => ({
 
 const buildDefaultWorldInfo = (nowIso: string) => ({
   世界名称: '朝天大陆',
-  大陆信息: [],
-  势力信息: [],
   地点信息: [],
   生成时间: nowIso,
   世界背景: '',
@@ -184,10 +183,10 @@ const buildDefaultIdentity = () => ({
   世界: '朝天大陆',
   天资: '凡人',
   出生: '散修',
-  灵根: '五行杂灵根',
+  特质: '五行杂灵根',
   天赋: [],
-  先天六司: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
-  后天六司: { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
+  先天六维属性: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
+  后天六维属性: { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
 });
 
 export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; report: SaveMigrationReport } {
@@ -252,26 +251,68 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
         }
       }
     }
-    // 六司键名迁移：根骨→体质、灵性→直觉（主角与 NPC）
-    const normalizeSixSi = (o: any) => {
+    // 六维属性：根骨→体质、灵性→直觉；旧键 先天六司/后天六司 → 先天六维属性/后天六维属性
+    const normalizeSixDimensions = (o: any) => {
       if (!o || typeof o !== 'object') return;
-      for (const key of ['先天六司', '后天六司'] as const) {
-        const six = o[key];
+      for (const oldKey of ['先天六司', '后天六司']) {
+        const six = o[oldKey];
         if (!six || typeof six !== 'object') continue;
-        if ('根骨' in six && typeof six.根骨 === 'number') {
-          six.体质 = six.体质 ?? six.根骨;
-          delete six.根骨;
+        const newKey = oldKey === '先天六司' ? '先天六维属性' : '后天六维属性';
+        if (!o[newKey]) o[newKey] = { ...six };
+        const target = o[newKey];
+        if ('根骨' in target && typeof target.根骨 === 'number') {
+          target.体质 = target.体质 ?? target.根骨;
+          delete target.根骨;
         }
-        if ('灵性' in six && typeof six.灵性 === 'number') {
-          six.直觉 = six.直觉 ?? six.灵性;
-          delete six.灵性;
+        if ('灵性' in target && typeof target.灵性 === 'number') {
+          target.直觉 = target.直觉 ?? target.灵性;
+          delete target.灵性;
         }
+        delete o[oldKey];
       }
     };
-    if (normalized.角色?.身份) normalizeSixSi(normalized.角色.身份);
+    if (normalized.角色?.身份) normalizeSixDimensions(normalized.角色.身份);
     if (isPlainObject(normalized.社交?.关系)) {
       for (const npc of Object.values(normalized.社交.关系) as any[]) {
-        if (npc && typeof npc === 'object') normalizeSixSi(npc);
+        if (npc && typeof npc === 'object') normalizeSixDimensions(npc);
+      }
+    }
+    // 货币：统一为 金钱 + 现金/铜/银/金
+    if (normalized.角色?.背包) {
+      const cur = normalized.角色.背包.金钱 ?? normalized.角色.背包.灵石;
+      normalized.角色.背包.金钱 = normalizeCurrency(cur);
+      delete normalized.角色.背包.灵石;
+    }
+    if (isPlainObject(normalized.社交?.关系)) {
+      for (const npc of Object.values(normalized.社交.关系) as any[]) {
+        if (npc?.背包) {
+          const cur = npc.背包.金钱 ?? npc.背包.灵石;
+          npc.背包.金钱 = normalizeCurrency(cur);
+          delete npc.背包.灵石;
+        }
+      }
+    }
+    // 属性与身份：境界→地位，气血/灵气/神识→体力/精力/洞察力，灵根→特质
+    const normAttrs = (attrs: any) => {
+      if (!attrs || typeof attrs !== 'object') return;
+      if (attrs.境界 != null) { attrs.地位 = attrs.地位 ?? attrs.境界; delete attrs.境界; }
+      if (attrs.气血 != null) { attrs.体力 = attrs.体力 ?? attrs.气血; delete attrs.气血; }
+      if (attrs.灵气 != null) { attrs.精力 = attrs.精力 ?? attrs.灵气; delete attrs.灵气; }
+      if (attrs.神识 != null) { attrs.洞察力 = attrs.洞察力 ?? attrs.神识; delete attrs.神识; }
+    };
+    const normIdentity = (id: any) => {
+      if (!id || typeof id !== 'object') return;
+      if (id.境界 != null) { id.地位 = id.地位 ?? id.境界; delete id.境界; }
+      if (id.灵根 != null) { id.特质 = id.特质 ?? id.灵根; delete id.灵根; }
+      if (id.先天六司 != null) { id.先天六维属性 = id.先天六维属性 ?? id.先天六司; delete id.先天六司; }
+      if (id.后天六司 != null) { id.后天六维属性 = id.后天六维属性 ?? id.后天六司; delete id.后天六司; }
+    };
+    if (normalized.角色?.属性) normAttrs(normalized.角色.属性);
+    if (normalized.角色?.身份) normIdentity(normalized.角色.身份);
+    if (isPlainObject(normalized.社交?.关系)) {
+      for (const npc of Object.values(normalized.社交.关系) as any[]) {
+        if (npc?.属性) normAttrs(npc.属性);
+        normIdentity(npc);
       }
     }
     return { migrated: normalized as SaveDataV3, report };
@@ -294,14 +335,13 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
 
   const hp = (legacyStatusObj as any).体力 ?? (legacyStatusObj as any).气血 ?? { 当前: 100, 上限: 100 };
   const mp = (legacyStatusObj as any).精力 ?? (legacyStatusObj as any).灵气 ?? { 当前: 50, 上限: 50 };
+  const insight = (legacyStatusObj as any).洞察力 ?? (legacyStatusObj as any).神识 ?? { 当前: 30, 上限: 30 };
   const flatAttributes = {
-    境界: (legacyStatusObj as any).境界 ?? null,
+    地位: (legacyStatusObj as any).地位 ?? (legacyStatusObj as any).境界 ?? null,
     声望: (legacyStatusObj as any).声望 ?? 0,
-    气血: hp,
-    灵气: mp,
-    神识: (legacyStatusObj as any).神识 ?? { 当前: 30, 上限: 30 },
     体力: hp,
     精力: mp,
+    洞察力: insight,
     寿命: (legacyStatusObj as any).寿命 ?? { 当前: 18, 上限: 80 },
   };
 
@@ -321,7 +361,11 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
 
   const flatTime = coerceTime(source.元数据?.时间 ?? source.时间 ?? source.游戏时间);
 
-  const flatInventory = source.背包 ?? { 灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }, 物品: {} };
+  const rawBag = source.背包 ?? { 物品: {} };
+  const flatInventory = {
+    金钱: normalizeCurrency((rawBag as any).金钱 ?? (rawBag as any).灵石),
+    物品: (rawBag as any).物品 ?? {},
+  };
   // 装备/功法/修炼/技能 已退役，迁移时不再处理
 
   // [MING] 宗门迁移已移除（宗门系统已退役）
@@ -341,7 +385,11 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
   })();
 
   const worldInfoCandidate = source.世界?.信息 ?? source.世界 ?? source.世界信息 ?? source.worldInfo ?? undefined;
-  const worldInfo = isPlainObject(worldInfoCandidate) ? worldInfoCandidate : buildDefaultWorldInfo(nowIso);
+  const worldInfoRaw = isPlainObject(worldInfoCandidate) ? worldInfoCandidate : buildDefaultWorldInfo(nowIso);
+  const worldInfo = { ...worldInfoRaw } as any;
+  delete worldInfo.大陆信息;
+  delete worldInfo.势力信息;
+  delete worldInfo.continents;
 
   const systemConfig = source.系统?.配置 ?? source.系统 ?? source.系统配置 ?? undefined;
 
@@ -355,7 +403,33 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
     source.联机 ??
     buildDefaultOnline();
 
-  const identity = (isPlainObject(flatCharacter) ? (flatCharacter as any) : buildDefaultIdentity()) as any;
+  let identity = (isPlainObject(flatCharacter) ? (flatCharacter as any) : buildDefaultIdentity()) as any;
+  // 规范身份键名（灵根→特质，六司→六维属性，境界→地位）
+  identity = { ...identity };
+  if (identity.灵根 != null) { identity.特质 = identity.特质 ?? identity.灵根; delete identity.灵根; }
+  if (identity.境界 != null) { identity.地位 = identity.地位 ?? identity.境界; delete identity.境界; }
+  if (identity.先天六司 != null) { identity.先天六维属性 = identity.先天六维属性 ?? identity.先天六司; delete identity.先天六司; }
+  if (identity.后天六司 != null) { identity.后天六维属性 = identity.后天六维属性 ?? identity.后天六司; delete identity.后天六司; }
+  // 规范关系 NPC 的背包与属性
+  const flatRels = { ...flatRelationships } as Record<string, any>;
+  for (const k of Object.keys(flatRels)) {
+    const npc = flatRels[k];
+    if (npc && typeof npc === 'object') {
+      if (npc.背包) {
+        npc.背包 = { 金钱: normalizeCurrency(npc.背包.金钱 ?? npc.背包.灵石), 物品: npc.背包.物品 ?? {} };
+      }
+      if (npc.属性) {
+        const a = npc.属性;
+        if (a.气血 != null) { a.体力 = a.体力 ?? a.气血; delete a.气血; }
+        if (a.灵气 != null) { a.精力 = a.精力 ?? a.灵气; delete a.灵气; }
+        if (a.神识 != null) { a.洞察力 = a.洞察力 ?? a.神识; delete a.神识; }
+      }
+      if (npc.灵根 != null) { npc.特质 = npc.特质 ?? npc.灵根; delete npc.灵根; }
+      if (npc.境界 != null) { npc.地位 = npc.地位 ?? npc.境界; delete npc.境界; }
+      if (npc.先天六司 != null) { npc.先天六维属性 = npc.先天六维属性 ?? npc.先天六司; delete npc.先天六司; }
+      if (npc.后天六司 != null) { npc.后天六维属性 = npc.后天六维属性 ?? npc.后天六司; delete npc.后天六司; }
+    }
+  }
   const migrated: SaveDataV3 = {
     元数据: {
       版本号: 3,
@@ -378,12 +452,12 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       // 装备/功法/修炼/技能 已退役，迁移时不再写入（旧存档中若有则忽略）
     },
     社交: {
-      关系: flatRelationships,
+      关系: flatRels,
       事件: flatEvent,
       记忆: flatMemory,
     },
     世界: {
-      信息: worldInfo as any,
+      信息: worldInfo,
       状态: (() => {
         const s = source.世界?.状态 ?? source.世界状态;
         if (isPlainObject(s)) {

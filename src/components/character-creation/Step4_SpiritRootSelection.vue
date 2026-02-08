@@ -59,7 +59,7 @@
               :key="root.id"
               class="spirit-root-item"
               :class="{
-                selected: store.characterPayload.spirit_root_id === root.id,
+                selected: store.characterPayload.trait_id === root.id,
                 disabled: !canSelect(root),
               }"
               @click="handleSelectSpiritRoot(root)"
@@ -265,11 +265,11 @@ const spiritRootTiers = [
 
 const filteredSpiritRoots = computed(() => {
   if (store.isLocalCreation) {
-    return store.creationData.spiritRoots.filter(root => 
+    return store.creationData.traits.filter(root => 
       root.source === 'local' || root.source === 'cloud'
     );
   } else {
-    return store.creationData.spiritRoots.filter(root => 
+    return store.creationData.traits.filter(root => 
       root.source === 'cloud'
     );
   }
@@ -363,7 +363,7 @@ async function handleCustomSubmit(data: CustomSpiritRootData) {
   }
 
   try {
-    store.addSpiritRoot(newRoot);
+    store.addTrait(newRoot);
     handleSelectSpiritRoot(newRoot);
     isAdvancedCustomVisible.value = false;
     toast.success(`自定义灵根 "${newRoot.name}" 已保存！`);
@@ -373,7 +373,7 @@ async function handleCustomSubmit(data: CustomSpiritRootData) {
   }
 }
 
-const isRandomSelected = computed(() => store.characterPayload.spirit_root_id === null);
+const isRandomSelected = computed(() => store.characterPayload.trait_id === null);
 
 // New computed properties for hover display
 const activeDisplayName = computed(() => {
@@ -396,10 +396,10 @@ const activeCost = computed(() => {
 });
 
 const canSelect = (root: SpiritRoot): boolean => {
-  if (store.characterPayload.spirit_root_id === root.id) {
+  if (store.characterPayload.trait_id === root.id) {
     return true;
   }
-  const currentCost = store.selectedSpiritRoot?.talent_cost ?? 0;
+  const currentCost = store.selectedTrait?.talent_cost ?? 0;
   const availablePoints = store.remainingTalentPoints + currentCost;
   return availablePoints >= root.talent_cost;
 }
@@ -409,12 +409,12 @@ function handleSelectSpiritRoot(root: SpiritRoot) {
     toast.warning('天道点不足，无法选择此灵根。')
     return
   }
-  const newRootId = store.characterPayload.spirit_root_id === root.id ? null : root.id;
-  store.selectSpiritRoot(newRootId);
+  const newRootId = store.characterPayload.trait_id === root.id ? null : root.id;
+  store.selectTrait(newRootId);
 }
 
 function handleSelectRandom() {
-  store.selectSpiritRoot(null);
+  store.selectTrait(null);
 }
 
 function handleAIGenerate() {
@@ -468,7 +468,7 @@ async function handleAIPromptSubmit(userPrompt: string) {
     };
 
     // 保存并选择灵根
-    store.addSpiritRoot(newRoot);
+    store.addTrait(newRoot);
     handleSelectSpiritRoot(newRoot);
     isAIPromptModalVisible.value = false;
 
@@ -544,7 +544,7 @@ function confirmCustomSpirit() {
     source: 'cloud' as const
   };
   
-  store.addSpiritRoot(newRoot);
+  store.addTrait(newRoot);
   handleSelectSpiritRoot(newRoot);
   toast.success(`自定义灵根 "${newRoot.name}" 已创建！`);
   
@@ -609,7 +609,7 @@ function openEditModal(root: SpiritRoot) {
 // 删除功能
 async function handleDeleteSpiritRoot(id: number) {
   try {
-    await store.removeSpiritRoot(id);
+    await store.removeTrait(id);
     console.log(`【灵根选择】成功删除灵根 ID: ${id}`);
   } catch (error) {
     console.error(`【灵根选择】删除灵根失败 ID: ${id}`, error);
@@ -638,7 +638,7 @@ async function handleEditSubmit(data: CustomSpiritRootData) {
   };
 
   try {
-    const success = store.updateSpiritRoot(editingSpiritRoot.value.id, updateData);
+    const success = store.updateTrait(editingSpiritRoot.value.id, updateData);
     if (success) {
       isEditModalVisible.value = false;
       editingSpiritRoot.value = null;

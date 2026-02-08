@@ -309,12 +309,12 @@ export const useGameStateStore = defineStore('gameState', {
       this.location = location;
 
       // 灵根/境界品质字段容错（AI偶尔会返回 {quality,grade} 结构）
-      if (this.character?.灵根 && typeof this.character.灵根 === 'object') {
-        normalizeQualitySuffix(this.character.灵根 as any, 'tier');
+      if (this.character?.特质 && typeof this.character.特质 === 'object') {
+        normalizeQualitySuffix(this.character.特质 as any, 'tier');
       }
-      if (this.attributes?.境界 && typeof this.attributes.境界 === 'object') {
-        normalizeQualitySuffix(this.attributes.境界 as any, '品质');
-        normalizeQualitySuffix(this.attributes.境界 as any, '品阶');
+      if (this.attributes?.地位 && typeof this.attributes.地位 === 'object') {
+        normalizeQualitySuffix(this.attributes.地位 as any, '品质');
+        normalizeQualitySuffix(this.attributes.地位 as any, '品阶');
       }
 
       this.inventory = inventory;
@@ -510,10 +510,10 @@ export const useGameStateStore = defineStore('gameState', {
         },
       };
 
-      // 动态计算后天六司（装备/天赋加成）
-      // 注意：这里不能将计算后的"后天六司"（总值）保存回 character.后天六司（基值），
+      // 动态计算后天六维属性（装备/天赋加成）
+      // 注意：这里不能将计算后的"后天六维属性"（总值）保存回 character.后天六维属性（基值），
       // 否则会导致下次加载时重复叠加天赋/装备加成（基值被污染为总值，再算一遍加成）。
-      // character.后天六司 应该只存储永久性的消耗品加成。
+      // character.后天六维属性 应该只存储永久性的消耗品加成。
       // 天赋/装备加成应在运行时动态计算，不落盘到该字段。
 
       return deepCopy(v3 as any);

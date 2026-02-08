@@ -232,7 +232,6 @@ export function buildCharacterSelectionsSummary(
   },
   worldContext?: {
     worldInfo?: WorldInfo;
-    availableContinents?: ContextItem[];
     availableLocations?: ContextItem[];
     mapConfig?: WorldMapConfig;
     systemSettings?: SystemConfig;
@@ -269,10 +268,6 @@ export function buildCharacterSelectionsSummary(
   const attrList = Object.entries(attributes).map(([k, v]) => `${k}:${v}`).join(', ');
 
   // 格式化地点
-  const continents = worldContext?.availableContinents
-    ?.map(c => `- ${c.name || c.名称}`)
-    .join('\n') || '(未生成)';
-
   const locations = worldContext?.availableLocations
     ?.slice(0, 8)
     .map(l => `- ${l.name || l.名称} (${l.type || l.类型})`)
@@ -306,10 +301,6 @@ ${attrList}
 ---
 
 ## 可用地点
-**大陆**:
-${continents}
-
-**地点**:
 ${locations}
 
 ⚠️ 位置必须从上述地点选择，坐标范围: x:0-10000, y:0-10000

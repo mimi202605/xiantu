@@ -46,12 +46,12 @@
             <div class="vital-info">
               <span class="vital-name">
                 <Brain :size="12" class="vital-icon spirit" />
-                <span>{{ t('神识') }}</span>
+                <span>{{ t('洞察力') }}</span>
               </span>
-              <span class="vital-text">{{ playerStatus?.神识?.当前 }} / {{ playerStatus?.神识?.上限 }}</span>
+              <span class="vital-text">{{ (playerStatus?.洞察力 ?? playerStatus?.神识)?.当前 }} / {{ (playerStatus?.洞察力 ?? playerStatus?.神识)?.上限 }}</span>
             </div>
             <div class="progress-bar">
-              <div class="progress-fill spirit" :style="{ width: getVitalPercent('神识') + '%' }"></div>
+              <div class="progress-fill spirit" :style="{ width: getVitalPercent('洞察力') + '%' }"></div>
             </div>
           </div>
 
@@ -70,16 +70,16 @@
         </div>
       </div>
 
-      <!-- 境界状态 -->
+      <!-- 地位状态 -->
       <div class="cultivation-section">
         <h3 class="section-title">
           <Star :size="14" class="section-icon" />
-          <span>{{ t('境界状态') }}</span>
+          <span>{{ t('地位状态') }}</span>
         </h3>
         <div class="realm-display">
           <div class="realm-info">
-            <span class="realm-name">{{ formatRealmDisplay(playerStatus?.境界) }}</span>
-            <span v-if="playerStatus?.境界?.突破描述" class="realm-breakthrough">{{ playerStatus?.境界?.突破描述 }}</span>
+            <span class="realm-name">{{ formatRealmDisplay((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界) }}</span>
+            <span v-if="((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界)?.突破描述" class="realm-breakthrough">{{ ((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界)?.突破描述 }}</span>
           </div>
           <!-- 有进度数据：显示进度条（包含凡人 -> 引气入体） -->
           <div v-if="isRealmProgressAvailable" class="realm-progress">
@@ -273,20 +273,23 @@ const formatTimeDisplay = (time: string | undefined): string => {
 
 // 计算百分比的工具方法
 const realmProgressPercent = computed(() => {
-  if (!gameStateStore.attributes?.境界) return 0;
-  const progress = gameStateStore.attributes.境界.当前进度;
-  const maxProgress = gameStateStore.attributes.境界.下一级所需;
+  const realm = (gameStateStore.attributes as any)?.地位 ?? (gameStateStore.attributes as any)?.境界;
+  if (!realm) return 0;
+  const progress = realm.当前进度;
+  const maxProgress = realm.下一级所需;
   if (!maxProgress || maxProgress <= 0) return 0;
   return Math.max(0, Math.min(100, Math.round((progress / maxProgress) * 100)));
 });
 
 const isRealmProgressAvailable = computed(() => {
-  const maxProgress = gameStateStore.attributes?.境界?.下一级所需;
+  const realm = (gameStateStore.attributes as any)?.地位 ?? (gameStateStore.attributes as any)?.境界;
+  const maxProgress = realm?.下一级所需;
   return typeof maxProgress === 'number' && maxProgress > 0;
 });
 
 const realmWaitingText = computed(() => {
-  const desc = playerStatus.value?.境界?.突破描述;
+  const realm = (playerStatus.value as any)?.地位 ?? (playerStatus.value as any)?.境界;
+  const desc = realm?.突破描述;
   if (desc) return `${t('等待仙缘')} · ${desc}`;
   return t('等待仙缘');
 });
@@ -309,18 +312,18 @@ const playerVitals = computed(() => {
   };
 });
 const hasSpirit = computed(() => {
-  const s = gameStateStore.attributes?.神识;
+  const s = (gameStateStore.attributes as any)?.洞察力 ?? (gameStateStore.attributes as any)?.神识;
   return s && (s.当前 != null || s.上限 != null);
 });
 
 // 计算生命体征百分比（体力/精力 兼容 气血/灵气）
-const getVitalPercent = (type: '体力' | '精力' | '神识') => {
+const getVitalPercent = (type: '体力' | '精力' | '洞察力') => {
   if (!gameStateStore.attributes) return 0;
   const a = gameStateStore.attributes as any;
   let vital: { 当前?: number; 上限?: number } | undefined;
   if (type === '体力') vital = a.体力 ?? a.气血;
   else if (type === '精力') vital = a.精力 ?? a.灵气;
-  else vital = a.神识;
+  else vital = a.洞察力 ?? a.神识;
   if (!vital?.当前 || !vital?.上限) return 0;
   return Math.round((vital.当前 / vital.上限) * 100);
 };

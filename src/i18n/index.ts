@@ -38,7 +38,11 @@ const autoTranslateMap: Record<string, string> = {
 
   // === 角色状态 ===
   '角色状态': 'Character', '修行状态': 'Cultivation', '核心数值': 'Vitals', '气血': 'Qi', '灵气': 'Spiritual',
-  '体力': 'Stamina', '精力': 'Energy', '神识': 'Consciousness', '寿元': 'Lifespan', '境界状态': 'Realm', '境界进度': 'Progress',
+  '体力': 'Stamina', '精力': 'Energy', '神识': 'Consciousness', '寿元': 'Lifespan',   '境界状态': 'Realm', '地位状态': 'Status', '境界进度': 'Progress',
+  '境界': 'Realm', '地位': 'Status',
+  '现金': 'Cash', '铜': 'Copper', '银': 'Silver', '金': 'Gold',
+  '六维属性': 'Six Attributes', '先天六维属性': 'Innate Attributes', '天赋与六维属性': 'Talents & Attributes',
+  '洞察力': 'Insight',
   '声望': 'Reputation', '天赋神通': 'Talents', '状态效果': 'Effects', '籍籍无名': 'Unknown',
   '等待仙缘，引气入体': 'Awaiting fate, drawing qi', '暂无天赋神通': 'No talents yet',
   '清净无为': 'Clear and tranquil', '增': 'Buff', '减': 'Debuff',
@@ -334,7 +338,7 @@ const autoTranslateMap: Record<string, string> = {
   '正在读取人际关系...': 'Loading relationships...', '尚未建立人际关系': 'No relationships yet',
   '在游戏中与更多人物互动建立关系': 'Interact to build relationships',
   '取消关注': 'Unfollow', '添加关注': 'Follow', '删除人物': 'Delete NPC',
-  '境界:': 'Realm:', '好感': 'Favor', '基础档案': 'Profile',
+  '境界:': 'Realm:', '地位:': 'Status:', '好感': 'Favor', '基础档案': 'Profile',
   '外貌与性格': 'Appearance', '性格特征': 'Personality',
   '天赋能力': 'Talents',
   '最近记忆': 'Recent Memories', '人格底线': 'Bottom Line',

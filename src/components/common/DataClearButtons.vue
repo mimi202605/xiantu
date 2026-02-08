@@ -63,7 +63,7 @@ const hasCustomData = computed(() => {
   return store.creationData.worlds.some(w => w.source === 'cloud' || w.id > maxLocalWorldId) ||
          store.creationData.talentTiers.some(t => t.source === 'cloud' || t.id > maxLocalTalentTierId) ||
          store.creationData.origins.some(o => o.source === 'cloud' || o.id > maxLocalOriginId) ||
-         store.creationData.spiritRoots.some(s => s.source === 'cloud' || s.id > maxLocalSpiritRootId) ||
+         store.creationData.traits.some(s => s.source === 'cloud' || s.id > maxLocalSpiritRootId) ||
          store.creationData.talents.some(t => t.source === 'cloud' || t.id > maxLocalTalentId);
 });
 
@@ -72,7 +72,7 @@ const hasCloudData = computed(() => {
   return store.creationData.worlds.some(w => w.source === 'cloud') ||
          store.creationData.talentTiers.some(t => t.source === 'cloud') ||
          store.creationData.origins.some(o => o.source === 'cloud') ||
-         store.creationData.spiritRoots.some(s => s.source === 'cloud') ||
+         store.creationData.traits.some(s => s.source === 'cloud') ||
          store.creationData.talents.some(t => t.source === 'cloud');
 });
 
@@ -120,7 +120,7 @@ async function clearCustomData() {
         worlds: store.creationData.worlds.length,
         talentTiers: store.creationData.talentTiers.length,
         origins: store.creationData.origins.length,
-        spiritRoots: store.creationData.spiritRoots.length,
+        traits: store.creationData.traits.length,
         talents: store.creationData.talents.length
       };
 
@@ -133,13 +133,13 @@ async function clearCustomData() {
       store.creationData.worlds = store.creationData.worlds.filter(w => w.source === 'local' || w.id <= maxLocalWorldId);
       store.creationData.talentTiers = store.creationData.talentTiers.filter(t => t.source === 'local' || t.id <= maxLocalTalentTierId);
       store.creationData.origins = store.creationData.origins.filter(o => o.source === 'local' || o.id <= maxLocalOriginId);
-      store.creationData.spiritRoots = store.creationData.spiritRoots.filter(s => s.source === 'local' || s.id <= maxLocalSpiritRootId);
+      store.creationData.traits = store.creationData.traits.filter(s => s.source === 'local' || s.id <= maxLocalSpiritRootId);
       store.creationData.talents = store.creationData.talents.filter(t => t.source === 'local' || t.id <= maxLocalTalentId);
 
       const removedCount = (originalCounts.worlds - store.creationData.worlds.length) +
                            (originalCounts.talentTiers - store.creationData.talentTiers.length) +
                            (originalCounts.origins - store.creationData.origins.length) +
-                           (originalCounts.spiritRoots - store.creationData.spiritRoots.length) +
+                           (originalCounts.traits - store.creationData.traits.length) +
                            (originalCounts.talents - store.creationData.talents.length);
 
       store.resetCharacter();
@@ -168,20 +168,20 @@ async function clearCloudData() {
         worlds: store.creationData.worlds.length,
         talentTiers: store.creationData.talentTiers.length,
         origins: store.creationData.origins.length,
-        spiritRoots: store.creationData.spiritRoots.length,
+        traits: store.creationData.traits.length,
         talents: store.creationData.talents.length
       };
 
       store.creationData.worlds = store.creationData.worlds.filter(w => w.source !== 'cloud');
       store.creationData.talentTiers = store.creationData.talentTiers.filter(t => t.source !== 'cloud');
       store.creationData.origins = store.creationData.origins.filter(o => o.source !== 'cloud');
-      store.creationData.spiritRoots = store.creationData.spiritRoots.filter(s => s.source !== 'cloud');
+      store.creationData.traits = store.creationData.traits.filter(s => s.source !== 'cloud');
       store.creationData.talents = store.creationData.talents.filter(t => t.source !== 'cloud');
 
       const removedCount = (originalCounts.worlds - store.creationData.worlds.length) +
                            (originalCounts.talentTiers - store.creationData.talentTiers.length) +
                            (originalCounts.origins - store.creationData.origins.length) +
-                           (originalCounts.spiritRoots - store.creationData.spiritRoots.length) +
+                           (originalCounts.traits - store.creationData.traits.length) +
                            (originalCounts.talents - store.creationData.talents.length);
 
       store.resetCharacter();

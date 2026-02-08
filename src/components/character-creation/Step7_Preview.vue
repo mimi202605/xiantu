@@ -130,8 +130,8 @@
       <!-- Spirit Root -->
       <div class="preview-item">
         <h3>{{ $t(traitOrRootLabel) }}</h3>
-        <h4>{{ store.selectedSpiritRoot?.name || $t('随机灵根') }}</h4>
-        <p class="item-description">{{ store.selectedSpiritRoot?.description || $t('暂无描述') }}</p>
+        <h4>{{ store.selectedTrait?.name || $t('随机灵根') }}</h4>
+        <p class="item-description">{{ store.selectedTrait?.description || $t('暂无描述') }}</p>
       </div>
 
       <!-- Talents -->
@@ -148,7 +148,7 @@
 
       <!-- Attributes -->
       <div v-if="props.isLocalCreation" class="preview-item attributes-item">
-        <h3>{{ $t('先天六司') }}</h3>
+        <h3>{{ $t('先天六维属性') }}</h3>
         <ul>
           <li>{{ $t('体质') }}: {{ store.attributes.root_bone }}</li>
           <li>{{ $t('直觉') }}: {{ store.attributes.spirituality }}</li>

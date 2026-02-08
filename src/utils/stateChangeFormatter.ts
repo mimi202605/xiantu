@@ -100,12 +100,13 @@ function parseItemChange(change: StateChange): FormattedChange | null {
     }
   }
 
-  // 货币（金钱/灵石兼容：角色.背包.金钱 或 角色.背包.灵石）
-  if (
+  // 货币（金钱.现金/铜/银/金；兼容旧路径 灵石.下品/中品/上品/极品）
+  const currencyPath =
     key.startsWith('角色.背包.金钱.') || key.includes('.背包.金钱.') ||
-    key.startsWith('角色.背包.灵石.') || key.includes('.背包.灵石.')
-  ) {
-    const stoneType = key.split('.').pop() || '金钱';
+    key.startsWith('角色.背包.灵石.') || key.includes('.背包.灵石.');
+  if (currencyPath) {
+    const rawTier = key.split('.').pop() || '金钱';
+    const stoneType = { 下品: '现金', 中品: '铜', 上品: '银', 极品: '金', 现金: '现金', 铜: '铜', 银: '银', 金: '金' }[rawTier] || rawTier;
     const oldNum = typeof oldValue === 'number' ? oldValue : 0;
     const newNum = typeof newValue === 'number' ? newValue : 0;
     const diff = newNum - oldNum;
@@ -149,6 +150,7 @@ function parsePlayerStatusChange(change: StateChange): FormattedChange | null {
     key.includes('.体力') ||
     key.includes('.精力') ||
     key.includes('.神识') ||
+    key.includes('.洞察力') ||
     key.includes('.寿命');
 
   // 🔥 新增：检测NPC属性变更（路径格式：社交.关系.[NPC名].属性.xxx）
@@ -168,21 +170,27 @@ function parsePlayerStatusChange(change: StateChange): FormattedChange | null {
 
   const attributeName = key.split('.').pop() || '属性';
 
-  // 境界突破
-  if (key === '角色.属性.境界.名称' || key.endsWith('.境界.名称')) {
+  // 地位/境界突破
+  if (
+    key === '角色.属性.地位.名称' || key.endsWith('.地位.名称') ||
+    key === '角色.属性.境界.名称' || key.endsWith('.境界.名称')
+  ) {
     return {
       icon: 'add',
       color: 'green',
-      title: npcName ? `【${npcName}】境界突破` : '境界突破',
+      title: npcName ? `【${npcName}】地位突破` : '地位突破',
       description: `${oldValue || '凡人'} → ${newValue}`,
     };
   }
 
-  if (key === '角色.属性.境界.阶段' || key.endsWith('.境界.阶段')) {
+  if (
+    key === '角色.属性.地位.阶段' || key.endsWith('.地位.阶段') ||
+    key === '角色.属性.境界.阶段' || key.endsWith('.境界.阶段')
+  ) {
     return {
       icon: 'update',
       color: 'blue',
-      title: npcName ? `【${npcName}】境界阶段提升` : '境界阶段提升',
+      title: npcName ? `【${npcName}】地位阶段提升` : '地位阶段提升',
       description: `${oldValue || '无'} → ${newValue}`,
     };
   }
@@ -213,7 +221,7 @@ function parsePlayerStatusChange(change: StateChange): FormattedChange | null {
   // 路径格式: 角色.属性.气血.上限 / 角色.属性.气血.当前（以及其它属性同理）
   const pathParts = key.split('.');
   const fieldType = pathParts[pathParts.length - 1]; // "上限"/"当前"/"最大"
-  const attributeBaseName = pathParts[pathParts.length - 2] || attributeName; // "气血"/"灵气"/"体力"/"精力"/"神识"
+  const attributeBaseName = pathParts[pathParts.length - 2] || attributeName; // "气血"/"灵气"/"体力"/"精力"/"神识"/"洞察力"
 
   if ((fieldType === '上限' || fieldType === '最大') && typeof newValue === 'number') {
     const diff = typeof oldValue === 'number' ? newValue - oldValue : newValue;

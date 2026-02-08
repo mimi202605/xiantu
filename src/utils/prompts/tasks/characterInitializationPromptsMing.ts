@@ -30,7 +30,7 @@ const RESPONSE_FORMAT_MING = `
     {"action":"set","key":"角色.身份.出生日期","value":{"年":1032,"月":1,"日":1,"小时":0,"分钟":0}},
     {"action":"set","key":"角色.位置","value":{"描述":"东荒大陆·青云山脉·小村庄","x":5000,"y":5000}},
     {"action":"set","key":"角色.属性.声望","value":0},
-    {"action":"set","key":"角色.背包.金钱","value":{"下品":50,"中品":0,"上品":0,"极品":0}}
+    {"action":"set","key":"角色.背包.金钱","value":{"现金":50,"铜":0,"银":0,"金":0}}
   ],
   "action_options": ["四处走动熟悉环境","查看自身状态","与附近的人交谈","调查周围","打听消息"]
 }
@@ -219,7 +219,6 @@ export function buildCharacterSelectionsSummaryMing(
   },
   worldContext?: {
     worldInfo?: WorldInfo;
-    availableContinents?: ContextItem[];
     availableLocations?: ContextItem[];
     mapConfig?: WorldMapConfig;
     systemSettings?: SystemConfig;
@@ -249,9 +248,6 @@ export function buildCharacterSelectionsSummaryMing(
     ? talents.map(t => `- ${t.name}: ${t.description}`).join('\n')
     : '无';
   const attrList = Object.entries(attributes).map(([k, v]) => `${k}:${v}`).join(', ');
-  const continents = worldContext?.availableContinents
-    ?.map(c => `- ${c.name || c.名称}`)
-    .join('\n') || '(未生成)';
   const locations = worldContext?.availableLocations
     ?.slice(0, 8)
     .map(l => `- ${l.name || l.名称} (${l.type || l.类型})`)
@@ -285,10 +281,6 @@ ${attrList}
 ---
 
 ## 可用地点
-**大陆**:
-${continents}
-
-**地点**:
 ${locations}
 
 ⚠️ 位置必须从上述地点选择，坐标范围: x:0-10000, y:0-10000

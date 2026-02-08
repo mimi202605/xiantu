@@ -92,10 +92,10 @@ export class EnhancedActionQueueManager {
   private ensureRoleBackpack(saveData: SaveData): any {
     const anySave = saveData as any;
     if (!anySave.角色) anySave.角色 = {};
-    const defaultCur = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 };
+    const defaultCur = { 现金: 0, 铜: 0, 银: 0, 金: 0 };
     if (!anySave.角色.背包) anySave.角色.背包 = { 物品: {}, 金钱: { ...defaultCur } };
     if (!anySave.角色.背包.物品) anySave.角色.背包.物品 = {};
-    const cur = anySave.角色.背包.金钱 ?? anySave.角色.背包.灵石 ?? defaultCur;
+    const cur = anySave.角色.背包.金钱 ?? defaultCur;
     if (!anySave.角色.背包.金钱) anySave.角色.背包.金钱 = { ...cur };
     return anySave.角色.背包;
   }

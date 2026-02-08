@@ -530,11 +530,12 @@ class AIBidirectionalSystemClass {
         const hp = attributes.体力 ?? attributes.气血;
         const mp = attributes.精力 ?? attributes.灵气;
         coreStatusSummary += `\n- 生命: 体力${hp?.当前}/${hp?.上限} 精力${mp?.当前}/${mp?.上限} 寿元${attributes.寿命?.当前}/${attributes.寿命?.上限}`;
-        if (attributes.神识?.当前 != null) coreStatusSummary += ` 神识${attributes.神识.当前}/${attributes.神识.上限}`;
+        const insight = attributes.洞察力 ?? attributes.神识;
+        if (insight?.当前 != null) coreStatusSummary += ` 洞察力${insight.当前}/${insight.上限}`;
 
-        if (attributes.境界) {
-          const realm = attributes.境界;
-          coreStatusSummary += `\n- 境界: ${realm.名称}-${realm.阶段} (${realm.当前进度}/${realm.下一级所需})`;
+        const realm = attributes.地位 ?? attributes.境界;
+        if (realm) {
+          coreStatusSummary += `\n- 地位: ${realm.名称}-${realm.阶段} (${realm.当前进度}/${realm.下一级所需})`;
         }
 
         if (attributes.声望) {
@@ -554,8 +555,8 @@ class AIBidirectionalSystemClass {
       }
 
       // 🍀 前端计算幸运点（基于气运和随机数，AI不知道具体骰子点数）
-      const innate = character?.先天六司 || {};
-      const acquired = character?.后天六司 || {};
+      const innate = (character?.先天六维属性 ?? character?.先天六司) || {};
+      const acquired = (character?.后天六维属性 ?? character?.后天六司) || {};
       // 气运范围 0-10，先天+后天
       const fortune = Math.min(10, Math.max(0, (innate.气运 || 5) + (acquired.气运 || 0)));
 
@@ -700,7 +701,8 @@ class AIBidirectionalSystemClass {
 
         // 构建世界主人详细信息
         let ownerDetailInfo = `- 名字：${ownerCharName}`;
-        if (ownerProfile?.境界) ownerDetailInfo += `\n- 境界：${ownerProfile.境界}`;
+        const ownerRealm = ownerProfile?.地位 ?? ownerProfile?.境界;
+        if (ownerRealm) ownerDetailInfo += `\n- 地位：${typeof ownerRealm === 'object' ? (ownerRealm as any).名称 : ownerRealm}`;
         if (ownerProfile?.门派) ownerDetailInfo += `\n- 门派：${ownerProfile.门派}`;
         if (ownerProfile?.性别) ownerDetailInfo += `\n- 性别：${ownerProfile.性别}`;
         if (ownerProfile?.种族) ownerDetailInfo += `\n- 种族：${ownerProfile.种族}`;
@@ -708,7 +710,8 @@ class AIBidirectionalSystemClass {
         const ownerMp = ownerProfile?.精力 ?? ownerProfile?.灵气;
         if (ownerHp) ownerDetailInfo += `\n- 体力：${JSON.stringify(ownerHp)}`;
         if (ownerMp) ownerDetailInfo += `\n- 精力：${JSON.stringify(ownerMp)}`;
-        if (ownerProfile?.神识) ownerDetailInfo += `\n- 神识：${JSON.stringify(ownerProfile.神识)}`;
+        const ownerInsight = ownerProfile?.洞察力 ?? ownerProfile?.神识;
+        if (ownerInsight) ownerDetailInfo += `\n- 洞察力：${JSON.stringify(ownerInsight)}`;
         if (ownerLocation) {
           const ox = ownerLocation.x ?? ownerLocation.坐标?.x;
           const oy = ownerLocation.y ?? ownerLocation.坐标?.y;
@@ -832,7 +835,8 @@ ${stateJsonString}
         if (ownerProfile) {
           const parts = [];
           if (ownerProfile.名字) parts.push(`名字：${ownerProfile.名字}`);
-          if (ownerProfile.境界) parts.push(`境界：${ownerProfile.境界}`);
+          const realm = ownerProfile.地位 ?? ownerProfile.境界;
+          if (realm) parts.push(`地位：${typeof realm === 'object' ? (realm as any).名称 : realm}`);
           if (ownerProfile.种族) parts.push(`种族：${ownerProfile.种族}`);
           if (parts.length > 0) {
             ownerInfoText = `\n- 世界主人基本信息：${parts.join('，')}`;
@@ -859,7 +863,7 @@ ${stateJsonString}
 2. **凭空出现会引起注意**：
    - 如果你出现在有NPC的地方，他们会**惊讶/警惕**
    - 修士会感知到空间波动，凡人会觉得你"不知从哪冒出来的"
-   - 高境界修士可能会察觉你身上的"异界气息"
+   - 高地位角色可能会察觉你身上的"异界气息"
 3. **NPC内心戏要充足**：
    - 描写NPC看到陌生人突然出现时的心理活动
    - 根据NPC性格决定反应：警惕、好奇、敌意、友善等
@@ -884,7 +888,7 @@ ${stateJsonString}
         if (ownerInfo) {
           agentPrompt += `\n该角色信息：`;
           if (ownerInfo.name) agentPrompt += `\n- 名称：${ownerInfo.name}`;
-          if (ownerInfo.cultivation_level) agentPrompt += `\n- 境界：${ownerInfo.cultivation_level}`;
+          if (ownerInfo.cultivation_level) agentPrompt += `\n- 地位：${ownerInfo.cultivation_level}`;
           // [MING] 宗门已移除
           if (ownerInfo.personality) agentPrompt += `\n- 性格：${ownerInfo.personality}`;
         }
@@ -1012,9 +1016,9 @@ ${narrativeStateJson}
 根据第1步正文内容，分析：
 1. 场景变化（位置、时间、环境）
 2. NPC状态变化（出场、互动、好感度）
-3. 玩家状态变化（气血、灵气、效果）
-4. 物品/灵石变化
-5. 修炼进度变化
+3. 玩家状态变化（体力、精力、效果）
+4. 物品/金钱变化
+5. 进度变化
 
 ${cotPrompt}
 `.trim();
@@ -1026,7 +1030,7 @@ ${cotPrompt}
           push?.({ key: 'businessRules', 构成: '核心规则', 生成原因: '业务规则', flow引用: flowRef, content: sanitizedBusinessRulesPrompt });
           push?.({ key: 'dataDefinitions', 构成: '数据结构', 生成原因: '指令 key 规范', flow引用: flowRef, content: sanitizedDataDefinitionsPrompt });
           push?.({ key: 'textFormatRules', 构成: '文本格式', 生成原因: '判定与命名', flow引用: flowRef, content: textFormatsPrompt });
-          push?.({ key: 'worldStandards', 构成: '世界标准', 生成原因: '境界与品质', flow引用: flowRef, content: worldStandardsPrompt });
+          push?.({ key: 'worldStandards', 构成: '世界标准', 生成原因: '地位与品质', flow引用: flowRef, content: worldStandardsPrompt });
 
           if (uiStore.enableActionOptions) {
             const actionOptionsPrompt = await getPrompt('actionOptions');
@@ -1477,7 +1481,7 @@ ${cotPrompt}`.trim();
           push?.({ key: 'businessRules', 构成: '核心规则', 生成原因: '业务规则', flow引用: flowRef, content: sanitizedBusinessRulesPrompt });
           push?.({ key: 'dataDefinitions', 构成: '数据结构', 生成原因: '指令 key 规范', flow引用: flowRef, content: sanitizedDataDefinitionsPrompt });
           push?.({ key: 'textFormatRules', 构成: '文本格式', 生成原因: '判定与命名', flow引用: flowRef, content: textFormatsPrompt });
-          push?.({ key: 'worldStandards', 构成: '世界标准', 生成原因: '境界与品质', flow引用: flowRef, content: worldStandardsPrompt });
+          push?.({ key: 'worldStandards', 构成: '世界标准', 生成原因: '地位与品质', flow引用: flowRef, content: worldStandardsPrompt });
 
           return sections.map(s => s.trim()).filter(Boolean).join('\n\n---\n\n').trim();
         };
@@ -2463,9 +2467,9 @@ ${saveDataJson}`;
       repaired.功法技能 = [
         {
           技能名称: `${techniqueName}·运功`,
-          技能描述: `运转${techniqueName}的基础法门，凝聚灵气并稳固气机。`,
+          技能描述: `运转${techniqueName}的基础法门，凝聚精力并稳固气机。`,
           熟练度要求: 0,
-          消耗: '灵气10'
+          消耗: '精力10'
         }
       ];
     }
@@ -2726,8 +2730,8 @@ ${saveDataJson}`;
         }
         const newValue = currentValue + value;
 
-        // 🔥 防止货币（金钱/灵石）变成负数
-        if ((path.includes('金钱') || path.includes('灵石')) && newValue < 0) {
+        // 🔥 防止货币（金钱）变成负数
+        if (path.includes('金钱') && newValue < 0) {
           console.warn(`[AI双向系统] ${path} 执行add后会变成负数 (${currentValue} + ${value} = ${newValue})，已限制为0`);
           set(saveData, path, 0);
         } else {

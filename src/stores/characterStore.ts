@@ -491,7 +491,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
       世界: creationStore.selectedWorld!,
       天资: creationStore.selectedTalentTier!,
       出生: creationStore.selectedOrigin || '随机出身',
-      灵根: creationStore.selectedSpiritRoot || '随机灵根',
+      灵根: creationStore.selectedTrait || '随机灵根',
       天赋: creationStore.selectedTalents,
       // 确保后天六司存在且初始化为0（开局默认全为0）
       后天六司: baseInfo.后天六司 || {

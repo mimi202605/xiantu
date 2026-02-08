@@ -48,7 +48,7 @@ export interface CharacterCreationPayload {
   charm: number;
   temperament: number;
   origin_id: number | null;
-  spirit_root_id: number | null;
+  trait_id: number | null;
   selected_talent_ids: number[];
 }
 
@@ -63,7 +63,7 @@ interface CharacterCreationDataWithSource {
   worlds: WorldWithSource[];
   talentTiers: TalentTierWithSource[];
   origins: OriginWithSource[];
-  spiritRoots: SpiritRootWithSource[];
+  traits: SpiritRootWithSource[];
   talents: TalentWithSource[];
 }
 
@@ -75,11 +75,13 @@ function isDADCustomData(data: unknown): data is DADCustomData {
     return false;
   }
   const obj = data as Record<string, unknown>;
+  const hasTraits = Array.isArray(obj.traits);
+  const hasSpiritRoots = Array.isArray((obj as any).spiritRoots);
   return (
     Array.isArray(obj.worlds) &&
     Array.isArray(obj.talentTiers) &&
     Array.isArray(obj.origins) &&
-    Array.isArray(obj.spiritRoots) &&
+    (hasTraits || hasSpiritRoots) &&
     Array.isArray(obj.talents)
   );
 }
@@ -99,7 +101,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
     worlds: [],
     talentTiers: [],
     origins: [],
-    spiritRoots: [],
+    traits: [],
     talents: [],
   });
 
@@ -117,7 +119,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
     charm: 0,
     temperament: 0,
     origin_id: null,
-    spirit_root_id: null,
+    trait_id: null,
     selected_talent_ids: [],
   });
   const currentStep = ref(1);
@@ -311,7 +313,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
   const selectedWorld = computed(() => creationData.value.worlds.find(w => w.id === characterPayload.value.world_id) || null);
   const selectedTalentTier = computed(() => creationData.value.talentTiers.find(t => t.id === characterPayload.value.talent_tier_id) || null);
   const selectedOrigin = computed(() => creationData.value.origins.find(o => o.id === characterPayload.value.origin_id) || null);
-  const selectedSpiritRoot = computed(() => creationData.value.spiritRoots.find(s => s.id === characterPayload.value.spirit_root_id) || null);
+  const selectedTrait = computed(() => creationData.value.traits.find(s => s.id === characterPayload.value.trait_id) || null);
   const selectedTalents = computed(() => creationData.value.talents.filter(t => characterPayload.value.selected_talent_ids.includes(t.id)));
 
   const bonusTalentPoints = computed(() => {
@@ -337,9 +339,9 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       points -= selectedOrigin.value.talent_cost;
     }
 
-    if (selectedSpiritRoot.value) {
-      console.log('[天道点计算] 灵根消耗:', selectedSpiritRoot.value.talent_cost);
-      points -= selectedSpiritRoot.value.talent_cost;
+    if (selectedTrait.value) {
+      console.log('[天道点计算] 特质消耗:', selectedTrait.value.talent_cost);
+      points -= selectedTrait.value.talent_cost;
     }
 
     const talentCost = selectedTalents.value.reduce((total, talent) => total + talent.talent_cost, 0);
@@ -369,7 +371,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       worlds: creationData.value.worlds.filter(item => item.source === 'cloud'),
       talentTiers: creationData.value.talentTiers.filter(item => item.source === 'cloud'),
       origins: creationData.value.origins.filter(item => item.source === 'cloud'),
-      spiritRoots: creationData.value.spiritRoots.filter(item => item.source === 'cloud'),
+      traits: creationData.value.traits.filter(item => item.source === 'cloud'),
       talents: creationData.value.talents.filter(item => item.source === 'cloud'),
     };
 
@@ -404,7 +406,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       charm: 0,
       temperament: 0,
       origin_id: null,
-      spirit_root_id: null,
+      trait_id: null,
       selected_talent_ids: [],
     };
   }
@@ -436,7 +438,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         const localTalents = LOCAL_TALENTS.map(t => ({ ...t, source: 'local' as DataSource }));
         
         // 尝试加载自定义数据（从 IndexedDB）
-        let savedData: DADCustomData = { worlds: [], talentTiers: [], origins: [], spiritRoots: [], talents: [] };
+        let savedData: DADCustomData = { worlds: [], talentTiers: [], origins: [], traits: [], talents: [] };
         try {
           const { loadFromIndexedDB } = await import('@/utils/indexedDBManager');
           const potentialData = await loadFromIndexedDB('customCreationData');
@@ -446,7 +448,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
               worlds: savedData.worlds.length,
               talentTiers: savedData.talentTiers.length,
               origins: savedData.origins.length,
-              spiritRoots: savedData.spiritRoots.length,
+              traits: (savedData.traits ?? (savedData as any).spiritRoots ?? []).length,
               talents: savedData.talents.length
             });
           }
@@ -457,7 +459,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         const savedCloudWorlds = savedData.worlds.map(w => ({...w, source: 'cloud' as DataSource}));
         const savedCloudTalentTiers = savedData.talentTiers.map(t => ({...t, source: 'cloud' as DataSource}));
         const savedCloudOrigins = savedData.origins.map(o => ({...o, source: 'cloud' as DataSource}));
-        const savedCloudSpiritRoots = savedData.spiritRoots.map(s => ({...s, source: 'cloud' as DataSource}));
+        const savedCloudTraits = (savedData.traits ?? (savedData as any).spiritRoots ?? []).map((s: SpiritRootWithSource) => ({ ...s, source: 'cloud' as DataSource }));
         const savedCloudTalents = savedData.talents.map(t => ({...t, source: 'cloud' as DataSource}));
         
         // 合并本地数据和自定义数据
@@ -471,7 +473,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         creationData.value.worlds = merge(localWorlds, savedCloudWorlds);
         creationData.value.talentTiers = merge(localTalentTiers, savedCloudTalentTiers);
         creationData.value.origins = merge(localOrigins, savedCloudOrigins);
-        creationData.value.spiritRoots = merge(localSpiritRoots, savedCloudSpiritRoots);
+        creationData.value.traits = merge(localSpiritRoots, savedCloudTraits);
         creationData.value.talents = merge(localTalents, savedCloudTalents);
       } else {
         // [MING] 本地模式 - 始终使用本地数据
@@ -479,7 +481,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         creationData.value.worlds = LOCAL_WORLDS.map(w => ({ ...w, source: 'local' as DataSource }));
         creationData.value.talentTiers = LOCAL_TALENT_TIERS.map(t => ({ ...t, source: 'local' as DataSource }));
         creationData.value.origins = LOCAL_ORIGINS.map(o => ({ ...o, source: 'local' as DataSource }));
-        creationData.value.spiritRoots = LOCAL_SPIRIT_ROOTS.map(s => ({ ...s, source: 'local' as DataSource }));
+        creationData.value.traits = LOCAL_SPIRIT_ROOTS.map(s => ({ ...s, source: 'local' as DataSource }));
         creationData.value.talents = LOCAL_TALENTS.map(t => ({ ...t, source: 'local' as DataSource }));
       }
     } catch (e) {
@@ -488,7 +490,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       // 即使出错也使用正确的数据源标记      creationData.value.worlds = LOCAL_WORLDS.map(w => ({ ...w, source: 'local' as DataSource }));
       creationData.value.talentTiers = LOCAL_TALENT_TIERS.map(t => ({ ...t, source: 'local' as DataSource }));
       creationData.value.origins = LOCAL_ORIGINS.map(o => ({ ...o, source: 'local' as DataSource }));
-      creationData.value.spiritRoots = LOCAL_SPIRIT_ROOTS.map(s => ({ ...s, source: 'local' as DataSource }));
+      creationData.value.traits = LOCAL_SPIRIT_ROOTS.map(s => ({ ...s, source: 'local' as DataSource }));
       creationData.value.talents = LOCAL_TALENTS.map(t => ({ ...t, source: 'local' as DataSource }));
     } finally {
       isLoading.value = false;
@@ -555,7 +557,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         worlds: creationData.value.worlds.length,
         talentTiers: creationData.value.talentTiers.length,
         origins: creationData.value.origins.length,
-        spiritRoots: creationData.value.spiritRoots.length,
+        traits: creationData.value.traits.length,
         talents: creationData.value.talents.length,
       };
 
@@ -578,7 +580,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       const localWorlds = creationData.value.worlds;
       const localTalentTiers = creationData.value.talentTiers;
       const localOrigins = creationData.value.origins;
-      const localSpiritRoots = creationData.value.spiritRoots;
+      const localSpiritRoots = creationData.value.traits;
       const localTalents = creationData.value.talents;
 
       // 该函数现在计算并返回需要新增的云端项目
@@ -612,7 +614,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       mergeInto(creationData.value.worlds, findNewItems(localWorlds, cloudWorldsWithSource));
       mergeInto(creationData.value.talentTiers, findNewItems(localTalentTiers, cloudTalentTiersWithSource));
       mergeInto(creationData.value.origins, findNewItems(localOrigins, cloudOriginsWithSource));
-      mergeInto(creationData.value.spiritRoots, findNewItems(localSpiritRoots, cloudSpiritRootsWithSource));
+      mergeInto(creationData.value.traits, findNewItems(localSpiritRoots, cloudSpiritRootsWithSource));
       mergeInto(creationData.value.talents, findNewItems(localTalents, cloudTalentsWithSource));
 
       console.log("【创世神殿】所有云端数据合并完成");
@@ -620,7 +622,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       console.log("- 世界 (云端):", creationData.value.worlds.filter(w => w.source === 'cloud').length);
       console.log("- 天资 (云端):", creationData.value.talentTiers.filter(t => t.source === 'cloud').length);
       console.log("- 出身 (云端):", creationData.value.origins.filter(o => o.source === 'cloud').length);
-      console.log("- 灵根 (云端):", creationData.value.spiritRoots.filter(s => s.source === 'cloud').length);
+      console.log("- 灵根 (云端):", creationData.value.traits.filter(s => s.source === 'cloud').length);
       console.log("- 天赋 (云端):", creationData.value.talents.filter(t => t.source === 'cloud').length);
       console.log("【创世神殿】天资数据示例", creationData.value.talentTiers.slice(0, 3).map(t => ({ name: t.name, source: t.source })));
       
@@ -629,7 +631,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         worlds: creationData.value.worlds.length,
         talentTiers: creationData.value.talentTiers.length,
         origins: creationData.value.origins.length,
-        spiritRoots: creationData.value.spiritRoots.length,
+        traits: creationData.value.traits.length,
         talents: creationData.value.talents.length,
       };
 
@@ -637,7 +639,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
         (afterCounts.worlds - beforeCounts.worlds) +
         (afterCounts.talentTiers - beforeCounts.talentTiers) +
         (afterCounts.origins - beforeCounts.origins) +
-        (afterCounts.spiritRoots - beforeCounts.spiritRoots) +
+        (afterCounts.traits - beforeCounts.traits) +
         (afterCounts.talents - beforeCounts.talents);
       
       console.log(`【创世神殿】同步完成，新增 ${newItemsCount} 项数据。`);
@@ -659,7 +661,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       creationData.value.worlds = localWorlds;
       creationData.value.talentTiers = localTalentTiers;
       creationData.value.origins = localOrigins;
-      creationData.value.spiritRoots = localSpiritRoots;
+      creationData.value.traits = localSpiritRoots;
       creationData.value.talents = localTalents;
       
       console.warn("【创世神殿】云端数据获取失败，已提供本地备选数据");
@@ -688,10 +690,10 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
     creationData.value.origins.unshift({ ...origin, source });
     persistCustomData();
   }
-  function addSpiritRoot(root: SpiritRoot) {
+  function addTrait(root: SpiritRoot) {
     // 用户自定义创建的数据都标记为'cloud'以便持久化，不管当前是否为单机模式
     const source = 'cloud' as const;
-    creationData.value.spiritRoots.unshift({ ...root, source });
+    creationData.value.traits.unshift({ ...root, source });
     persistCustomData();
   }
   function addTalent(talent: Talent) {
@@ -706,14 +708,14 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
       case 'world': addWorld(data as World); break;
       case 'talent_tier': addTalentTier(data as TalentTier); break;
       case 'origin': addOrigin(data as Origin); break;
-      case 'spirit_root': addSpiritRoot(data as SpiritRoot); break;
+      case 'spirit_root': addTrait(data as SpiritRoot); break;
       case 'talent': addTalent(data as Talent); break;
       default: console.warn(`Unknown data type for addGeneratedData: ${type}`);
     }
   }
   
   // --- 新增：删除功能 ---
-  type CreationDataType = 'worlds' | 'talentTiers' | 'origins' | 'spiritRoots' | 'talents';
+  type CreationDataType = 'worlds' | 'talentTiers' | 'origins' | 'traits' | 'talents';
 
   async function removeItem(type: CreationDataType, id: number) {
     const index = creationData.value[type].findIndex(item => item.id === id);
@@ -739,7 +741,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
               worlds: creationData.value.worlds.filter(item => item.source === 'cloud'),
               talentTiers: creationData.value.talentTiers.filter(item => item.source === 'cloud'),
               origins: creationData.value.origins.filter(item => item.source === 'cloud'),
-              spiritRoots: creationData.value.spiritRoots.filter(item => item.source === 'cloud'),
+              traits: creationData.value.traits.filter(item => item.source === 'cloud'),
               talents: creationData.value.talents.filter(item => item.source === 'cloud'),
             };
             
@@ -793,7 +795,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
   const removeWorld = async (id: number) => await removeItem('worlds', id);
   const removeTalentTier = async (id: number) => await removeItem('talentTiers', id);
   const removeOrigin = async (id: number) => await removeItem('origins', id);
-  const removeSpiritRoot = async (id: number) => await removeItem('spiritRoots', id);
+  const removeTrait = async (id: number) => await removeItem('traits', id);
   const removeTalent = async (id: number) => await removeItem('talents', id);
 
   // --- 新增：编辑功能 ---
@@ -813,7 +815,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
   const updateWorld = (id: number, data: Partial<World>) => updateItem('worlds', id, data);
   const updateTalentTier = (id: number, data: Partial<TalentTier>) => updateItem('talentTiers', id, data);
   const updateOrigin = (id: number, data: Partial<Origin>) => updateItem('origins', id, data);
-  const updateSpiritRoot = (id: number, data: Partial<SpiritRoot>) => updateItem('spiritRoots', id, data);
+  const updateTrait = (id: number, data: Partial<SpiritRoot>) => updateItem('traits', id, data);
   const updateTalent = (id: number, data: Partial<Talent>) => updateItem('talents', id, data);
 
   // 获取单个项目数据（用于编辑时填充表单）
@@ -825,7 +827,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
   function selectTalentTier(tierId: number | '') {
     characterPayload.value.talent_tier_id = tierId;
     characterPayload.value.origin_id = null;
-    characterPayload.value.spirit_root_id = null;
+    characterPayload.value.trait_id = null;
     characterPayload.value.selected_talent_ids = [];
     characterPayload.value.root_bone = 0;
     characterPayload.value.spirituality = 0;
@@ -835,7 +837,7 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
     characterPayload.value.temperament = 0;
   }
   function selectOrigin(originId: number | null) { characterPayload.value.origin_id = originId; }
-  function selectSpiritRoot(rootId: number | null) { characterPayload.value.spirit_root_id = rootId; }
+  function selectTrait(rootId: number | null) { characterPayload.value.trait_id = rootId; }
   function toggleTalent(talentId: number) {
     const index = characterPayload.value.selected_talent_ids.indexOf(talentId);
     if (index > -1) characterPayload.value.selected_talent_ids.splice(index, 1);
@@ -843,18 +845,18 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
   }
   function setAttribute(key: AttributeKey, value: number) { if (key in characterPayload.value) characterPayload.value[key] = value; }
 
-  function setAIGeneratedSpiritRoot(spiritRoot: SpiritRoot) {
+  function setAIGeneratedTrait(spiritRoot: SpiritRoot) {
     if (!spiritRoot || typeof spiritRoot !== 'object' || !spiritRoot.name) return;
-    let existingRoot = creationData.value.spiritRoots.find(r => r.name === spiritRoot.name);
+    let existingRoot = creationData.value.traits.find(r => r.name === spiritRoot.name);
     if (!existingRoot) {
-      const newId = Math.max(...creationData.value.spiritRoots.map(r => r.id), 0) + 1;
+      const newId = Math.max(...creationData.value.traits.map(r => r.id), 0) + 1;
       const newRootWithId = { ...spiritRoot, id: newId };
-      addSpiritRoot(newRootWithId);
-      existingRoot = creationData.value.spiritRoots.find(r => r.name === spiritRoot.name); // Re-find it to be safe
-      console.log(`[创世神殿] AI生成了新的灵根 "${spiritRoot.name}" 并已添加到列表中 (ID: ${newId})`);
+      addTrait(newRootWithId);
+      existingRoot = creationData.value.traits.find(r => r.name === spiritRoot.name); // Re-find it to be safe
+      console.log(`[创世神殿] AI生成了新的特质 "${spiritRoot.name}" 并已添加到列表中 (ID: ${newId})`);
     }
     if (existingRoot) {
-        characterPayload.value.spirit_root_id = existingRoot.id;
+        characterPayload.value.trait_id = existingRoot.id;
         console.log(`[创世神殿] 已将玩家选择的灵根更新为AI生成的结果: "${existingRoot.name}"`);
     }
   }
@@ -934,14 +936,14 @@ export const useCharacterCreationStore = defineStore('characterCreation', () => 
     // 创建流程状态
     isCreating, creationPhase, creationError,
     gameDifficulty, currentDifficultyPrompt, // 难度配置
-    totalSteps, attributes, selectedWorld, selectedTalentTier, selectedOrigin, selectedSpiritRoot, selectedTalents, remainingTalentPoints, totalTalentCost, bonusTalentPoints,
-    initializeStore, fetchCloudWorlds, fetchAllCloudData, addWorld, addTalentTier, addOrigin, addSpiritRoot, addTalent, addGeneratedData,
-    removeWorld, removeTalentTier, removeOrigin, removeSpiritRoot, removeTalent, // 导出删除函数
-    updateWorld, updateTalentTier, updateOrigin, updateSpiritRoot, updateTalent, getItemById, // 导出编辑函数
-    selectWorld, selectTalentTier, selectOrigin, selectSpiritRoot, toggleTalent, setAttribute,
+    totalSteps, attributes, selectedWorld, selectedTalentTier, selectedOrigin, selectedTrait, selectedTalents, remainingTalentPoints, totalTalentCost, bonusTalentPoints,
+    initializeStore, fetchCloudWorlds, fetchAllCloudData, addWorld, addTalentTier, addOrigin, addTrait, addTalent, addGeneratedData,
+    removeWorld, removeTalentTier, removeOrigin, removeTrait, removeTalent, // 导出删除函数
+    updateWorld, updateTalentTier, updateOrigin, updateTrait, updateTalent, getItemById, // 导出编辑函数
+    selectWorld, selectTalentTier, selectOrigin, selectTrait, toggleTalent, setAttribute,
     resetCharacter, nextStep, prevStep, goToStep, setMode, toggleLocalCreation, setInitialGameMessage, setWorldGenerationConfig,
     resetOnExit, startLocalCreation, startCloudCreation, persistCustomData,
-    setAIGeneratedSpiritRoot,
+    setAIGeneratedTrait,
     setAIGeneratedOrigin,
     // 创建流程状态管理函数
     startCreation, setCreationPhase, completeCreation, failCreation, resetCreationState,

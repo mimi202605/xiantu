@@ -208,7 +208,7 @@ export type DADCustomData = {
   worlds: World[];
   talentTiers: TalentTier[];
   origins: Origin[];
-  spiritRoots: SpiritRoot[];
+  traits: SpiritRoot[];
   talents: Talent[];
 };
 // src/types/index.ts
@@ -267,8 +267,6 @@ export interface InitialGameData {
 
 export interface WorldInfo {
   世界名称: string;
-  大陆信息?: any[];
-  势力信息?: any[];
   地点信息?: any[];
   世界背景?: string;
   世界纪元?: string;

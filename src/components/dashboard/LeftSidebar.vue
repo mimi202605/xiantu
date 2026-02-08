@@ -22,7 +22,7 @@
             </div>
             <div class="btn-content">
               <span class="btn-text">{{ t('人物属性') }}</span>
-              <span class="btn-desc">{{ t('修为境界状态') }}</span>
+              <span class="btn-desc">{{ t('地位状态') }}</span>
             </div>
             <ChevronRight :size="14" class="btn-arrow" />
           </button>

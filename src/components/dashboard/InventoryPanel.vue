@@ -417,7 +417,7 @@
       <div v-if="activeTab === 'currency'" class="currency-tab">
         <div class="currency-grid">
           <div
-            v-for="grade in spiritStoneGrades"
+            v-for="grade in currencyGrades"
             :key="grade.name"
             class="currency-card"
             :class="grade.colorClass"
@@ -437,7 +437,7 @@
                 class="exchange-btn"
                 @click="handleExchange(grade.name, 'up')"
                 :disabled="((currency[grade.name] || 0) < 100)"
-                :title="t('兑换为{0}金钱 (100:1)').replace('{0}', t(grade.exchangeUp))"
+                :title="t('兑换为{0} (100:1)').replace('{0}', t(grade.exchangeUp ?? ''))"
               >
                 {{ t('↑ 兑换') }}
               </button>
@@ -446,7 +446,7 @@
                 class="exchange-btn down"
                 @click="handleExchange(grade.name, 'down')"
                 :disabled="((currency[grade.name] || 0) < 1)"
-                :title="t('分解为{0}金钱 (1:100)').replace('{0}', t(grade.exchangeDown))"
+                :title="t('分解为{0} (1:100)').replace('{0}', t(grade.exchangeDown ?? ''))"
               >
                 {{ t('↓ 分解') }}
               </button>
@@ -475,6 +475,7 @@
 import { ref, computed } from 'vue'
 import { Search, BoxSelect, Gem, Package, X, RotateCcw, Sword } from 'lucide-vue-next'
 import { useI18n } from '@/i18n'
+import { normalizeCurrency, DEFAULT_CURRENCY } from '@/utils/currencyDefaults'
 import { useCharacterStore } from '@/stores/characterStore'
 import { useGameStateStore } from '@/stores/gameStateStore'
 import { useActionQueueStore } from '@/stores/actionQueueStore'
@@ -1113,43 +1114,18 @@ const getItemQualityClass = (
   return `${type}-quality-${q}`
 }
 
-const spiritStoneGrades = [
-  {
-    name: '极品',
-    colorClass: 'grade-legend',
-    canExchange: false, // 最高级，不能向上兑换
-    canExchangeDown: true,
-    exchangeDown: '上品',
-  },
-  {
-    name: '上品',
-    colorClass: 'grade-epic',
-    canExchange: true,
-    canExchangeDown: true,
-    exchangeUp: '极品',
-    exchangeDown: '中品',
-  },
-  {
-    name: '中品',
-    colorClass: 'grade-rare',
-    canExchange: true,
-    canExchangeDown: true,
-    exchangeUp: '上品',
-    exchangeDown: '下品',
-  },
-  {
-    name: '下品',
-    colorClass: 'grade-common',
-    canExchange: true,
-    canExchangeDown: false, // 最低级，不能向下分解
-    exchangeUp: '中品',
-  },
+// 货币四档：金/银/铜/现金（显示顺序从高到低）
+const currencyGrades = [
+  { name: '金' as const, colorClass: 'grade-legend', canExchange: false, canExchangeDown: true, exchangeDown: '银' as const },
+  { name: '银' as const, colorClass: 'grade-epic', canExchange: true, canExchangeDown: true, exchangeUp: '金' as const, exchangeDown: '铜' as const },
+  { name: '铜' as const, colorClass: 'grade-rare', canExchange: true, canExchangeDown: true, exchangeUp: '银' as const, exchangeDown: '现金' as const },
+  { name: '现金' as const, colorClass: 'grade-common', canExchange: true, canExchangeDown: false, exchangeUp: '铜' as const },
 ] as const
 
-// 货币：金钱 ?? 灵石（兼容旧存档）
+// 货币：归一化为 现金/铜/银/金（兼容旧存档 下品/中品/上品/极品）
 const currency = computed(() => {
   const inv = gameStateStore.inventory
-  return inv?.金钱 ?? inv?.灵石 ?? { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }
+  return normalizeCurrency(inv?.金钱 ?? inv?.灵石)
 })
 
 // 选择物品
@@ -1173,33 +1149,30 @@ const closeModal = () => {
   showItemModal.value = false
 }
 
-// 货币兑换（写入 金钱，兼容旧存档 灵石）
-const handleExchange = async (
-  currentGrade: '下品' | '中品' | '上品' | '极品',
-  direction: 'up' | 'down',
-) => {
-  const gradeInfo = spiritStoneGrades.find((g) => g.name === currentGrade)
+// 货币兑换（写入 金钱.现金/铜/银/金）
+type CurrencyTier = '现金' | '铜' | '银' | '金'
+const handleExchange = async (currentGrade: CurrencyTier, direction: 'up' | 'down') => {
+  const gradeInfo = currencyGrades.find((g) => g.name === currentGrade)
   if (!gradeInfo) return
   const inv = gameStateStore.inventory
   if (!inv) return
-  const defaultCur = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }
-  if (!inv.金钱) inv.金钱 = { ...(inv.灵石 ?? defaultCur) }
-  const cur = inv.金钱
+  if (!inv.金钱) inv.金钱 = { ...DEFAULT_CURRENCY }
+  const cur = inv.金钱 as Record<string, number>
 
   if (direction === 'up' && gradeInfo.canExchange && gradeInfo.exchangeUp) {
-    const currentAmount = cur[currentGrade] || 0
+    const currentAmount = (cur[currentGrade] ?? 0) as number
     if (currentAmount >= 100) {
       cur[currentGrade] = currentAmount - 100
-      const targetGrade = gradeInfo.exchangeUp as '下品' | '中品' | '上品' | '极品'
-      cur[targetGrade] = (cur[targetGrade] || 0) + 1
+      const targetGrade = gradeInfo.exchangeUp
+      cur[targetGrade] = (cur[targetGrade] ?? 0) + 1
       await characterStore.saveCurrentGame()
     }
   } else if (direction === 'down' && gradeInfo.canExchangeDown && gradeInfo.exchangeDown) {
-    const currentAmount = cur[currentGrade] || 0
+    const currentAmount = (cur[currentGrade] ?? 0) as number
     if (currentAmount >= 1) {
       cur[currentGrade] = currentAmount - 1
-      const targetGrade = gradeInfo.exchangeDown as '下品' | '中品' | '上品' | '极品'
-      cur[targetGrade] = (cur[targetGrade] || 0) + 100
+      const targetGrade = gradeInfo.exchangeDown
+      cur[targetGrade] = (cur[targetGrade] ?? 0) + 100
       await characterStore.saveCurrentGame()
     }
   }

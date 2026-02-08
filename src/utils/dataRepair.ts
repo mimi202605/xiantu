@@ -14,6 +14,7 @@ import type { SaveData, Item, NpcProfile, GameTime, Realm, PlayerAttributes, Pla
 import type { GradeType } from '@/data/itemQuality';
 import { cloneDeep } from 'lodash';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
+import { DEFAULT_CURRENCY, normalizeCurrency } from '@/utils/currencyDefaults';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
 import { calibrateNpcLocationSync } from '@/utils/locationUtils';
 
@@ -60,10 +61,10 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     repaired.角色.身份.名字 = repaired.角色.身份.名字 || '无名修士';
     repaired.角色.身份.性别 = repaired.角色.身份.性别 || '男';
     if (!repaired.角色.身份.出生日期) repaired.角色.身份.出生日期 = { 年: 982, 月: 1, 日: 1 };
-    if (!repaired.角色.身份.先天六司 || typeof repaired.角色.身份.先天六司 !== 'object') {
-      repaired.角色.身份.先天六司 = { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
+    if (!repaired.角色.身份.先天六维属性 || typeof repaired.角色.身份.先天六维属性 !== 'object') {
+      repaired.角色.身份.先天六维属性 = { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
     } else {
-      const attrs = repaired.角色.身份.先天六司;
+      const attrs = repaired.角色.身份.先天六维属性;
       attrs.体质 = validateNumber(attrs.体质, 0, 10, 5);
       attrs.直觉 = validateNumber(attrs.直觉, 0, 10, 5);
       attrs.悟性 = validateNumber(attrs.悟性, 0, 10, 5);
@@ -71,8 +72,8 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
       attrs.魅力 = validateNumber(attrs.魅力, 0, 10, 5);
       attrs.心性 = validateNumber(attrs.心性, 0, 10, 5);
     }
-    if (!repaired.角色.身份.后天六司 || typeof repaired.角色.身份.后天六司 !== 'object') {
-      repaired.角色.身份.后天六司 = { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
+    if (!repaired.角色.身份.后天六维属性 || typeof repaired.角色.身份.后天六维属性 !== 'object') {
+      repaired.角色.身份.后天六维属性 = { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
     }
 
     // --- 属性 ---
@@ -80,14 +81,16 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
       console.warn('[数据修复] 属性缺失，创建默认值');
       repaired.角色.属性 = createDefaultAttributes();
     } else {
-      repaired.角色.属性.境界 = repairRealm(repaired.角色.属性.境界);
-      repaired.角色.属性.气血 = repairValuePair(repaired.角色.属性.气血, 100, 100);
-      repaired.角色.属性.灵气 = repairValuePair(repaired.角色.属性.灵气, 50, 50);
+      repaired.角色.属性.地位 = repairRealm(repaired.角色.属性.地位 ?? repaired.角色.属性.境界);
       repaired.角色.属性.体力 = repairValuePair(repaired.角色.属性.体力 ?? repaired.角色.属性.气血, 100, 100);
       repaired.角色.属性.精力 = repairValuePair(repaired.角色.属性.精力 ?? repaired.角色.属性.灵气, 50, 50);
-      repaired.角色.属性.神识 = repairValuePair(repaired.角色.属性.神识, 30, 30);
+      repaired.角色.属性.洞察力 = repairValuePair(repaired.角色.属性.洞察力 ?? repaired.角色.属性.神识, 30, 30);
       repaired.角色.属性.寿命 = repairValuePair(repaired.角色.属性.寿命, 18, 80);
       repaired.角色.属性.声望 = validateNumber(repaired.角色.属性.声望, 0, 999999, 0);
+      delete repaired.角色.属性.境界;
+      delete repaired.角色.属性.气血;
+      delete repaired.角色.属性.灵气;
+      delete repaired.角色.属性.神识;
     }
 
     // --- 位置 ---
@@ -103,17 +106,15 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
     // --- 装备 已退役，不再强制补全 ---
 
     // --- 背包 ---
-    const defaultCurrency = { 下品: 0, 中品: 0, 上品: 0, 极品: 0 };
     if (!repaired.角色.背包 || typeof repaired.角色.背包 !== 'object') {
-      repaired.角色.背包 = { 金钱: { ...defaultCurrency }, 物品: {} };
+      repaired.角色.背包 = { 金钱: { ...DEFAULT_CURRENCY }, 物品: {} };
     } else {
-      const currency = repaired.角色.背包.金钱 ?? repaired.角色.背包.灵石 ?? defaultCurrency;
-      const cur = typeof currency === 'object' && currency !== null ? currency : defaultCurrency;
+      const cur = normalizeCurrency(repaired.角色.背包.金钱 ?? repaired.角色.背包.灵石);
       repaired.角色.背包.金钱 = {
-        下品: validateNumber(cur.下品, 0, 999999999, 0),
-        中品: validateNumber(cur.中品, 0, 999999999, 0),
-        上品: validateNumber(cur.上品, 0, 999999999, 0),
-        极品: validateNumber(cur.极品, 0, 999999999, 0),
+        现金: validateNumber(cur.现金, 0, 999999999, 0),
+        铜: validateNumber(cur.铜, 0, 999999999, 0),
+        银: validateNumber(cur.银, 0, 999999999, 0),
+        金: validateNumber(cur.金, 0, 999999999, 0),
       };
 
       if (!repaired.角色.背包.物品 || typeof repaired.角色.背包.物品 !== 'object') {
@@ -210,9 +211,12 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
       if (typeof 心跳.遗忘回合数 !== 'number' || 心跳.遗忘回合数 < 0) 心跳.遗忘回合数 = 10;
       if (!Array.isArray(心跳.历史)) 心跳.历史 = [];
     }
-    // 确保 世界.信息 及 地点信息 存在，否则 push 世界.信息.地点信息 会失败
+    // 确保 世界.信息 及 地点信息 存在（不再使用大陆/势力）
     if (!repaired.世界.信息 || typeof repaired.世界.信息 !== 'object') repaired.世界.信息 = {};
     if (!Array.isArray(repaired.世界.信息.地点信息)) repaired.世界.信息.地点信息 = [];
+    delete (repaired.世界.信息 as any).大陆信息;
+    delete (repaired.世界.信息 as any).势力信息;
+    delete (repaired.世界.信息 as any).continents;
 
     // 校准 关系[npc].当前位置 与 世界.信息.地点信息[地点].地点NPC 双向一致
     try {
@@ -428,36 +432,42 @@ function repairNpc(npc: NpcProfile): NpcProfile {
 
   // 年龄已自动从出生日期计算,删除年龄字段
 
-  // 修复境界
-  repaired.境界 = repairRealm(repaired.境界);
+  // 修复地位（原境界）
+  repaired.地位 = repairRealm((repaired as any).地位 ?? (repaired as any).境界);
+  delete (repaired as any).境界;
+  if ((repaired as any).灵根 != null) { repaired.特质 = repaired.特质 ?? (repaired as any).灵根; delete (repaired as any).灵根; }
+  if ((repaired as any).先天六司 != null) delete (repaired as any).先天六司;
+  if ((repaired as any).后天六司 != null) delete (repaired as any).后天六司;
 
-  // 修复先天六司
-  if (!repaired.先天六司 || typeof repaired.先天六司 !== 'object') {
-    repaired.先天六司 = { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
+  // 修复先天六维属性
+  if (!repaired.先天六维属性 || typeof repaired.先天六维属性 !== 'object') {
+    repaired.先天六维属性 = (repaired as any).先天六司 && typeof (repaired as any).先天六司 === 'object'
+      ? { ...(repaired as any).先天六司 } : { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 };
+  }
+  if (!repaired.后天六维属性 || typeof repaired.后天六维属性 !== 'object') {
+    repaired.后天六维属性 = (repaired as any).后天六司 && typeof (repaired as any).后天六司 === 'object'
+      ? { ...(repaired as any).后天六司 } : { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 };
   }
 
-  // 修复核心数值（整合为属性对象，旧存档自动补上默认值）
+  // 修复核心数值（体力/精力/洞察力）
   if (!repaired.属性 || typeof repaired.属性 !== 'object') {
     repaired.属性 = {
-      气血: { 当前: 100, 上限: 100 },
-      灵气: { 当前: 50, 上限: 50 },
-      神识: { 当前: 30, 上限: 30 },
+      体力: { 当前: 100, 上限: 100 },
+      精力: { 当前: 50, 上限: 50 },
+      洞察力: { 当前: 30, 上限: 30 },
       寿元上限: 100
     };
   } else {
-    repaired.属性.气血 = repairValuePair(repaired.属性.气血, 100, 100);
-    repaired.属性.灵气 = repairValuePair(repaired.属性.灵气, 50, 50);
-    repaired.属性.神识 = repairValuePair(repaired.属性.神识, 30, 30);
+    repaired.属性.体力 = repairValuePair(repaired.属性.体力 ?? repaired.属性.气血, 100, 100);
+    repaired.属性.精力 = repairValuePair(repaired.属性.精力 ?? repaired.属性.灵气, 50, 50);
+    repaired.属性.洞察力 = repairValuePair(repaired.属性.洞察力 ?? repaired.属性.神识, 30, 30);
     repaired.属性.寿元上限 = typeof repaired.属性.寿元上限 === 'number' ? repaired.属性.寿元上限 : 100;
   }
-  // 兼容旧格式：如果有旧的独立字段，迁移到属性对象
   if ((repaired as any).气血 || (repaired as any).灵气 || (repaired as any).神识 || (repaired as any).寿元) {
-    repaired.属性 = {
-      气血: repairValuePair((repaired as any).气血, 100, 100),
-      灵气: repairValuePair((repaired as any).灵气, 50, 50),
-      神识: repairValuePair((repaired as any).神识, 30, 30),
-      寿元上限: (repaired as any).寿元?.上限 ?? 100
-    };
+    repaired.属性.体力 = repaired.属性.体力 ?? repairValuePair((repaired as any).气血, 100, 100);
+    repaired.属性.精力 = repaired.属性.精力 ?? repairValuePair((repaired as any).灵气, 50, 50);
+    repaired.属性.洞察力 = repaired.属性.洞察力 ?? repairValuePair((repaired as any).神识, 30, 30);
+    repaired.属性.寿元上限 = (repaired as any).寿元?.上限 ?? repaired.属性.寿元上限 ?? 100;
     delete (repaired as any).气血;
     delete (repaired as any).灵气;
     delete (repaired as any).神识;
@@ -479,12 +489,12 @@ function repairNpc(npc: NpcProfile): NpcProfile {
     repaired.记忆 = [];
   }
 
-  // 修复背包
+  // 修复背包（金钱：现金/铜/银/金）
   if (!repaired.背包 || typeof repaired.背包 !== 'object') {
-    repaired.背包 = {
-      灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 },
-      物品: {}
-    };
+    repaired.背包 = { 金钱: { ...DEFAULT_CURRENCY }, 物品: {} };
+  } else {
+    repaired.背包.金钱 = normalizeCurrency(repaired.背包.金钱 ?? (repaired.背包 as any).灵石);
+    repaired.背包.物品 = repaired.背包.物品 ?? {};
   }
 
   // 修复 NPC-NPC 关系（NpcProfile.关系）
@@ -519,17 +529,17 @@ function validateNumber(value: any, min: number, max: number, defaultValue: numb
  */
 function createDefaultAttributes(): PlayerAttributes {
   return {
-    境界: {
+    地位: {
       名称: '凡人',
       阶段: '',
       当前进度: 0,
       下一级所需: 100,
-      突破描述: '引气入体，感悟天地灵气，踏上修仙第一步'
+      突破描述: '立足当下，步步为营'
     },
     声望: 0,
-    气血: { 当前: 100, 上限: 100 },
-    灵气: { 当前: 50, 上限: 50 },
-    神识: { 当前: 30, 上限: 30 },
+    体力: { 当前: 100, 上限: 100 },
+    精力: { 当前: 50, 上限: 50 },
+    洞察力: { 当前: 30, 上限: 30 },
     寿命: { 当前: 18, 上限: 80 },
   } as PlayerAttributes;
 }
@@ -569,16 +579,16 @@ function createMinimalSaveDataV3(): SaveData {
         世界: '朝天大陆' as any,
         天资: '凡人' as any,
         出生: '散修',
-        灵根: '五行杂灵根',
+        特质: '五行杂灵根',
         天赋: [],
-        先天六司: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
-        后天六司: { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
+        先天六维属性: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 },
+        后天六维属性: { 体质: 0, 直觉: 0, 悟性: 0, 气运: 0, 魅力: 0, 心性: 0 },
       },
       属性: createDefaultAttributes(),
       位置: createDefaultLocation(),
       效果: [],
       身体: { 总体状况: '', 部位: {} },
-      背包: { 灵石: { 下品: 0, 中品: 0, 上品: 0, 极品: 0 }, 物品: {} },
+      背包: { 金钱: { ...DEFAULT_CURRENCY }, 物品: {} },
       // 装备/功法/修炼/技能 已退役
     },
     社交: {
@@ -593,8 +603,6 @@ function createMinimalSaveDataV3(): SaveData {
     世界: {
       信息: {
         世界名称: '朝天大陆',
-        大陆信息: [],
-        势力信息: [],
         地点信息: [],
         生成时间: nowIso,
         世界背景: '',
