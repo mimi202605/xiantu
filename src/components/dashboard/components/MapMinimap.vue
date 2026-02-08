@@ -261,7 +261,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { ZoomIn, ZoomOut, Maximize2 } from 'lucide-vue-next';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useI18n } from '@/i18n';
@@ -393,6 +393,16 @@ function nodeIntersectsRect(
   return !(nx2 < rect.x || nx1 > rx2 || ny2 < rect.y || ny1 > ry2);
 }
 
+/** 点是否在节点包围盒内（方/圆统一按外接矩形） */
+function nodeContainsPoint(node: MapLocationNode, px: number, py: number): boolean {
+  return (
+    px >= node.x - node.radius &&
+    px <= node.x + node.radius &&
+    py >= node.y - node.radius &&
+    py <= node.y + node.radius
+  );
+}
+
 /**
  * 找「当前视口内」占屏足够、有子节点的最深节点（半径最小）。
  * 用「与视口相交」代替「包含视口中心」：滚轮以鼠标为中心缩放时屏幕中心会偏移，仅用中心会漏选（如放大青云城时中心可能仍在青云域）。
@@ -406,6 +416,24 @@ function findDeepestOccupying(
     (n) =>
       n.childIds.length > 0 &&
       nodeIntersectsRect(n, viewportRect) &&
+      nodeOccupyRatio(n, s) >= FOCUS_OCCUPY_RATIO_ENTER
+  );
+  if (candidates.length === 0) return null;
+  return candidates.reduce((a, b) => (a.radius < b.radius ? a : b));
+}
+
+/**
+ * 找「包含指定点」且占屏足够、有子节点的最深节点（半径最小）；用于滚轮对准目标放大时进入正确结构。
+ */
+function findDeepestContainingPoint(
+  nodes: MapLocationNode[],
+  point: { x: number; y: number },
+  s: number
+): MapLocationNode | null {
+  const candidates = nodes.filter(
+    (n) =>
+      n.childIds.length > 0 &&
+      nodeContainsPoint(n, point.x, point.y) &&
       nodeOccupyRatio(n, s) >= FOCUS_OCCUPY_RATIO_ENTER
   );
   if (candidates.length === 0) return null;
@@ -432,6 +460,9 @@ function getPathFromRoot(
 
 /** focus 栈（ref）：平移不取消细化；缩小满足阈值时仅出栈一层（先取消内部再取消外部） */
 const focusStackRef = ref<string[]>([]);
+
+/** 滚轮放大时指针在 SVG 中的位置，用于进入「对准的目标」结构而非视口内第一个；watch 消费后清空 */
+const wheelZoomFocusPointInSvg = ref<{ x: number; y: number } | null>(null);
 
 watch(
   [
@@ -463,12 +494,16 @@ watch(
         layout = buildLayoutWithFocus(stack);
       }
     }
+    const zoomFocusPoint = wheelZoomFocusPointInSvg.value;
     for (;;) {
-      const node = findDeepestOccupying(layout.nodes, viewportRect, scale.value);
+      const node = zoomFocusPoint
+        ? findDeepestContainingPoint(layout.nodes, zoomFocusPoint, scale.value)
+        : findDeepestOccupying(layout.nodes, viewportRect, scale.value);
       if (!node || (stack.length > 0 && node.id === stack[stack.length - 1])) break;
       stack = [...stack, node.id];
       layout = buildLayoutWithFocus(stack);
     }
+    if (zoomFocusPoint) nextTick(() => { wheelZoomFocusPointInSvg.value = null; });
     // 进入或更新细化时，保证「仅当前 focus 及其子级」完整落在屏幕内：先适配视口再居中
     const refinedTopChanged =
       stack.length > 0 &&
@@ -695,7 +730,7 @@ function resetView() {
   panY.value = 0;
 }
 
-/** 滚轮：以指针位置为中心放大/缩小 */
+/** 滚轮：以指针位置为中心放大/缩小；放大时记录指针在 SVG 中的位置，供 watch 进入对准的目标结构 */
 function onWheel(e: WheelEvent) {
   const rect = viewportRef.value?.getBoundingClientRect();
   if (!rect) return;
@@ -703,6 +738,17 @@ function onWheel(e: WheelEvent) {
   const vpY = e.clientY - rect.top;
   const delta = -e.deltaY * ZOOM_WHEEL_FACTOR * scale.value;
   const next = scale.value + delta;
+  if (delta > 0) {
+    const vrect = viewportRectInSvg();
+    const vw = rect.width;
+    const vh = rect.height;
+    if (vw > 0 && vh > 0) {
+      wheelZoomFocusPointInSvg.value = {
+        x: vrect.x + (vpX / vw) * vrect.width,
+        y: vrect.y + (vpY / vh) * vrect.height,
+      };
+    }
+  }
   zoomAt(next, vpX, vpY);
 }
 

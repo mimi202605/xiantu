@@ -4,6 +4,23 @@
 
 ---
 
+## [0.2.33] - 2026-02-08
+
+### 探索地图：滚轮放大对准目标结构
+
+- **问题**：多个子结构并列时，滚轮放大即使对准某一结构，仍会进入「最上面」或视口内第一个结构。
+- **修改**
+  - 滚轮放大时记录**指针在 SVG 中的坐标**（用当前 viewportRectInSvg 与视口 rect 换算），存入 `wheelZoomFocusPointInSvg`。
+  - watch 中入栈逻辑：若存在该焦点则用 `findDeepestContainingPoint(nodes, point, scale)`（只选**包含该点**且占比达标、有子节点的最深节点），否则沿用 `findDeepestOccupying`（视口相交）。
+  - 整轮 for 循环共用同一焦点（循环外取一次），避免第二次迭代误用视口；清空 ref 改为 `nextTick`，避免同次缩放因 pan/scale 触发的第二次 watch 丢失焦点。
+  - 坐标换算使用 `getBoundingClientRect()` 的宽高与 `vpX/vpY` 一致，避免与 viewportSize 偏差。
+
+#### 涉及文件
+
+- `src/components/dashboard/components/MapMinimap.vue`
+
+---
+
 ## [0.2.32] - 2026-02-08
 
 ### 探索地图：色系、交互、教程与探索状态
