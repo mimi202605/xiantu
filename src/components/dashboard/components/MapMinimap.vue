@@ -25,6 +25,7 @@
         :viewBox="svgViewBox"
         @mousemove="onMouseMove"
         @mouseleave="onMouseLeave"
+        @dblclick="onBackgroundDblClick"
       >
         <defs>
           <filter id="location-glow" x="-50%" y="-50%" width="200%" height="200%">
@@ -34,13 +35,91 @@
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <linearGradient id="location-bg-top" x1="0%" y1="0%" x2="0%" y2="100%">
+          <!-- 按根节点分色系：每个最外层一种色，其内部结构同色系 -->
+          <linearGradient id="location-bg-family-0" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(245, 158, 11, 0.32)" />
+            <stop offset="100%" stop-color="rgba(245, 158, 11, 0.1)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-1" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stop-color="rgba(59, 130, 246, 0.25)" />
             <stop offset="100%" stop-color="rgba(59, 130, 246, 0.08)" />
           </linearGradient>
+          <linearGradient id="location-bg-family-2" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(20, 184, 166, 0.28)" />
+            <stop offset="100%" stop-color="rgba(20, 184, 166, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-3" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(139, 92, 246, 0.28)" />
+            <stop offset="100%" stop-color="rgba(139, 92, 246, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-4" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(244, 63, 94, 0.28)" />
+            <stop offset="100%" stop-color="rgba(244, 63, 94, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-5" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(249, 115, 22, 0.3)" />
+            <stop offset="100%" stop-color="rgba(249, 115, 22, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-6" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(132, 204, 22, 0.28)" />
+            <stop offset="100%" stop-color="rgba(132, 204, 22, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-7" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(6, 182, 212, 0.28)" />
+            <stop offset="100%" stop-color="rgba(6, 182, 212, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-8" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(99, 102, 241, 0.28)" />
+            <stop offset="100%" stop-color="rgba(99, 102, 241, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-9" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(16, 185, 129, 0.28)" />
+            <stop offset="100%" stop-color="rgba(16, 185, 129, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-10" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(14, 165, 233, 0.28)" />
+            <stop offset="100%" stop-color="rgba(14, 165, 233, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-11" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(217, 70, 239, 0.28)" />
+            <stop offset="100%" stop-color="rgba(217, 70, 239, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-12" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(234, 179, 8, 0.3)" />
+            <stop offset="100%" stop-color="rgba(234, 179, 8, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-13" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(37, 99, 235, 0.28)" />
+            <stop offset="100%" stop-color="rgba(37, 99, 235, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-14" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(22, 163, 74, 0.28)" />
+            <stop offset="100%" stop-color="rgba(22, 163, 74, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-15" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(100, 116, 139, 0.28)" />
+            <stop offset="100%" stop-color="rgba(100, 116, 139, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-16" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(234, 88, 12, 0.28)" />
+            <stop offset="100%" stop-color="rgba(234, 88, 12, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-17" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(168, 85, 247, 0.28)" />
+            <stop offset="100%" stop-color="rgba(168, 85, 247, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-18" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(250, 204, 21, 0.3)" />
+            <stop offset="100%" stop-color="rgba(250, 204, 21, 0.09)" />
+          </linearGradient>
+          <linearGradient id="location-bg-family-19" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="rgba(236, 72, 153, 0.28)" />
+            <stop offset="100%" stop-color="rgba(236, 72, 153, 0.09)" />
+          </linearGradient>
+          <!-- 当前所在地高亮：仅红色描边 -->
           <linearGradient id="location-bg-current" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="rgba(34, 197, 94, 0.35)" />
-            <stop offset="100%" stop-color="rgba(34, 197, 94, 0.12)" />
+            <stop offset="0%" stop-color="rgba(239, 68, 68, 0.2)" />
+            <stop offset="100%" stop-color="rgba(239, 68, 68, 0.06)" />
           </linearGradient>
           <!-- 无限网格：100x100 一格，平铺到极大范围 -->
           <pattern
@@ -83,9 +162,9 @@
           :key="node.id"
           class="location-node"
           :class="{
-            explored: isExplored(node.entry.名称),
             current: isCurrent(node.entry.名称),
             'has-children': node.childIds.length > 0,
+            'layer-outer': node.depth === 0,
           }"
           :transform="`translate(${node.x}, ${node.y})`"
           @mouseenter="onNodeHover(node, $event)"
@@ -100,8 +179,8 @@
               :width="node.radius * 2"
               :height="node.radius * 2"
               :rx="Math.min(6, node.radius * 0.25)"
-              fill="url(#location-bg-top)"
-              stroke="var(--color-primary)"
+              :fill="getNodeFill(node)"
+              :stroke="getNodeStroke(node)"
               :stroke-width="isCurrent(node.entry.名称) ? 3 : 1.5"
               stroke-opacity="0.6"
               filter="url(#location-glow)"
@@ -115,9 +194,9 @@
               :height="node.radius * 2"
               :rx="Math.min(6, node.radius * 0.25)"
               fill="url(#location-bg-current)"
-              stroke="var(--color-success)"
+              stroke="#ef4444"
               stroke-width="2"
-              stroke-opacity="0.8"
+              stroke-opacity="0.9"
             />
           </template>
           <!-- 无子地点：圆 -->
@@ -126,8 +205,8 @@
               :r="node.radius"
               cx="0"
               cy="0"
-              fill="url(#location-bg-top)"
-              stroke="var(--color-primary)"
+              :fill="getNodeFill(node)"
+              :stroke="getNodeStroke(node)"
               :stroke-width="isCurrent(node.entry.名称) ? 3 : 1.5"
               stroke-opacity="0.6"
               filter="url(#location-glow)"
@@ -139,9 +218,9 @@
               cx="0"
               cy="0"
               fill="url(#location-bg-current)"
-              stroke="var(--color-success)"
+              stroke="#ef4444"
               stroke-width="2"
-              stroke-opacity="0.8"
+              stroke-opacity="0.9"
             />
           </template>
           <text
@@ -166,6 +245,9 @@
         :style="{ left: tooltipX + 'px', top: tooltipY + 'px' }"
       >
         <div class="tooltip-title">{{ tooltipNode.entry.名称 }}</div>
+        <div class="tooltip-status">
+          {{ explorationStatusLabel(tooltipNode) }}
+        </div>
         <div v-if="tooltipNode.entry.描述" class="tooltip-desc">
           {{ tooltipNode.entry.描述 }}
         </div>
@@ -449,6 +531,56 @@ const nodesFiltered = computed(() => {
 
 const nodes = computed(() => nodesFiltered.value);
 
+/** 最外层节点 id 有序列表，用于稳定分配色系索引 */
+const rootIdsOrdered = computed(() => {
+  const all = mapData.value.nodes;
+  return all.filter((n) => n.depth === 0).map((n) => n.id).sort((a, b) => a.localeCompare(b));
+});
+
+function getRootId(node: MapLocationNode): string {
+  if (node.depth === 0) return node.id;
+  const parent = node.parentId ? mapData.value.nodeMap.get(node.parentId) : null;
+  return parent ? getRootId(parent) : node.id;
+}
+
+/** 节点所属色系索引（0~19），同一根节点及其所有后代同色系，支持复杂地图 */
+const LOCATION_FAMILY_COUNT = 20;
+function getFamilyIndex(node: MapLocationNode): number {
+  const rootId = getRootId(node);
+  const idx = rootIdsOrdered.value.indexOf(rootId);
+  return idx >= 0 ? idx % LOCATION_FAMILY_COUNT : 0;
+}
+
+const LOCATION_FAMILY_STROKES = [
+  '#f59e0b',
+  '#3b82f6',
+  '#14b8a6',
+  '#8b5cf6',
+  '#f43f5e',
+  '#f97316',
+  '#84cc16',
+  '#06b6d4',
+  '#6366f1',
+  '#10b981',
+  '#0ea5e9',
+  '#d946ef',
+  '#eab308',
+  '#2563eb',
+  '#16a34a',
+  '#64748b',
+  '#ea580c',
+  '#a855f7',
+  '#facc15',
+  '#ec4899',
+] as const;
+
+function getNodeFill(node: MapLocationNode): string {
+  return `url(#location-bg-family-${getFamilyIndex(node)})`;
+}
+function getNodeStroke(node: MapLocationNode): string {
+  return LOCATION_FAMILY_STROKES[getFamilyIndex(node)] ?? LOCATION_FAMILY_STROKES[0];
+}
+
 const exploredSet = computed(() => {
   const rec = gameStateStore.explorationRecord;
   return new Set(Array.isArray(rec) ? rec : []);
@@ -457,12 +589,37 @@ const currentLocationDesc = computed(
   () => gameStateStore.location?.描述 ?? ''
 );
 
-function isExplored(name: string): boolean {
-  if (exploredSet.value.has(name)) return true;
-  for (const explored of exploredSet.value) {
-    if (explored.includes(name) || name.includes(explored)) return true;
+/** 仅精确匹配：该地点名称是否在探索记录中 */
+function isExploredExact(name: string): boolean {
+  return exploredSet.value.has(name);
+}
+
+/** 是否有任意后代在探索记录中（精确匹配） */
+function hasExploredDescendant(node: MapLocationNode): boolean {
+  const nodeMap = mapData.value.nodeMap;
+  const set = exploredSet.value;
+  for (const cid of node.childIds) {
+    const c = nodeMap.get(cid);
+    if (c) {
+      if (set.has(c.entry.名称)) return true;
+      if (hasExploredDescendant(c)) return true;
+    }
   }
   return false;
+}
+
+/** 探索状态：已探索 / 部分探索（自己有子节点且子结构有人探索过但自己未探索）/ 未探索；均按名称精确匹配 */
+function getExplorationStatus(node: MapLocationNode): 'explored' | 'partial' | 'unexplored' {
+  if (isExploredExact(node.entry.名称)) return 'explored';
+  if (node.childIds.length > 0 && hasExploredDescendant(node)) return 'partial';
+  return 'unexplored';
+}
+
+function explorationStatusLabel(node: MapLocationNode): string {
+  const status = getExplorationStatus(node);
+  if (status === 'explored') return t('已探索');
+  if (status === 'partial') return t('部分探索');
+  return t('未探索');
 }
 function isCurrent(name: string): boolean {
   const desc = currentLocationDesc.value;
@@ -595,7 +752,6 @@ function onTouchEnd() {
   pinchStartDist = 0;
 }
 
-/** 双击：zoom+pan 使该结构占满屏幕并居中；bbox 含该节点及其子节点 */
 /** 双击：钻取到该节点（强制 focus 栈为根→该节点），并用该节点子树的 bbox 适配视口 */
 function onNodeDblClick(node: MapLocationNode) {
   const nodeMap = mapData.value.nodeMap;
@@ -613,6 +769,34 @@ function onNodeDblClick(node: MapLocationNode) {
     const { x: cx, y: cy } = layout.refinedSubtreeCenter;
     panX.value = CANVAS_W / 2 - cx * newScale;
     panY.value = CANVAS_H / 2 - cy * newScale;
+  }
+  clampPan();
+}
+
+/** 双击区域外（空白）：回退到上一级 focus，并适配视口；节点上已用 .stop 阻止冒泡 */
+function onBackgroundDblClick() {
+  if (focusStackRef.value.length === 0) return;
+  focusStackRef.value = focusStackRef.value.slice(0, -1);
+  const stack = focusStackRef.value;
+  const layout = buildLayoutWithFocus(stack);
+  if (stack.length > 0 && layout.refinedSubtreeBbox && layout.refinedSubtreeCenter) {
+    const { width: bw, height: bh } = layout.refinedSubtreeBbox;
+    const scaleToFit = Math.min(CANVAS_W / bw, CANVAS_H / bh) * 0.9;
+    const newScale = Math.max(
+      ZOOM_THRESHOLD_REFINED,
+      Math.min(MAX_SCALE, Math.max(MIN_SCALE, scaleToFit))
+    );
+    scale.value = newScale;
+    const { x: cx, y: cy } = layout.refinedSubtreeCenter;
+    panX.value = CANVAS_W / 2 - cx * newScale;
+    panY.value = CANVAS_H / 2 - cy * newScale;
+  } else {
+    // 回退到最外层：适配整张画布
+    const { canvasWidth: cw, canvasHeight: ch } = layout;
+    const scaleToFit = Math.min(CANVAS_W / cw, CANVAS_H / ch) * 0.9;
+    scale.value = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scaleToFit));
+    panX.value = CANVAS_W / 2 - (cw / 2) * scale.value;
+    panY.value = CANVAS_H / 2 - (ch / 2) * scale.value;
   }
   clampPan();
 }
@@ -678,6 +862,8 @@ function onMouseLeave() {
   display: flex;
   flex-direction: column;
   background: var(--color-surface);
+  /* 最外层节点描边色，可与主题统一覆盖 */
+  --color-map-outer: #f59e0b;
 }
 
 .map-controls {
@@ -734,15 +920,6 @@ function onMouseLeave() {
   stroke-opacity: 1;
 }
 
-.location-node.explored .location-shape {
-  stroke-opacity: 0.8;
-}
-
-.location-node.unexplored .location-shape {
-  stroke-opacity: 0.35;
-  filter: none;
-}
-
 .location-node.current .location-label {
   font-weight: 700;
   fill: var(--color-success);
@@ -768,7 +945,12 @@ function onMouseLeave() {
 
 .tooltip-title {
   font-weight: 600;
-  color: var(--color-text);
+}
+
+.tooltip-status {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
   margin-bottom: 4px;
 }
 

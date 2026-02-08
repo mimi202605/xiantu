@@ -206,7 +206,7 @@ const panelTitles: Record<string, { title: string; icon: IconComponent }> = {
   Relationships: { title: '人物关系', icon: Users },
   Settings: { title: '系统设置', icon: Settings },
   Save: { title: '保存游戏', icon: Save },
-  Map: { title: '坤舆图', icon: Map },
+  Map: { title: '探索地图', icon: Map },
   Events: { title: '世界事件', icon: Bell },
   Heartbeat: { title: '世界心跳', icon: Heart },
   GameVariables: { title: '游戏变量', icon: Database },

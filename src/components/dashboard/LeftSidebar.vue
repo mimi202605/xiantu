@@ -49,7 +49,7 @@
               <Map :size="18" />
             </div>
             <div class="btn-content">
-              <span class="btn-text">{{ t('坤舆图') }}</span>
+              <span class="btn-text">{{ t('探索地图') }}</span>
               <span class="btn-desc">{{ t('地点与探索记录') }}</span>
             </div>
             <ChevronRight :size="14" class="btn-arrow" />
