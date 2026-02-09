@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.53 (2026-02-08)
+
+- **视频背景**：全屏背景视频由 `ming_background_wide.mp4` 更换为 `ming_background_horizontal.mp4`；VideoBackground 默认 src 同步更新，移除旧宽屏资源。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.52 (2026-02-08)
 
 - **资源与版本**：新增全屏视频背景资源 `public/ming_background_wide.mp4`；游戏版本号升级为 1.0.2（package.json，界面 APP_VERSION 同步）。  

@@ -4,6 +4,21 @@
 
 ---
 
+## [0.2.53] - 2026-02-08
+
+### 视频背景：更换为横版资源
+
+- **背景视频**：全屏背景由 `ming_background_wide.mp4` 更换为 `ming_background_horizontal.mp4`；VideoBackground 组件默认 `src` 改为 `./ming_background_horizontal.mp4`。
+- **资源**：移除 `public/ming_background_wide.mp4`，新增 `public/ming_background_horizontal.mp4`。
+
+#### 涉及文件
+
+- `src/components/common/VideoBackground.vue`
+- `public/ming_background_wide.mp4`（删除）
+- `public/ming_background_horizontal.mp4`（新增）
+
+---
+
 ## [0.2.52] - 2026-02-08
 
 ### 背景视频资源与游戏版本 1.0.2
