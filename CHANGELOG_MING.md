@@ -4,6 +4,23 @@
 
 ---
 
+## [0.2.55] - 2026-02-08
+
+### 角色创建与预设：特质文案统一
+
+- **预设名称占位**：PresetSaveModal 输入框 placeholder 由「剑修预设、治愈系预设等」改为「战斗向预设、辅助向预设等」。
+- **预设导入文案**：CharacterCreation 加载预设时，界面与日志统一为「特质」（原「灵根」）；变量命名 `existingSpiritRoot`/`newSpiritRoot` 改为 `existingTrait`/`newTrait`；预设数据键名仍为 `spiritRoot` 以兼容旧预设文件。
+- **presetManager**：CharacterPreset 中 `spiritRoot` 增加 JSDoc，注明界面称「特质」、键名保留兼容。
+
+#### 涉及文件
+
+- `src/components/common/PresetSaveModal.vue`
+- `src/utils/presetManager.ts`
+- `src/views/CharacterCreation.vue`
+- `docs/design note`
+
+---
+
 ## [0.2.54] - 2026-02-08
 
 ### 记忆中心：已发送信息

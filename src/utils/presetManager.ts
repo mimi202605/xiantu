@@ -44,6 +44,7 @@ export interface CharacterPreset {
     world: World | null;
     talentTier: TalentTier | null;
     origin: Origin | null;
+    /** 特质（界面称「特质」，键名 spiritRoot 保留以兼容旧预设文件） */
     spiritRoot: SpiritRoot | null;
     talents: Talent[];
     baseAttributes: {

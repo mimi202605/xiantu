@@ -15,7 +15,7 @@
             v-model="presetName"
             type="text"
             class="form-input"
-            placeholder="请输入预设名称（如：剑修预设、治愈系预设等）"
+            placeholder="请输入预设名称（如：战斗向预设、辅助向预设等）"
             @keyup.enter="handleSubmit"
             maxlength="50"
             autofocus

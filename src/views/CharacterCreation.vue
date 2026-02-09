@@ -727,19 +727,19 @@ async function populatePresetDataToStore(presetData: CharacterPreset['data']): P
     }
   }
 
-  // Import spiritRoot if it doesn't exist
+  // Import spiritRoot/trait if it doesn't exist（预设数据键仍为 spiritRoot 以兼容旧文件）
   if (presetData.spiritRoot && presetData.spiritRoot.name) {
-    const existingSpiritRoot = store.creationData.traits.find(s => s.name === presetData.spiritRoot!.name);
-    if (!existingSpiritRoot) {
-      const newSpiritRoot = {
+    const existingTrait = store.creationData.traits.find(s => s.name === presetData.spiritRoot!.name);
+    if (!existingTrait) {
+      const newTrait = {
         ...presetData.spiritRoot,
         id: generateId(),
       };
-      store.addTrait(newSpiritRoot);
-      imported.push(`灵根「${newSpiritRoot.name}」`);
-      console.log('[角色创建] 已导入预设中的灵根:', newSpiritRoot.name);
+      store.addTrait(newTrait);
+      imported.push(`特质「${newTrait.name}」`);
+      console.log('[角色创建] 已导入预设中的特质:', newTrait.name);
     } else {
-      existing.push(`灵根「${presetData.spiritRoot.name}」`);
+      existing.push(`特质「${presetData.spiritRoot.name}」`);
     }
   }
 
