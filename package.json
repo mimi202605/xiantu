@@ -1,6 +1,6 @@
 {
   "name": "ming",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simplified AI-driven narrative RPG based on XianTu",
   "private": true,
   "type": "module",
