@@ -4,6 +4,21 @@
 
 ---
 
+## [0.2.51] - 2026-02-08
+
+### 视频背景：消除黑边
+
+- **问题**：VideoBackground 全屏视频背景在四周边框出现黑边。
+- **修改**
+  - 容器：使用 `100vw`/`100vh` 与 `min-width`/`min-height: 100%` 确保填满视口。
+  - 视频：增加 `min-width`/`min-height: 100%`、`object-position: center`，并用 `transform: translate(-50%, -50%) scale(1.02)` 略微放大，在保持居中的前提下裁掉视频内嵌 letterbox 黑边。
+
+#### 涉及文件
+
+- `src/components/common/VideoBackground.vue`
+
+---
+
 ## [0.2.50] - 2026-02-08
 
 ### 游戏版本 1.0.1
