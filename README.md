@@ -114,7 +114,7 @@ npm run build
 |----------|--------|------|
 | 推送 **`v*` tag**（如 `v1.0.0`） | `release.yml` | 构建并创建 GitHub Release，上传 dist 压缩包 |
 | 推送 **`v*` tag** | `docker.yml` | 构建并推送 Docker 镜像到 Docker Hub |
-| 推送 **`v*` tag** 或 **`main` 分支** | `pages.yml` | 构建并部署到 GitHub Pages |
+| 推送 **`v*` tag** | `pages.yml` | 构建并部署到 GitHub Pages |
 | 任意 **push / PR** | `ci.yml` | type-check、lint、build，不部署 |
 
 ```bash

@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.48 (2026-02-08)
+
+- **README**：自动构建表格中 GitHub Pages 触发条件改为仅「推送 v* tag」。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.47 (2026-02-08)
 
 - **README 自动构建与部署**：重写为触发方式表格（v* tag → Release/Docker/Pages，main → Pages，push/PR → CI）；补充 GitHub Pages 访问地址、Source 须选 Actions、environment protection 报错处理；注明可手动运行 Pages/Docker 工作流。  
