@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.52 (2026-02-08)
+
+- **资源与版本**：新增全屏视频背景资源 `public/ming_background_wide.mp4`；游戏版本号升级为 1.0.2（package.json，界面 APP_VERSION 同步）。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.51 (2026-02-08)
 
 - **视频背景**：修复 VideoBackground 四周边框黑边问题；容器使用 100vw/100vh 填满视口，视频使用 min-width/min-height 与 object-fit: cover，并略微放大裁掉可能内嵌的 letterbox。  

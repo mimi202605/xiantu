@@ -4,6 +4,20 @@
 
 ---
 
+## [0.2.52] - 2026-02-08
+
+### 背景视频资源与游戏版本 1.0.2
+
+- **背景视频**：新增 `public/ming_background_wide.mp4`，供 VideoBackground 组件作为全屏背景使用。
+- **游戏版本**：package.json `version` 由 `1.0.1` 升级为 `1.0.2`；构建时通过 APP_VERSION 注入，界面版本显示将同步为 1.0.2。
+
+#### 涉及文件
+
+- `package.json`
+- `public/ming_background_wide.mp4`
+
+---
+
 ## [0.2.51] - 2026-02-08
 
 ### 视频背景：消除黑边
