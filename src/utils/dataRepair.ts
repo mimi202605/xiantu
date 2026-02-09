@@ -192,20 +192,32 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
 
     // --- 世界.状态、世界.信息 ---
     if (!repaired.世界 || typeof repaired.世界 !== 'object') repaired.世界 = createMinimalSaveDataV3().世界;
+    const 原状态 = repaired.世界.状态 && typeof repaired.世界.状态 === 'object' ? repaired.世界.状态 : null;
     if (!repaired.世界.状态 || typeof repaired.世界.状态 !== 'object') repaired.世界.状态 = {};
     if (!Array.isArray(repaired.世界.状态.探索记录)) repaired.世界.状态.探索记录 = [];
-    // 世界.状态.心跳（世界心跳系统）
-    const 心跳 = (repaired.世界.状态 as any).心跳;
+    // 世界.状态.心跳（世界心跳系统）：若刚用 {} 覆盖了 状态，尽量保留原 心跳 配置
+    const 原心跳 = 原状态 && typeof (原状态 as any).心跳 === 'object' ? (原状态 as any).心跳 : null;
+    let 心跳 = (repaired.世界.状态 as any).心跳;
     if (!心跳 || typeof 心跳 !== 'object') {
-      (repaired.世界.状态 as any).心跳 = {
+      const 默认心跳 = {
         启用: false,
         周期数值: 5,
         历史条数: 10,
         遗忘回合数: 10,
         历史: [],
       };
-    } else {
-      if (typeof 心跳.启用 !== 'boolean') 心跳.启用 = false;
+      (repaired.世界.状态 as any).心跳 = 原心跳
+        ? {
+            ...默认心跳,
+            ...原心跳,
+            启用: 原心跳.启用 === true || 原心跳.启用 === 'true' || 原心跳.启用 === 1,
+            历史: Array.isArray(原心跳.历史) ? 原心跳.历史 : [],
+          }
+        : 默认心跳;
+      心跳 = (repaired.世界.状态 as any).心跳;
+    }
+    if (心跳 && typeof 心跳 === 'object') {
+      if (typeof 心跳.启用 !== 'boolean') 心跳.启用 = 心跳.启用 === true || 心跳.启用 === 'true' || 心跳.启用 === 1;
       if (typeof 心跳.周期数值 !== 'number' || 心跳.周期数值 < 1) 心跳.周期数值 = 5;
       if (typeof 心跳.历史条数 !== 'number' || 心跳.历史条数 < 1) 心跳.历史条数 = 10;
       if (typeof 心跳.遗忘回合数 !== 'number' || 心跳.遗忘回合数 < 0) 心跳.遗忘回合数 = 10;

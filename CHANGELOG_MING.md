@@ -4,6 +4,24 @@
 
 ---
 
+## [0.2.56] - 2026-02-08
+
+### 世界心跳：触发与手动执行修复
+
+- **loadFromSaveData（根本原因）**：从存档/IndexedDB 加载时，心跳 `启用` 不再因「非 boolean」被置为 false；改为按 truthy 解析（`true` / `"true"` / `1` 视为启用），避免加载后周期心跳从不触发。
+- **dataRepair**：当 `世界.状态` 被替换为 `{}` 时保留原 `心跳` 配置并合并默认值；`启用` 非 boolean 时按 truthy 规范为布尔。
+- **周期判定**：AIBidirectionalSystem 中心跳触发条件按 truthy 判断 `启用`，并增加诊断日志（`启用类型`、原因），便于排查。
+- **npc.记忆总结 类型安全**：worldHeartbeatPromptsMing 中 `npc.记忆总结` 可能为字符串或非数组，直接 `.slice().join()` 会报错导致心跳（含手动触发）失败；现统一规范为数组再拼接，手动/周期/事件触发可正常执行。
+
+#### 涉及文件
+
+- `src/stores/gameStateStore.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/utils/dataRepair.ts`
+- `src/utils/prompts/tasks/worldHeartbeatPromptsMing.ts`
+
+---
+
 ## [0.2.55] - 2026-02-08
 
 ### 角色创建与预设：特质文案统一

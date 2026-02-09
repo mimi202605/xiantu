@@ -90,8 +90,17 @@ function npcFullBlock(npc: NpcProfile & Record<string, unknown>): string {
     const recent = memory.slice(-3).map((m) => (typeof m === 'string' ? m : (m as any)?.事件 ?? String(m))).join('；');
     lines.push(`- 近期记忆：${recent.slice(0, 200)}${recent.length > 200 ? '…' : ''}`);
   }
-  if (npc.记忆总结?.length) {
-    lines.push(`- 记忆总结：${npc.记忆总结.slice(-2).join('；').slice(0, 150)}${npc.记忆总结.length > 2 ? '…' : ''}`);
+  const 记忆总结Raw = npc.记忆总结;
+  if (记忆总结Raw != null) {
+    const 记忆总结Arr = Array.isArray(记忆总结Raw)
+      ? 记忆总结Raw
+      : typeof 记忆总结Raw === 'string' && 记忆总结Raw.length > 0
+        ? [记忆总结Raw]
+        : [];
+    if (记忆总结Arr.length > 0) {
+      const text = 记忆总结Arr.slice(-2).map((s) => (typeof s === 'string' ? s : String(s))).join('；');
+      lines.push(`- 记忆总结：${text.slice(0, 150)}${text.length > 150 ? '…' : ''}`);
+    }
   }
   const bottom = npc.人格底线;
   if (bottom && (Array.isArray(bottom) ? bottom.length : (typeof bottom === 'string' && bottom.length))) {

@@ -1339,12 +1339,29 @@ ${step1Text}
       }
 
       // [MING] 主回合成功后：若启用心跳且到达周期，执行周期心跳并同步存档
-      const 心跳 = (updatedSaveData as any)?.世界?.状态?.心跳;
+      const 世界状态 = (updatedSaveData as any)?.世界?.状态;
+      const 心跳 = 世界状态?.心跳;
       const 回合序号 = (updatedSaveData as any)?.元数据?.回合序号 ?? 0;
       const 上次心跳 = 心跳?.上次心跳回合序号 ?? -1;
       const 周期数值 = 心跳?.周期数值 ?? 5;
       const currentRoundJustEnded = Math.max(0, 回合序号 - 1);
-      if (心跳 && 心跳.启用 === true && (currentRoundJustEnded - 上次心跳 >= 周期数值)) {
+      const gap = currentRoundJustEnded - 上次心跳;
+      // 启用按 truthy 判断，兼容 boolean true 与字符串 "true" 等（避免修复/序列化导致类型变化不触发）
+      const 启用中 = 心跳 && (心跳.启用 === true || 心跳.启用 === 'true' || 心跳.启用 === 1);
+      const shouldRun = 启用中 && gap >= 周期数值;
+      console.log('[世界心跳] 周期判定', {
+        启用: 心跳?.启用,
+        启用类型: 心跳 ? typeof 心跳.启用 : '-',
+        回合序号,
+        上次心跳回合序号: 上次心跳,
+        周期数值,
+        本回合刚结束: currentRoundJustEnded,
+        间隔: gap,
+        需间隔: 周期数值,
+        触发: shouldRun ? '是' : '否',
+        原因: !心跳 ? '无心跳配置' : !启用中 ? '未启用心跳' : gap < 周期数值 ? `未达周期(差${周期数值 - gap}回合)` : '已达周期',
+      });
+      if (shouldRun) {
         try {
           const { runSingleHeartbeat } = await import('@/services/worldHeartbeatService');
           await runSingleHeartbeat(updatedSaveData as SaveData, { triggerMode: '周期' });
@@ -1352,6 +1369,7 @@ ${step1Text}
           gameStateStore.loadFromSaveData(updatedSaveData as SaveData);
           const characterStore = useCharacterStore();
           await characterStore.saveCurrentGame();
+          console.log('[世界心跳] 周期心跳已执行并保存');
         } catch (heartbeatErr) {
           console.warn('[AI双向系统] 周期心跳执行失败:', heartbeatErr);
         }

@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.56 (2026-02-08)
+
+- **世界心跳**：修复加载后不触发（loadFromSaveData 按 truthy 解析 启用）；dataRepair 保留原心跳配置并规范 启用；周期判定 truthy + 诊断日志；npc.记忆总结 非数组时规范再拼接，避免 TypeError 导致手动/周期心跳失败。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.55 (2026-02-08)
 
 - **角色创建/预设**：预设名称占位与导入提示统一为「特质」表述；预设数据保留 spiritRoot 键名兼容旧文件。  

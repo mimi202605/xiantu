@@ -267,8 +267,10 @@ export const useGameStateStore = defineStore('gameState', {
       const worldHeartbeat: WorldHeartbeatConfig | null = (() => {
         const hb = v3?.世界?.状态?.心跳;
         if (!hb || typeof hb !== 'object') return null;
+        // 启用按 truthy 解析，避免 JSON/IndexedDB 导致非 boolean 时被误置为 false 从而心跳从不触发
+        const 启用 = (hb as any).启用;
         const def: WorldHeartbeatConfig = {
-          启用: typeof (hb as any).启用 === 'boolean' ? (hb as any).启用 : false,
+          启用: 启用 === true || 启用 === 'true' || 启用 === 1,
           周期数值: typeof (hb as any).周期数值 === 'number' && (hb as any).周期数值 >= 1 ? (hb as any).周期数值 : 5,
           历史条数: typeof (hb as any).历史条数 === 'number' && (hb as any).历史条数 >= 1 ? (hb as any).历史条数 : 10,
           遗忘回合数: typeof (hb as any).遗忘回合数 === 'number' && (hb as any).遗忘回合数 >= 0 ? (hb as any).遗忘回合数 : 10,
