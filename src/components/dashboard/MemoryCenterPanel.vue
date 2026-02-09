@@ -26,8 +26,8 @@
       </div>
     </div>
 
-    <!-- 导出工具 -->
-    <div class="export-section" v-if="!showSettings && activeFilter !== 'vector'">
+    <!-- 导出工具（已发送信息不导出为小说） -->
+    <div class="export-section" v-if="!showSettings && activeFilter !== 'vector' && activeFilter !== 'sent'">
       <button
         class="export-btn-main"
         @click="exportMemoriesAsNovel"
@@ -165,7 +165,37 @@
 
     <!-- 记忆列表 -->
     <div class="panel-content" v-if="!showSettings">
-      <template v-if="activeFilter === 'vector'">
+      <!-- 已发送信息：仅记录玩家发给 API 的原文，不参与 prompt -->
+      <template v-if="activeFilter === 'sent'">
+        <div class="sent-section">
+          <div class="sent-hint">{{ t('已发送信息说明') }}</div>
+          <div v-if="!sentMessagesList.length" class="empty-state">
+            <div class="empty-icon">📤</div>
+            <div class="empty-text">{{ t('暂无已发送信息') }}</div>
+          </div>
+          <div v-else class="sent-list">
+            <div
+              v-for="(item, index) in sentMessagesList"
+              :key="item.timestamp + '-' + index"
+              class="sent-card"
+            >
+              <div class="sent-card-header">
+                <span class="sent-time">{{ formatSentTime(item.timestamp) }}</span>
+                <button
+                  type="button"
+                  class="sent-copy-btn"
+                  :title="t('复制')"
+                  @click="copySentMessage(item.text)"
+                >
+                  {{ t('复制') }}
+                </button>
+              </div>
+              <pre class="sent-text">{{ item.text }}</pre>
+            </div>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="activeFilter === 'vector'">
         <div class="vector-toolbar">
           <div class="vector-status">
             <span class="status-dot" :class="{ enabled: vectorEnabled }"></span>
@@ -622,6 +652,7 @@ const memoryTypes = computed(() => [
   { key: 'short', name: t('短期'), icon: '⚡' },
   { key: 'medium', name: t('中期'), icon: '💭' },
   { key: 'long', name: t('长期'), icon: '💾' },
+  { key: 'sent', name: t('已发送信息'), icon: '📤' },
   { key: 'vector', name: '向量库', icon: '🧬' }
 ]);
 
@@ -656,6 +687,12 @@ const totalMemoryCount = computed(() =>
   shortTermMemories.value.length + mediumTermMemories.value.length + longTermMemories.value.length
 );
 
+// 已发送信息列表（仅供查阅，不参与 prompt）
+const sentMessagesList = computed(() => {
+  const list = gameStateStore.sentToApiMessages;
+  return Array.isArray(list) ? [...list] : [];
+});
+
 // 获取类型数量
 const getTypeCount = (type: string): number => {
   if (type === 'all') return totalMemoryCount.value;
@@ -663,6 +700,7 @@ const getTypeCount = (type: string): number => {
     case 'short': return shortTermMemories.value.length;
     case 'medium': return mediumTermMemories.value.length;
     case 'long': return longTermMemories.value.length;
+    case 'sent': return sentMessagesList.value.length;
     case 'vector': return vectorTotalCount.value;
     default: return 0;
   }
@@ -671,8 +709,51 @@ const getTypeCount = (type: string): number => {
 // 获取空状态文本
 const getEmptyText = (): string => {
   if (activeFilter.value === 'all') return t('心如明镜，尚未记录任何修行感悟');
+  if (activeFilter.value === 'sent') return t('暂无已发送信息');
   const type = memoryTypes.value.find(t => t.key === activeFilter.value);
   return t('暂无{type}记忆', { type: type?.name });
+};
+
+// 已发送信息：格式化时间
+const formatSentTime = (timestamp: number): string => {
+  const d = new Date(timestamp);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+};
+
+// 已发送信息：复制到剪贴板（优先 Clipboard API，失败时用 execCommand 兜底）
+const copySentMessage = async (text: string) => {
+  const doFallbackCopy = (): boolean => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    textarea.style.pointerEvents = 'none';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return ok;
+    } catch {
+      document.body.removeChild(textarea);
+      return false;
+    }
+  };
+
+  try {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      await navigator.clipboard.writeText(text);
+      toast.success(t('已复制到剪贴板'));
+      return;
+    }
+  } catch {
+    // 非安全上下文或权限被拒时 fallback
+  }
+  if (doFallbackCopy()) {
+    toast.success(t('已复制到剪贴板'));
+  } else {
+    toast.error(t('复制失败'));
+  }
 };
 
 // 获取类型图标
@@ -2625,5 +2706,73 @@ const addTestMediumTermMemory = async () => {
 [data-theme="dark"] .vector-stats {
   background: rgba(30, 41, 59, 0.9);
   border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* 已发送信息 */
+.sent-section {
+  padding: 0.5rem 0;
+}
+.sent-hint {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #64748b);
+  margin-bottom: 0.75rem;
+}
+.sent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.sent-card {
+  background: var(--panel-bg, rgba(248, 250, 252, 0.95));
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  overflow: hidden;
+}
+.sent-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+.sent-time {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #64748b);
+}
+.sent-copy-btn {
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  background: var(--bg-secondary, #f1f5f9);
+  cursor: pointer;
+}
+.sent-copy-btn:hover {
+  background: var(--bg-hover, #e2e8f0);
+}
+.sent-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 12rem;
+  overflow-y: auto;
+}
+
+[data-theme="dark"] .sent-card {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .sent-copy-btn {
+  background: rgba(51, 65, 85, 0.9);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .sent-copy-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: #3b82f6;
 }
 </style>

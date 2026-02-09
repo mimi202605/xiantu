@@ -651,7 +651,7 @@ const autoTranslateMap: Record<string, string> = {
   // PresetSaveModal
   '保存预设': 'Save Preset',
   '预设名称': 'Preset Name',
-  '请输入预设名称（如：剑修预设、治愈系预设等）': 'Enter preset name (e.g., Sword Cultivator Preset, Healer Preset, etc.)',
+  '请输入预设名称（如：战斗向预设、辅助向预设等）': 'Enter preset name (e.g., Combat Preset, Support Preset, etc.)',
   '预设描述': 'Preset Description',
   '输入此预设的描述信息...': 'Enter preset description...',
   '保存时间：': 'Save Time:',
@@ -921,6 +921,9 @@ const autoTranslateMap: Record<string, string> = {
   'longTerm': 'Long-Term',
   'noCultivationInsights': 'Mind is as clear as a mirror, no cultivation insights recorded yet',
   '暂无{type}记忆': 'No {type} memories yet',
+  '已发送信息': 'Sent Messages',
+  '已发送信息说明': 'Records of the exact text you sent to the API. For your reference only; not used in any AI prompt.',
+  '暂无已发送信息': 'No sent messages yet',
   'mediumTermMemory': 'Medium-Term Memory',
   'longTermMemory': 'Long-Term Memory',
   'unknown': 'Unknown',

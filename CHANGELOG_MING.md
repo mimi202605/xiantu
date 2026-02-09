@@ -4,6 +4,34 @@
 
 ---
 
+## [0.2.54] - 2026-02-08
+
+### 记忆中心：已发送信息
+
+- **功能**：在记忆中心内新增「已发送信息」tab，仅记录玩家发送给 API 的原文（含行动趋向等完整 payload），支持按条复制；不参与任何 API prompt 生成，仅供玩家查阅。
+- **存储**：gameStateStore 新增 `sentToApiMessages`（含 text、timestamp），读写存档路径为 `系统.扩展.已发送信息`；发送消息时在 MainGamePanel 中追加记录。
+- **复制**：优先使用 Clipboard API，失败或不可用时使用 `document.execCommand('copy')` 兜底，减少非安全上下文下「复制失败」。
+- **i18n**：新增 已发送信息、已发送信息说明、暂无已发送信息。
+
+#### 涉及文件
+
+- `src/stores/gameStateStore.ts`
+- `src/components/dashboard/MainGamePanel.vue`
+- `src/components/dashboard/MemoryCenterPanel.vue`
+- `src/i18n/index.ts`
+
+### NPC 私密档案 Prompt 修正
+
+- **definitions/dataDefinitions.ts**：PrivacyProfile（4.5）补全「最近一次性行为时间: string」及逻辑一致性说明（是否为处女/处男 与 性交总次数、性伴侣名单）；性渴望程度注明 0-100。
+- **definitions/businessRules.ts**：身体部位结构描述改为必含 部位名称/敏感度/开发度/特征描述，特殊印记为可选，避免 AI 误将可选字段当作必填。
+
+#### 涉及文件
+
+- `src/utils/prompts/definitions/dataDefinitions.ts`
+- `src/utils/prompts/definitions/businessRules.ts`
+
+---
+
 ## [0.2.53] - 2026-02-08
 
 ### 视频背景：更换为横版资源

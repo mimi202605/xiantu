@@ -1255,6 +1255,9 @@ const sendMessage = async () => {
   }
   console.log('[前端] 最终发送 finalUserMessage:', finalUserMessage);
 
+  // 记录到「已发送信息」（仅供玩家在记忆中心查阅，不参与任何 API prompt）
+  gameStateStore.appendSentMessage(finalUserMessage);
+
   // 清空动作队列（动作已经添加到消息中）
   if (actionQueueText) {
     actionQueue.clearActions();
