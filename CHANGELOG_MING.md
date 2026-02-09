@@ -4,6 +4,20 @@
 
 ---
 
+## [0.2.47] - 2026-02-08
+
+### README：自动构建与部署小节重写
+
+- **触发方式表格**：明确各工作流触发条件（推送 v* tag 触发 release/docker/pages；推送 main 触发 pages；任意 push/PR 触发 ci，仅校验不部署）。
+- **GitHub Pages 部署要点**：访问地址、Settings → Pages → Source 须选 GitHub Actions、environment protection rules 报错时的处理步骤。
+- **手动运行**：说明可在 Actions 页手动运行 Deploy GitHub Pages 与 Docker Build and Push。
+
+#### 涉及文件
+
+- `README.md`
+
+---
+
 ## [0.2.46] - 2026-02-08
 
 ### GitHub Pages：移除 index.html EJS，构建时注入 base 标签

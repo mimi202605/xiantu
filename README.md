@@ -108,22 +108,28 @@ npm run build
 
 封面背景视频放在 **`public/ming_background.mp4`**，构建时会复制到 `dist/`，开发时由 devServer 提供。
 
-### 自动构建/部署
+### 自动构建与部署
 
-推送 `v*` 格式的 tag 时自动触发：
-
-- **Docker 镜像**：构建并推送到 Docker Hub
-- **GitHub Release**：创建 Release 并上传构建产物
+| 触发方式 | 工作流 | 说明 |
+|----------|--------|------|
+| 推送 **`v*` tag**（如 `v1.0.0`） | `release.yml` | 构建并创建 GitHub Release，上传 dist 压缩包 |
+| 推送 **`v*` tag** | `docker.yml` | 构建并推送 Docker 镜像到 Docker Hub |
+| 推送 **`v*` tag** 或 **`main` 分支** | `pages.yml` | 构建并部署到 GitHub Pages |
+| 任意 **push / PR** | `ci.yml` | type-check、lint、build，不部署 |
 
 ```bash
+# 打 tag 并推送（会触发 Release + Docker + Pages）
 git tag v1.0.0
 git push origin v1.0.0
 ```
 
-其他工作流：
+也可在仓库 **Actions** 页手动运行「Deploy GitHub Pages」或「Docker Build and Push」。
 
-- CI：`.github/workflows/ci.yml`（push/PR 自动 type-check + build）
-- Pages：`.github/workflows/pages.yml`（可按需部署到 GitHub Pages；访问地址为 `https://<username>.github.io/ming/`）。**注意**：仓库 Settings → Pages → Source 须选择 **GitHub Actions**，由工作流构建并部署 `dist`，不要用分支静态文件。
+**GitHub Pages 部署要点：**
+
+- 访问地址：`https://<username>.github.io/ming/`（将 `<username>` 换为你的 GitHub 用户名）
+- 须在 **Settings → Pages → Source** 选择 **GitHub Actions**（由工作流构建并部署 `dist`，不要用「Deploy from a branch」）
+- 若报错 *"Tag is not allowed to deploy due to environment protection rules"*，请到 **Settings → Environments → github-pages → Deployment protection rules**，允许对应 tag/分支或关闭 Required reviewers
 
 ### 后端（可选）
 

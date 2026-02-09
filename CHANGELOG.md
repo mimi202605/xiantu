@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.47 (2026-02-08)
+
+- **README 自动构建与部署**：重写为触发方式表格（v* tag → Release/Docker/Pages，main → Pages，push/PR → CI）；补充 GitHub Pages 访问地址、Source 须选 Actions、environment protection 报错处理；注明可手动运行 Pages/Docker 工作流。  
+详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.46 (2026-02-08)
 
 - **GitHub Pages 源码展示 EJS 问题**：index.html 移除 EJS 模板语法，改为占位 `<base href="__BASE_PATH__" data-build-replace>`；webpack 增加 BaseTagReplacePlugin 在构建时根据 BASE_PATH 替换或移除该标签；README 注明 Pages 须选择 GitHub Actions 作为 Source 部署构建产物。  
