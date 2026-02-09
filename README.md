@@ -123,7 +123,7 @@ git push origin v1.0.0
 其他工作流：
 
 - CI：`.github/workflows/ci.yml`（push/PR 自动 type-check + build）
-- Pages：`.github/workflows/pages.yml`（可按需部署到 GitHub Pages；访问地址为 `https://<username>.github.io/ming/`）
+- Pages：`.github/workflows/pages.yml`（可按需部署到 GitHub Pages；访问地址为 `https://<username>.github.io/ming/`）。**注意**：仓库 Settings → Pages → Source 须选择 **GitHub Actions**，由工作流构建并部署 `dist`，不要用分支静态文件。
 
 ### 后端（可选）
 

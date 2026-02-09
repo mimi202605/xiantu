@@ -4,6 +4,24 @@
 
 ---
 
+## [0.2.46] - 2026-02-08
+
+### GitHub Pages：移除 index.html EJS，构建时注入 base 标签
+
+- **问题**：若 Pages 从分支部署会直接提供源码 index.html，页面会显示未编译的 EJS 代码（如 `<% if (htmlWebpackPlugin.options.basePath) ... %>`）。
+- **修改**
+  - **index.html**：去掉 EJS，改为占位标签 `<base href="__BASE_PATH__" data-build-replace>`，源码为纯 HTML。
+  - **webpack**：新增 BaseTagReplacePlugin，在 processAssets 阶段将占位替换为 `<base href="/ming/">`（当设置 BASE_PATH）或移除该标签；并移除 HtmlWebpackPlugin 的 basePath 模板参数。
+  - **README**：说明 Pages 的 Source 须选择 **GitHub Actions**，由工作流构建并部署 dist，勿用分支静态文件。
+
+#### 涉及文件
+
+- `index.html`
+- `webpack.config.js`
+- `README.md`
+
+---
+
 ## [0.2.45] - 2026-02-08
 
 ### gameStateStore：relationships 改为 const

@@ -123,7 +123,6 @@ export default (env, argv) => {
       new HtmlWebpackPlugin({
         template: './index.html',
         inject: 'body',
-        basePath: basePath != null && basePath !== '' ? (basePath.endsWith('/') ? basePath : basePath + '/') : '',
         minify: isProduction ? {
           removeComments: true,
           collapseWhitespace: true,
@@ -137,6 +136,33 @@ export default (env, argv) => {
           minifyURLs: true,
         } : false
       }),
+      // Replace __BASE_PATH__ in index.html (base tag) when BASE_PATH env is set (e.g. GitHub Pages)
+      (() => {
+        const normalizedBase = basePath != null && basePath !== '' ? (basePath.endsWith('/') ? basePath : basePath + '/') : '';
+        const baseTagReplacement = normalizedBase ? `<base href="${normalizedBase}">` : '';
+        const placeholderRegex = /<base href="__BASE_PATH__" data-build-replace\s*\/?>/i;
+        return {
+          apply: (compiler) => {
+            compiler.hooks.compilation.tap('BaseTagReplacePlugin', (compilation) => {
+              compilation.hooks.processAssets.tap(
+                { name: 'BaseTagReplacePlugin', stage: compilation.constructor.PROCESS_ASSETS_STAGE_OPTIMIZE + 1 },
+                () => {
+                  for (const name of Object.keys(compilation.assets)) {
+                    if (name.endsWith('.html')) {
+                      const asset = compilation.assets[name];
+                      let source = asset.source();
+                      if (typeof source === 'string' && placeholderRegex.test(source)) {
+                        const newSource = source.replace(placeholderRegex, baseTagReplacement);
+                        compilation.assets[name] = { source: () => newSource, size: () => Buffer.byteLength(newSource, 'utf8') };
+                      }
+                    }
+                  }
+                }
+              );
+            });
+          },
+        };
+      })(),
       // watch 或 single 模式下内联 JS 到 HTML
       (isWatch || isSingleFile) ? new HtmlInlineScriptPlugin({
         htmlMatchPattern: [/index\.html$/],
