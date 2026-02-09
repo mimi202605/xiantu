@@ -21,7 +21,7 @@
             <div class="preview-info">
               <div class="character-name">{{ currentSave.角色名字 || '无名道友' }}</div>
               <div class="character-details">
-                <span class="detail-item">{{ currentSave.境界 || '凡人' }}</span>
+                <span class="detail-item">{{ currentSave.地位 ?? (currentSave as any).境界 ?? '凡人' }}</span>
                 <span class="detail-separator">·</span>
                 <span class="detail-item">{{ currentSave.位置 || '未知' }}</span>
               </div>
@@ -161,8 +161,8 @@
             <div class="card-content">
               <div class="save-details">
                 <div class="detail-row">
-                  <span class="detail-label">境界:</span>
-                  <span class="detail-value">{{ save.境界 || '凡人' }}</span>
+                  <span class="detail-label">{{ t('地位') }}:</span>
+                  <span class="detail-value">{{ save.地位 ?? (save as any).境界 ?? '凡人' }}</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">位置:</span>

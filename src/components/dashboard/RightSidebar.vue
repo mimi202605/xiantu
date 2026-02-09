@@ -206,8 +206,18 @@ import StatusDetailCard from './components/StatusDetailCard.vue';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useUIStore } from '@/stores/uiStore';
 import type { StatusEffect } from '@/types/game.d.ts';
-// [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils';
-const formatRealmWithStage = (_realm: any): string => '';
+import type { Realm } from '@/types/game';
+
+/** 地位（Realm）显示：名称·阶段 或仅名称 */
+function formatStatusDisplay(realm: Realm | unknown): string {
+  if (!realm || typeof realm !== 'object') return '';
+  const r = realm as Record<string, unknown>;
+  const name = (r.名称 as string)?.trim?.();
+  const stage = (r.阶段 as string)?.trim?.();
+  if (!name) return '';
+  if (stage) return `${name}·${stage}`;
+  return name;
+}
 import { calculateAgeFromBirthdate } from '@/utils/lifespanCalculator';
 import { useI18n } from '@/i18n';
 
@@ -390,7 +400,8 @@ const showStatusDetail = (effect: StatusEffect) => {
 };
 
 const formatRealmDisplay = (realm?: unknown): string => {
-  return formatRealmWithStage(realm);
+  const text = formatStatusDisplay(realm);
+  return text || t('凡人');
 };
 
 // 获取声望显示文本

@@ -4,6 +4,33 @@
 
 ---
 
+## [0.2.49] - 2026-02-08
+
+### 界面品牌、链接与地位显示
+
+- **品牌与链接**
+  - 游戏内顶栏标题：仙途 → 天命（中英文 i18n 天命/MING）；左下角 GitHub 图标链接改为 https://github.com/michael2221807/ming。
+  - 赞助支持弹窗（LeftSidebar、App.vue）：移除支付宝/微信二维码，改为「GitHub Star」按钮（同仓库链接）；教程弹窗标题「仙途教程」→「天命教程」，底部 GitHub 链接改为本仓库。
+  - i18n：新增 天命、GitHub Star。
+- **地位显示（境界→地位）**
+  - TopBar：玩家名旁徽章改为从 `attributes.地位` 格式化（formatStatus），无则「凡人」；补充 title 提示「地位」。
+  - 续前世因缘（CharacterManagement）：getRealmName 改为基于 formatStatusDisplay(地位/境界)，单机/联机存档卡片均用 地位 ?? 境界。
+  - RightSidebar、CharacterDetailsPanel：formatRealmDisplay 改为基于 formatStatusDisplay，NPC 关系用 地位 ?? 境界。
+  - SavePanel：当前存档与列表项显示 地位 ?? 境界，标签「境界」→「地位」。
+
+#### 涉及文件
+
+- `src/App.vue`
+- `src/components/character-creation/CharacterManagement.vue`
+- `src/components/dashboard/CharacterDetailsPanel.vue`
+- `src/components/dashboard/LeftSidebar.vue`
+- `src/components/dashboard/RightSidebar.vue`
+- `src/components/dashboard/SavePanel.vue`
+- `src/components/dashboard/TopBar.vue`
+- `src/i18n/index.ts`
+
+---
+
 ## [0.2.48] - 2026-02-08
 
 ### README：Pages 触发条件更正

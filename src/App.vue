@@ -130,14 +130,10 @@
           <button class="close-btn" @click="showSponsorModal = false">&times;</button>
         </div>
         <div class="settings-modal-body sponsor-modal-body">
-          <div class="sponsor-qr">
-            <img src="https://ddct.top/zhifubao.jpg" alt="支付宝赞助二维码" loading="lazy" />
-            <span>支付宝</span>
-          </div>
-          <div class="sponsor-qr">
-            <img src="https://ddct.top/weixing.jpg" alt="微信赞助二维码" loading="lazy" />
-            <span>微信</span>
-          </div>
+          <a href="https://github.com/michael2221807/ming" target="_blank" rel="noopener noreferrer" class="sponsor-star-btn">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            <span>GitHub Star</span>
+          </a>
         </div>
       </div>
     </div>
@@ -146,7 +142,7 @@
     <div v-if="showAuthorModal" class="help-overlay" @click.self="showAuthorModal = false">
       <div class="help-modal">
         <div class="help-header">
-          <h2 class="help-title">仙途教程</h2>
+          <h2 class="help-title">天命教程</h2>
           <button class="help-close" @click="showAuthorModal = false">
             <X :size="18" />
           </button>
@@ -182,7 +178,7 @@
           <div class="help-footer">
             <div class="help-author">
               <span>作者：千夜</span>
-              <a href="https://github.com/qianye60/XianTu" target="_blank">GitHub</a>
+              <a href="https://github.com/michael2221807/ming" target="_blank" rel="noopener noreferrer">GitHub</a>
             </div>
             <div class="help-license">CC BY-NC-SA 4.0</div>
           </div>
@@ -1412,32 +1408,32 @@ watch(route, (newRoute, oldRoute) => {
 
 .sponsor-modal-body {
   padding: 1rem 1.25rem 1.5rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  justify-items: center;
-}
-
-.sponsor-qr {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 1rem;
+}
+
+.sponsor-star-btn {
+  display: inline-flex;
+  align-items: center;
   gap: 0.5rem;
-  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: #24292f;
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  border: 1px solid #333;
 }
 
-.sponsor-qr img {
-  width: 100%;
-  max-width: 240px;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
-  display: block;
-}
-
-.sponsor-qr span {
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
+.sponsor-star-btn:hover {
+  background: #333;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .close-btn {

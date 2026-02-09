@@ -1,13 +1,13 @@
 <template>
   <div class="top-bar">
     <div class="left-section">
-      <h1 class="game-title" v-if="t('仙途') === '仙途'">
-        <span class="title-xian">仙</span><span class="title-tu">途</span>
+      <h1 class="game-title" v-if="t('天命') === '天命'">
+        <span class="title-tian">天</span><span class="title-ming">命</span>
       </h1>
-      <h1 class="game-title" v-else>{{ t('仙途') }}</h1>
+      <h1 class="game-title" v-else>{{ t('天命') }}</h1>
       <div class="character-quick-info" v-if="characterName">
         <span class="character-name">{{ characterName }}</span>
-        <span class="character-realm">{{ characterRealm }}</span>
+        <span class="character-realm" :title="t('地位')">{{ characterRealm }}</span>
       </div>
     </div>
 
@@ -43,9 +43,18 @@
 import { computed, ref, onMounted } from 'vue'
 import { Maximize, Minimize } from 'lucide-vue-next'
 import { useGameStateStore } from '@/stores/gameStateStore'
-// [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils'
-const formatRealmWithStage = (_realm: any): string => ''
 import { useI18n } from '@/i18n'
+import type { Realm } from '@/types/game'
+
+/** 将地位（Realm）格式化为简短显示，如 "筑基·圆满" 或仅 "凡人" */
+function formatStatus(realm: Realm | undefined | null): string {
+  if (!realm || typeof realm !== 'object') return ''
+  const name = realm.名称?.trim()
+  const stage = realm.阶段?.trim()
+  if (!name) return ''
+  if (stage) return `${name}·${stage}`
+  return name
+}
 import { getFullscreenElement, requestFullscreen, exitFullscreen, explainFullscreenError } from '@/utils/fullscreen'
 import type { GameTime } from '@/types/game'
 
@@ -73,7 +82,8 @@ const characterName = computed(() => {
 
 const characterRealm = computed(() => {
   try {
-    return formatRealmWithStage(gameStateStore.attributes?.境界)
+    const text = formatStatus(gameStateStore.attributes?.地位)
+    return text || t('凡人')
   } catch (e) {
     console.error('[TopBar] Error getting characterRealm:', e)
     return t('凡人')
@@ -189,12 +199,12 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.title-xian {
+.title-tian {
   color: var(--color-primary);
   text-shadow: 0 0 12px rgba(var(--color-primary-rgb), 0.4);
 }
 
-.title-tu {
+.title-ming {
   color: var(--color-text);
 }
 

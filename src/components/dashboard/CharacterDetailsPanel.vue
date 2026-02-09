@@ -257,7 +257,7 @@
                           <span class="rel-tag">{{ npc.与玩家关系 || t('陌生人') }}</span>
                           <span v-if="isSpecialNpc(npc)" class="rel-tag special">{{ t('特殊') }}</span>
                           <span class="rel-dot">·</span>
-                          <span class="rel-realm">{{ formatRealmDisplay(npc.境界) }}</span>
+                          <span class="rel-realm">{{ formatRealmDisplay((npc as any).地位 ?? (npc as any).境界) }}</span>
                         </div>
                       </div>
                       <div class="rel-fav" :class="getFavorabilityClass(npc.好感度)">{{ npc.好感度 }}</div>
@@ -370,8 +370,18 @@ import BodyStatsPanel from '@/components/dashboard/components/BodyStatsPanel.vue
 // [MING] Removed: import { calculateFinalAttributes } from '@/utils/attributeCalculation';
 const calculateFinalAttributes = (_innate: any, _save: any): any => ({ 最终六维属性: {}, 后天六维属性: {} });
 import { calculateAgeFromBirthdate, type GameTime as LifespanGameTime } from '@/utils/lifespanCalculator';
-// [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils';
-const formatRealmWithStage = (_realm: any): string => '';
+import type { Realm } from '@/types/game';
+
+/** 地位（Realm）显示：名称·阶段 或仅名称 */
+function formatStatusDisplay(realm: Realm | unknown): string {
+  if (!realm || typeof realm !== 'object') return '';
+  const r = realm as Record<string, unknown>;
+  const name = (r.名称 as string)?.trim?.();
+  const stage = (r.阶段 as string)?.trim?.();
+  if (!name) return '';
+  if (stage) return `${name}·${stage}`;
+  return name;
+}
 import { isTavernEnv } from '@/utils/tavern';
 import { USE_MING_PROMPTS } from '@/services/defaultPrompts';
 import type { InnateAttributes, Inventory, Item, ItemQuality, MasteredSkill, NpcProfile, SaveData, TechniqueItem } from '@/types/game';
@@ -700,8 +710,8 @@ const getOriginModalContent = () => {
 };
 
 const formatRealmDisplay = (realm?: unknown): string => {
-  if (!realm) return t('凡人');
-  return formatRealmWithStage(realm);
+  const text = formatStatusDisplay(realm);
+  return text || t('凡人');
 };
 
 const traitLabel = '特质';

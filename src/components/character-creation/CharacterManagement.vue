@@ -378,7 +378,7 @@
                     <h4 class="save-name">{{ $t('云端存档') }}</h4>
                     <div class="save-badges">
                       <span class="realm-badge">{{
-                        getRealmName(normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性?.境界)
+                        getRealmName((normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性 as any)?.地位 ?? (normalizeSaveDataV3(selectedCharacter.存档列表['云端修行'].存档数据)?.角色?.属性 as any)?.境界)
                       }}</span>
                       <span class="age-badge"
                         >{{
@@ -562,8 +562,18 @@ import { ArrowLeft, Upload, History, Clock, Star, Wrench } from 'lucide-vue-next
 import LegacySaveMigrationModal from './LegacySaveMigrationModal.vue';
 import type { CharacterProfile, SaveSlot } from '@/types/game';
 import "@/style.css";
-// [MING] Removed: import { formatRealmWithStage } from '@/utils/realmUtils';
-const formatRealmWithStage = (_realm: any): string => '';
+import type { Realm } from '@/types/game';
+
+/** 地位（Realm）显示：名称·阶段 或仅名称，无则凡人 */
+function formatStatusDisplay(realm: Realm | unknown): string {
+  if (!realm || typeof realm !== 'object') return '';
+  const r = realm as Record<string, unknown>;
+  const name = (r.名称 as string)?.trim?.();
+  const stage = (r.阶段 as string)?.trim?.();
+  if (!name) return '';
+  if (stage) return `${name}·${stage}`;
+  return name;
+}
 import { toast } from '@/utils/toast';
 import { isTavernEnv } from '@/utils/tavern';
 import { USE_MING_PROMPTS } from '@/services/defaultPrompts';
@@ -972,9 +982,10 @@ const normalizeSaveDataV3 = (saveData: unknown): SaveDataV3 | null => {
   return (isSaveDataV3(raw) ? raw : migrateSaveDataToLatest(raw).migrated) as SaveDataV3;
 };
 
-// 境界显示：统一为“境界+阶段”（初期/中期/后期/圆满），凡人不加阶段
+// 地位显示：名称·阶段 或仅名称，无则显示凡人
 const getRealmName = (realm: unknown): string => {
-  return formatRealmWithStage(realm as { 境界: string; 境界等级?: number; 阶段?: string } | null);
+  const text = formatStatusDisplay(realm);
+  return text || '凡人';
 };
 
 // 格式化时间
