@@ -4,6 +4,20 @@
 
 ---
 
+## [0.2.57] - 2026-02-11
+
+### 视频背景：Gemini Veo 生成资源
+
+- **背景视频**：封面视频背景由 `ming_background_horizontal.mp4` 更换为 `ming_background_video.mp4`；该视频由 Gemini Veo 生成。
+- **组件更新**：`VideoBackground.vue` 默认 `src` 更新为 `./ming_background_video.mp4`。
+- **样式 adjustments**：移除 `.video-background video` 的 `min-width/min-height: 100%`，改用 `width: 100%; height: 100%; object-fit: cover;` 确保填充且不溢出；z-index 设为 -1。
+
+#### 涉及文件
+
+- `src/components/common/VideoBackground.vue`
+
+---
+
 ## [0.2.56] - 2026-02-08
 
 ### 世界心跳：触发与手动执行修复
@@ -166,7 +180,7 @@
 
 ### README：自动构建与部署小节重写
 
-- **触发方式表格**：明确各工作流触发条件（推送 v* tag 触发 release/docker/pages；推送 main 触发 pages；任意 push/PR 触发 ci，仅校验不部署）。
+- **触发方式表格**：明确各工作流触发条件（推送 v\* tag 触发 release/docker/pages；推送 main 触发 pages；任意 push/PR 触发 ci，仅校验不部署）。
 - **GitHub Pages 部署要点**：访问地址、Settings → Pages → Source 须选 GitHub Actions、environment protection rules 报错时的处理步骤。
 - **手动运行**：说明可在 Actions 页手动运行 Deploy GitHub Pages 与 Docker Build and Push。
 
@@ -598,13 +612,13 @@
 ### 地点-NPC：追加时去重 + 校准顺序优化
 
 - **背景**：人物移动时 NPC 会生成在新地点或与玩家同行移动，需更新 地点NPC：从原地点移除同名 NPC，保证有且只有一个同名 NPC；与现有双向校准兼容，且绝大多数只修改 地点NPC。若仅 关系 更新、地点 NPC 未更新，也需能从 关系 sync 到地点。
-- **appendNpcsToLocation**  
-  - 在向某地点 地点NPC 追加名字**前**，先对每个名字调用 `removeNpcFromOtherLocations(saveData, npcName, locationDesc)`，再从该地点追加。  
+- **appendNpcsToLocation**
+  - 在向某地点 地点NPC 追加名字**前**，先对每个名字调用 `removeNpcFromOtherLocations(saveData, npcName, locationDesc)`，再从该地点追加。
   - 效果：同行 NPC 移入新地点或在新地点生成时，会从其他地点的 地点NPC 中移除同名项；全局保证每个 NPC 名只出现在一个地点的列表中。仅修改 地点NPC。
-- **calibrateNpcLocationSync 顺序调整**  
-  - 1. 关系 → 地点：仅根据 关系[npc].当前位置.描述 更新各地点的 地点NPC（从其它地点移除、加入该地点）；不写 关系。  
-  - 2. 地点去重：对仍出现在多处的 NPC 按「首次出现地点」保留一处；只改 地点NPC。  
-  - 3. 地点 → 关系：用 地点NPC 补全/修正 关系[npc].当前位置.描述；仅在此步写 关系。  
+- **calibrateNpcLocationSync 顺序调整**
+  - 1. 关系 → 地点：仅根据 关系[npc].当前位置.描述 更新各地点的 地点NPC（从其它地点移除、加入该地点）；不写 关系。
+  - 2. 地点去重：对仍出现在多处的 NPC 按「首次出现地点」保留一处；只改 地点NPC。
+  - 3. 地点 → 关系：用 地点NPC 补全/修正 关系[npc].当前位置.描述；仅在此步写 关系。
   - 绝大多数场景只改 地点NPC；当仅 关系 更新、地点未更新时，步骤 1 仍能从 关系 sync 到地点。
 - **设计文档**：在「每次更新地点 NPC 时移除其他地点的该 NPC」处注明已实现（appendNpcsToLocation + calibrateNpcLocationSync）。
 
@@ -620,17 +634,17 @@
 ### 地点-NPC 双向校准与设计文档
 
 - **背景**：API 回写或修复存档时，「社交.关系[npc].当前位置」与「世界.信息.地点信息[地点].地点NPC」可能不一致（API 不一定同时正确写入两项），需在后端做一次同步与互补。
-- **locationUtils**  
-  - 新增 `forEachLocationInTree`：遍历地点树中每个地点条目（含递归 内部）。  
-  - 新增 `removeNpcFromOtherLocations(saveData, npcName, keepAtLocationName)`：从除指定地点外的所有地点的 地点NPC 中移除该 NPC，保证同一 NPC 只出现在一个地点的列表中。  
+- **locationUtils**
+  - 新增 `forEachLocationInTree`：遍历地点树中每个地点条目（含递归 内部）。
+  - 新增 `removeNpcFromOtherLocations(saveData, npcName, keepAtLocationName)`：从除指定地点外的所有地点的 地点NPC 中移除该 NPC，保证同一 NPC 只出现在一个地点的列表中。
   - 新增 `calibrateNpcLocationSync(saveData)`：① 每个 NPC 只保留在一个地点的 地点NPC；② 根据 关系[npc].当前位置.描述 同步到对应地点的 地点NPC；③ 根据各地点的 地点NPC 补全/修正 关系[npc].当前位置.描述。
-- **调用点**  
-  - `AIBidirectionalSystem`：API 回写后、时间规范化前调用 `calibrateNpcLocationSync`。  
+- **调用点**
+  - `AIBidirectionalSystem`：API 回写后、时间规范化前调用 `calibrateNpcLocationSync`。
   - `dataRepair.repairSaveData`：修复 世界.信息.地点信息 后调用 `calibrateNpcLocationSync`。
-- **设计文档（docs/design note）**  
-  - 地图 rescale 功能说明（外部与内部比例、嵌套适用）；  
-  - 每次更新地点 NPC 时需检查并移除其他地点中的该 NPC；  
-  - 禁止普通 NPC 进入玩家关系网络；  
+- **设计文档（docs/design note）**
+  - 地图 rescale 功能说明（外部与内部比例、嵌套适用）；
+  - 每次更新地点 NPC 时需检查并移除其他地点中的该 NPC；
+  - 禁止普通 NPC 进入玩家关系网络；
   - 七、NPC 之间的关系更新：周期性更新 NPC 关系，并更新记忆与情感记忆日志，可在世界心跳中执行。
 
 #### 涉及文件
@@ -647,12 +661,12 @@
 ### 提示词组装：仅保留一回合 + 导出
 
 - **背景**：此前保留最近 20 条快照占用内存较多；实际只需查看当前回合的组装结果，历史需保存时再导出即可。
-- **Store（promptAssemblyStore）**  
-  - 仅保留**当前一个回合**内的快照。以 flowName 判定回合边界：`主回合`、`分步第1步`、`开局第1步` 视为新回合开始，此时清空上一回合再记录；同回合内后续步骤（如 `分步第2步`、`开局第2步`）追加到当前回合。  
-  - 单回合内最多保留 10 条快照（防止异常增长）。  
+- **Store（promptAssemblyStore）**
+  - 仅保留**当前一个回合**内的快照。以 flowName 判定回合边界：`主回合`、`分步第1步`、`开局第1步` 视为新回合开始，此时清空上一回合再记录；同回合内后续步骤（如 `分步第2步`、`开局第2步`）追加到当前回合。
+  - 单回合内最多保留 10 条快照（防止异常增长）。
   - 新增 `getDataForExport()`，供面板将当前回合快照序列化为 JSON 并下载。
-- **面板（PromptAssemblyPanel）**  
-  - 当前回合有多条快照时显示步骤 tab，可切换查看（如 分步第1步 / 分步第2步）；仅一条时不显示 tab。  
+- **面板（PromptAssemblyPanel）**
+  - 当前回合有多条快照时显示步骤 tab，可切换查看（如 分步第1步 / 分步第2步）；仅一条时不显示 tab。
   - 新增「导出」按钮，下载文件名为 `prompt-assembly-YYYY-MM-DDTHH-mm-ss.json`，内容含 `exportedAt` 与当前回合的 `snapshots` 数组。
 
 #### 涉及文件
@@ -667,10 +681,10 @@
 ### NPC 境界默认「凡人」
 
 - **背景**：Prompt 清理后地点路人 NPC 结构不再强制包含境界，导致新生成 NPC 无境界字段，界面此前显示「未知」。
-- **UI 默认值**  
-  - `RelationshipNetworkPanel.vue`：`getNpcRealm` 在 `境界` 缺失或无法解析时返回 **「凡人」**（不再返回「未知」）。  
+- **UI 默认值**
+  - `RelationshipNetworkPanel.vue`：`getNpcRealm` 在 `境界` 缺失或无法解析时返回 **「凡人」**（不再返回「未知」）。
   - 关系网络列表卡片中境界行始终展示，不再因「未知」隐藏。
-- **Prompt 可选字段**  
+- **Prompt 可选字段**
   - `locationNpcGenerationPromptsMing.ts`：NPC 结构说明中增加可选字段 **境界?: string 或 {名称, 阶段}**，注明不填则界面显示「凡人」；若世界观有境界设定可填写，模型仍可选择性生成境界。
 
 #### 涉及文件
@@ -684,42 +698,42 @@
 
 ### Prompt 清理计划落地：通用化用词、数据结构与 UI（docs/prompt-cleanup-plan.md）
 
-- **删除的规则**  
-  - `businessRulesMing.ts`：移除「地点势力不重叠（铁律）」整段；删除 `CONFLICT_TURN_RULES` 整个 export。  
-  - `defaultPrompts.ts`：从 BUSINESS_RULES 数组中去掉 `CONFLICT_TURN_RULES`；业务规则描述改为「NPC、冲突、难度等业务规则」。  
+- **删除的规则**
+  - `businessRulesMing.ts`：移除「地点势力不重叠（铁律）」整段；删除 `CONFLICT_TURN_RULES` 整个 export。
+  - `defaultPrompts.ts`：从 BUSINESS_RULES 数组中去掉 `CONFLICT_TURN_RULES`；业务规则描述改为「NPC、冲突、难度等业务规则」。
   - `promptAssembler.ts`：businessRules / worldStandards 的 add-cause 文案同步为「NPC、冲突、难度等业务规则」「属性、品质」。
 
-- **货币：灵石→金钱**  
-  - **类型**：`game.d.ts` 新增 `CurrencyFourTier`；`Inventory` 与 NPC 背包支持 `金钱?`，`灵石?` 标为 `@deprecated`，读取时 金钱 ?? 灵石。  
-  - **Prompt/数据定义**：`dataDefinitionsMing`、`characterInitializationPromptsMing`、`locationNpcGenerationPromptsMing`、`inlinePromptsMing`、`coreRulesMing` 中背包/货币统一为「金钱」及四档（下品/中品/上品/极品）。  
-  - **运行时**：`useGameData`、`dataRepair`、`dataValidation`、`enhancedActionQueue`、`commandValidator`、`stateChangeFormatter`、`AIBidirectionalSystem` 支持 金钱 并兼容 灵石（读写、校验、防负值）。  
+- **货币：灵石→金钱**
+  - **类型**：`game.d.ts` 新增 `CurrencyFourTier`；`Inventory` 与 NPC 背包支持 `金钱?`，`灵石?` 标为 `@deprecated`，读取时 金钱 ?? 灵石。
+  - **Prompt/数据定义**：`dataDefinitionsMing`、`characterInitializationPromptsMing`、`locationNpcGenerationPromptsMing`、`inlinePromptsMing`、`coreRulesMing` 中背包/货币统一为「金钱」及四档（下品/中品/上品/极品）。
+  - **运行时**：`useGameData`、`dataRepair`、`dataValidation`、`enhancedActionQueue`、`commandValidator`、`stateChangeFormatter`、`AIBidirectionalSystem` 支持 金钱 并兼容 灵石（读写、校验、防负值）。
   - **UI**：`InventoryPanel` 标签与兑换、`CharacterDetailsPanel` 金钱折算、`RelationshipNetworkPanel` 货币展示与 NPC 条目、i18n（金钱/金钱折算/金钱储备/兑换·分解文案）统一为「金钱」。
 
-- **属性：气血→体力、灵气→精力；神识可选**  
-  - **类型**：`PlayerStatus` / NPC 属性 增加 `体力?`、`精力?`；NPC 属性中 气血/灵气 改为可选。  
-  - **Prompt**：`dataDefinitionsMing` 1.2、2.3 与 `locationNpcGenerationPromptsMing` NPC 结构为 体力/精力；不要求神识。  
-  - **校验与格式化**：`commandValidator`、`stateChangeFormatter` 支持 角色.属性.体力/精力.*；`dataRepair`、`dataValidation` 修复时补全 体力/精力（缺则从 气血/灵气 推导），NPC 默认 体力/精力。  
-  - **AI 状态摘要**：`AIBidirectionalSystem` 核心状态与 owner 详情使用 体力??气血、精力??灵气；神识仅在有值时显示。  
-  - **角色生成与迁移**：`calculateInitialAttributes`、`prepareInitialData`、`finalizeAndSyncData` 写入 体力/精力（与 气血/灵气 同源）；`saveMigration` 的 `flatAttributes` 含 体力/精力。  
+- **属性：气血→体力、灵气→精力；神识可选**
+  - **类型**：`PlayerStatus` / NPC 属性 增加 `体力?`、`精力?`；NPC 属性中 气血/灵气 改为可选。
+  - **Prompt**：`dataDefinitionsMing` 1.2、2.3 与 `locationNpcGenerationPromptsMing` NPC 结构为 体力/精力；不要求神识。
+  - **校验与格式化**：`commandValidator`、`stateChangeFormatter` 支持 角色.属性.体力/精力.\*；`dataRepair`、`dataValidation` 修复时补全 体力/精力（缺则从 气血/灵气 推导），NPC 默认 体力/精力。
+  - **AI 状态摘要**：`AIBidirectionalSystem` 核心状态与 owner 详情使用 体力??气血、精力??灵气；神识仅在有值时显示。
+  - **角色生成与迁移**：`calculateInitialAttributes`、`prepareInitialData`、`finalizeAndSyncData` 写入 体力/精力（与 气血/灵气 同源）；`saveMigration` 的 `flatAttributes` 含 体力/精力。
   - **UI 核心数值**：`RightSidebar`（角色状态）、`CharacterDetailsPanel`（vitalsData）、`RelationshipNetworkPanel`（NPC 核心数值）展示 体力/精力（兼容 气血/灵气），神识仅在有数据时显示；i18n 增加 体力/精力。
 
-- **品质系统通用**  
-  - `worldStandardsMing.ts`：QUALITY_SYSTEM 改为 普通|优良|稀有|史诗|传说|神话（grade 0–10）。  
+- **品质系统通用**
+  - `worldStandardsMing.ts`：QUALITY_SYSTEM 改为 普通|优良|稀有|史诗|传说|神话（grade 0–10）。
   - `dataDefinitionsMing`、`inlinePromptsMing` 物品品质与生成规则同步；`InventoryPanel`、`CharacterDetailsPanel` 的 PRESET_QUALITIES / qualityRank 支持新旧品质名。
 
-- **灵根→特质（Ming）**  
-  - **数据定义**：`dataDefinitionsMing` 身份增加「特质」；`characterInitializationPromptsMing` COMMANDS_RULES_MING 随机项含「若特质为随机则 set 角色.身份.特质」。  
-  - **类型**：`CharacterBaseInfo` 增加 `特质?`，`灵根` 改为可选。  
-  - **开局合并**：`characterInitialization` 在 USE_MING_PROMPTS 下，若用户选了具体灵根（完整对象）则保留 `mergedBaseInfo.灵根` 为完整对象、`mergedBaseInfo.特质` 为名称；随机时用 AI 特质字符串。  
-  - **Prompt 完整信息**：`buildCharacterSelectionsSummaryMing`、`buildCharacterSelectionsSummary` 当 spiritRoot 为对象时输出完整字段（名称、品级、描述、修炼相关、特殊效果），避免发给 API 时丢失。  
+- **灵根→特质（Ming）**
+  - **数据定义**：`dataDefinitionsMing` 身份增加「特质」；`characterInitializationPromptsMing` COMMANDS_RULES_MING 随机项含「若特质为随机则 set 角色.身份.特质」。
+  - **类型**：`CharacterBaseInfo` 增加 `特质?`，`灵根` 改为可选。
+  - **开局合并**：`characterInitialization` 在 USE_MING_PROMPTS 下，若用户选了具体灵根（完整对象）则保留 `mergedBaseInfo.灵根` 为完整对象、`mergedBaseInfo.特质` 为名称；随机时用 AI 特质字符串。
+  - **Prompt 完整信息**：`buildCharacterSelectionsSummaryMing`、`buildCharacterSelectionsSummary` 当 spiritRoot 为对象时输出完整字段（名称、品级、描述、修炼相关、特殊效果），避免发给 API 时丢失。
   - **UI 文案**：Ming 下人物详情、关系网络、角色管理、创建预览、数据校验弹窗等处标签由「灵根」改为「特质」；i18n 增加 无特质/未知特质/此特质。
 
-- **CoT 与默认提示词**  
-  - `cotCore.ts`：保留 `getCotCorePrompt`（修仙版），新增 `getCotCorePromptMing`（仅 位置/时间/金钱/物品/关系/事件/体力/精力，无神识/修炼/渡劫/宗门）。  
+- **CoT 与默认提示词**
+  - `cotCore.ts`：保留 `getCotCorePrompt`（修仙版），新增 `getCotCorePromptMing`（仅 位置/时间/金钱/物品/关系/事件/体力/精力，无神识/修炼/渡劫/宗门）。
   - `defaultPrompts.ts`：当 USE_MING_PROMPTS 时 cotCore 使用 `getCotCorePromptMing`。
 
-- **注释与 Legacy 标注**  
-  - `defaultPrompts.ts` worldStandards 描述改为「属性、品质」。  
+- **注释与 Legacy 标注**
+  - `defaultPrompts.ts` worldStandards 描述改为「属性、品质」。
   - `businessRules.ts`、`dataDefinitions.ts`、`characterInitializationPrompts.ts` 文件头增加「Legacy: 仅当 USE_MING_PROMPTS=false 时使用」及简短说明。
 
 #### 涉及文件
@@ -736,23 +750,23 @@
 
 ### 六司属性通用化：根骨→体质、灵性→直觉
 
-- **数据与类型**  
-  - 先天六司/后天六司键名统一为 **体质**、**直觉**、悟性、气运、魅力、心性。  
-  - `InnateAttributes`、`SixSiWeights`、`InitialGameData` 等类型与默认值、校验路径（commandValidator）、dataRepair/saveMigration/offlineInitialization/characterStore 均改为体质、直觉。  
-  - `dataDefinitionsMing` 身份中补充先天六司/后天六司定义（体质、直觉等）；legacy `dataDefinitions.ts`、`definitions/dataDefinitions.ts`、`definitions/textFormats.ts`、`dataDefinitions.ts` 中六司描述与示例同步改为体质/直觉。  
+- **数据与类型**
+  - 先天六司/后天六司键名统一为 **体质**、**直觉**、悟性、气运、魅力、心性。
+  - `InnateAttributes`、`SixSiWeights`、`InitialGameData` 等类型与默认值、校验路径（commandValidator）、dataRepair/saveMigration/offlineInitialization/characterStore 均改为体质、直觉。
+  - `dataDefinitionsMing` 身份中补充先天六司/后天六司定义（体质、直觉等）；legacy `dataDefinitions.ts`、`definitions/dataDefinitions.ts`、`definitions/textFormats.ts`、`dataDefinitions.ts` 中六司描述与示例同步改为体质/直觉。
   - `docs/save-schema-v3.md` 六司字段与示例更新为体质、直觉。
 
-- **存档迁移与兼容**  
-  - `saveMigration`：在 V3 存档分支中增加六司键名迁移（根骨→体质、灵性→直觉），对主角身份与 `社交.关系` 下所有 NPC 执行后删除旧键。  
+- **存档迁移与兼容**
+  - `saveMigration`：在 V3 存档分支中增加六司键名迁移（根骨→体质、灵性→直觉），对主角身份与 `社交.关系` 下所有 NPC 执行后删除旧键。
   - 读取时兼容旧键：characterInitialization、CharacterDetailsPanel、RelationshipNetworkPanel、CharacterManagement 等处对 先天六司/后天六司 使用 `体质 ?? 根骨`、`直觉 ?? 灵性`，保证旧存档正常显示与计算。
 
-- **前端与 i18n**  
-  - 创建流程（Step3/Step6/Step7）、角色详情、关系网络、HexagonChart、FormattedText、GameVariableFormatGuideModal 等展示与占位符统一为「体质」「直觉」。  
-  - i18n：移除所有以「根骨」「灵性」为键的条目，仅保留「体质」「直觉」及对应判定配比、加权说明等文案。  
+- **前端与 i18n**
+  - 创建流程（Step3/Step6/Step7）、角色详情、关系网络、HexagonChart、FormattedText、GameVariableFormatGuideModal 等展示与占位符统一为「体质」「直觉」。
+  - i18n：移除所有以「根骨」「灵性」为键的条目，仅保留「体质」「直觉」及对应判定配比、加权说明等文案。
   - Step5 天赋目标占位符、AIGameMaster.d.ts 注释更新为体质/直觉。
 
-- **Prompt 与文档**  
-  - `docs/prompt-cleanup-plan.md`：新增「六司属性：根骨→体质，灵性→直觉」一节，明确主角与 NPC 的 data structure / prompt / 前端修改范围及执行顺序；概述与执行建议中补充六司与迁移兼容说明。  
+- **Prompt 与文档**
+  - `docs/prompt-cleanup-plan.md`：新增「六司属性：根骨→体质，灵性→直觉」一节，明确主角与 NPC 的 data structure / prompt / 前端修改范围及执行顺序；概述与执行建议中补充六司与迁移兼容说明。
   - `gameElementPrompts.ts` 中 attribute_modifiers 说明与示例改为体质/直觉；creationData 天赋 effects 中后天六司目标已为体质/直觉。
 
 #### 涉及文件
@@ -769,11 +783,11 @@
 
 ### 存档与导入导出
 
-- **存档系统与数据结构**  
-  - 核对存档格式 V3、迁移、校验与 gameStateStore 的 toSaveData/loadFromSaveData，确认与当前 game.d.ts 及 saveSchemaV3 一致，无需因近期数据结构更新而改版。  
+- **存档系统与数据结构**
+  - 核对存档格式 V3、迁移、校验与 gameStateStore 的 toSaveData/loadFromSaveData，确认与当前 game.d.ts 及 saveSchemaV3 一致，无需因近期数据结构更新而改版。
   - 导入/导出流程已使用迁移与 V3 校验，dadBundle 格式兼容旧版。
 
-- **SavePanel 导出所有存档**  
+- **SavePanel 导出所有存档**
   - 修复「导出所有存档」从 IndexedDB 加载时使用错误 key 的问题：改为使用槽位 key（`save.id`），与「导出单个存档」「导出角色」一致；避免存档槽位 key（如「存档1」）与显示名（如「我的进度」）不一致时导出失败或数据错位。
 
 #### 涉及文件
@@ -786,15 +800,15 @@
 
 ### 坤舆图（minimap）性能优化（行为不变）
 
-- **locationMapUtils.ts**  
-  - **layoutChildren**：按 parentId 预分组后单遍布局，由每节点 O(n) filter 改为整体 O(n)。  
-  - **refinedMap**：用单次 for 循环 `refinedMap.set(n.id, n)` 构建，减少临时数组。  
-  - **细化平移**：用递归 `applyDeltaToDescendants` 对后代应用 dx/dy，不再为每个子节点分配 `collectDescendantIds` 数组。  
-  - **细化子树 id + bbox**：单次 BFS 遍历同时填充 `refinedSubtreeIds` 并更新 bbox，不再先收集 id 再第二遍算 bbox。  
+- **locationMapUtils.ts**
+  - **layoutChildren**：按 parentId 预分组后单遍布局，由每节点 O(n) filter 改为整体 O(n)。
+  - **refinedMap**：用单次 for 循环 `refinedMap.set(n.id, n)` 构建，减少临时数组。
+  - **细化平移**：用递归 `applyDeltaToDescendants` 对后代应用 dx/dy，不再为每个子节点分配 `collectDescendantIds` 数组。
+  - **细化子树 id + bbox**：单次 BFS 遍历同时填充 `refinedSubtreeIds` 并更新 bbox，不再先收集 id 再第二遍算 bbox。
   - **Set 直填**：新增 `addSubtreeIdsToSet`，`focusSubtreeIds` 与兄弟节点收集直接填 Set，避免 `collectDescendantIds` 返回数组再转 Set。
 
-- **MapMinimap.vue**  
-  - 移除未使用的 `viewportSvgSize` 计算与传参，`mapData` 仅依赖 `focusStackRef` 与 `props.entries`，zoom/pan 不触发布局重算。  
+- **MapMinimap.vue**
+  - 移除未使用的 `viewportSvgSize` 计算与传参，`mapData` 仅依赖 `focusStackRef` 与 `props.entries`，zoom/pan 不触发布局重算。
   - 将「按缩放过滤」与「按兄弟过滤」合并为单一 `nodesFiltered` 计算，单次 `filter` 完成，减少中间数组与一次计算。
 
 #### 涉及文件
@@ -808,16 +822,16 @@
 
 ### 坤舆图（minimap）：细化缩放与视口适配
 
-- **外部与内部同比例缩放**  
-  - 细化布局改为使用固定画布参考尺寸（`Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)`），不再根据当前视口（canvas/scale）计算 `innerFocusRadius` 与 `childrenSpread`。  
+- **外部与内部同比例缩放**
+  - 细化布局改为使用固定画布参考尺寸（`Math.min(CANVAS_WIDTH, CANVAS_HEIGHT)`），不再根据当前视口（canvas/scale）计算 `innerFocusRadius` 与 `childrenSpread`。
   - 放大/缩小时由 SVG viewBox 统一缩放整张图，外部结构与内部结构同步放大，不再出现「外部不变、内部放大」的效果。
 
-- **Zoom out 细化退出阈值**  
-  - 新增 `ZOOM_THRESHOLD_REFINED`（1.4），专门控制细化（focus 栈）的启用与退出；子节点是否展开仍由 `ZOOM_THRESHOLD_CHILDREN`（1.2）控制。  
+- **Zoom out 细化退出阈值**
+  - 新增 `ZOOM_THRESHOLD_REFINED`（1.4），专门控制细化（focus 栈）的启用与退出；子节点是否展开仍由 `ZOOM_THRESHOLD_CHILDREN`（1.2）控制。
   - 缩小到 scale &lt; 1.4 时先清空 focus 栈，避免退出细化时内部圈仍按细化布局绘制而跑到框外。
 
-- **进入/更新细化时内部结构在屏幕内**  
-  - 布局返回「仅当前 focus 及其子级」的几何中心（`refinedSubtreeCenter`）与 bbox 宽高（`refinedSubtreeBbox`），同级/父级不参与。  
+- **进入/更新细化时内部结构在屏幕内**
+  - 布局返回「仅当前 focus 及其子级」的几何中心（`refinedSubtreeCenter`）与 bbox 宽高（`refinedSubtreeBbox`），同级/父级不参与。
   - 进入或更新细化（栈顶变化）时：先根据 bbox 计算「适配视口」所需 scale（留约 10% 边距），若当前 scale 过大则适当缩小；再平移使该中心对准视口中心，保证内部结构完整显示在屏幕内。
 
 #### 涉及文件
@@ -831,33 +845,33 @@
 
 ### 提示词组装（调试）：多步骤、模组明细、Token 估算、记忆与 API 说明
 
-- **多步骤与模组明细**  
-  - 由「最近一次」改为**最近 20 条**快照列表（`recentSnapshots`），可切换查看分步第 1 步、第 2 步、开局第 1/2 步等任一步骤。  
-  - 分步/开局各步骤在构建时按段收集真实模组（`onSection`），记录每段的 key、构成、生成原因、flow 引用、content；面板展示「本步骤使用的提示词模组」列表及每模组的上述元数据与内容。  
+- **多步骤与模组明细**
+  - 由「最近一次」改为**最近 20 条**快照列表（`recentSnapshots`），可切换查看分步第 1 步、第 2 步、开局第 1/2 步等任一步骤。
+  - 分步/开局各步骤在构建时按段收集真实模组（`onSection`），记录每段的 key、构成、生成原因、flow 引用、content；面板展示「本步骤使用的提示词模组」列表及每模组的上述元数据与内容。
   - 分步第 1 步模组：splitGenerationStep1、textFormatRules、worldStandards、statusSummary、narrativeState 等；第 2 步：splitGenerationStep2、cotCore（可选）、businessRules、dataDefinitions、textFormatRules、worldStandards、actionOptions（可选）、eventSystemRules、statusSummary、stateJson。开局第 1/2 步同理按段收集并展示。
 
-- **Token 估算**  
-  - 新增 `utils/tokenEstimate.ts`：`estimateTokensForText(text)`（CJK≈1 token/字，非 CJK≈4 字符/token），与 aiService 估算方式一致。  
+- **Token 估算**
+  - 新增 `utils/tokenEstimate.ts`：`estimateTokensForText(text)`（CJK≈1 token/字，非 CJK≈4 字符/token），与 aiService 估算方式一致。
   - 提示词全文标题显示「约 N tokens」；每个模组标题显示该模组内容的「约 N tokens」；步骤标签显示「共 X 个模组 · 约 Y tokens」（Y 为全文估算）。
 
-- **本步骤发送的记忆（assistant 角色）**  
-  - `AssemblySnapshot` 新增可选字段 `memoryContent`、`apiCallDescription`。  
-  - 分步第 1 步录制时：将实际发送的短期记忆块（与 `buildSplitInjects` 中 assistant 内容一致）写入 `memoryContent`；面板在「提示词全文」下方增加区块「本步骤发送的记忆（assistant 角色）」，展示该内容并显示约 N tokens。  
+- **本步骤发送的记忆（assistant 角色）**
+  - `AssemblySnapshot` 新增可选字段 `memoryContent`、`apiCallDescription`。
+  - 分步第 1 步录制时：将实际发送的短期记忆块（与 `buildSplitInjects` 中 assistant 内容一致）写入 `memoryContent`；面板在「提示词全文」下方增加区块「本步骤发送的记忆（assistant 角色）」，展示该内容并显示约 N tokens。
   - 分步第 2 步、开局第 1/2 步无记忆注入，不显示该区块。
 
-- **本步骤对应的 API 调用说明**  
-  - 每条快照可带 `apiCallDescription`，说明该步骤对应哪一次 API 及各 role 内容来源。  
-  - 分步第 1 步：`第1次 API：role: system = 分步第1步；role: assistant = 记忆（如有）；role: user = 玩家输入`。  
-  - 分步第 2 步：`第2次 API：role: system = 分步第2步；role: user = 玩家输入 + 第1步返回正文`。  
-  - 开局第 1 步：`第1次 API：role: system = 开局第1步；role: user = 角色设定`。  
-  - 开局第 2 步：`第2次 API：role: system = 开局第2步；role: user = 开局用户提示 + 第1步正文`。  
+- **本步骤对应的 API 调用说明**
+  - 每条快照可带 `apiCallDescription`，说明该步骤对应哪一次 API 及各 role 内容来源。
+  - 分步第 1 步：`第1次 API：role: system = 分步第1步；role: assistant = 记忆（如有）；role: user = 玩家输入`。
+  - 分步第 2 步：`第2次 API：role: system = 分步第2步；role: user = 玩家输入 + 第1步返回正文`。
+  - 开局第 1 步：`第1次 API：role: system = 开局第1步；role: user = 角色设定`。
+  - 开局第 2 步：`第2次 API：role: system = 开局第2步；role: user = 开局用户提示 + 第1步正文`。
   - 面板在步骤元信息区展示「本步骤对应：……」完整说明。
 
 #### 涉及文件
 
-- `stores/promptAssemblyStore.ts`（AssemblySnapshot 增加 memoryContent、apiCallDescription；recentSnapshots 已存在）  
-- `utils/tokenEstimate.ts`（新增）  
-- `utils/AIBidirectionalSystem.ts`（分步/开局 buildSplit 按段 push 模组；record 时传入 memoryContent / apiCallDescription）  
+- `stores/promptAssemblyStore.ts`（AssemblySnapshot 增加 memoryContent、apiCallDescription；recentSnapshots 已存在）
+- `utils/tokenEstimate.ts`（新增）
+- `utils/AIBidirectionalSystem.ts`（分步/开局 buildSplit 按段 push 模组；record 时传入 memoryContent / apiCallDescription）
 - `components/dashboard/PromptAssemblyPanel.vue`（步骤标签、全文/记忆/模组 token、API 说明、记忆区块）
 
 ---
@@ -866,13 +880,13 @@
 
 ### 提示词管理：仅展示参与组装的提示词
 
-- **透明度与显示逻辑**  
-  - 新增 `ASSEMBLY_PROMPT_KEYS`（defaultPrompts.ts），列出当前实际参与游戏组装的 19 个提示词 key。  
-  - 提示词管理面板仅显示上述 key，保证「所见即所用」；未在列表中的 key 仍存在于 `getSystemPrompts()`（导入兼容），但不在面板中展示。  
-  - 面板顶部增加说明：「以下提示词会在游戏中参与组装，可直接编辑、启用/禁用或调整权重」及当前显示数量。  
+- **透明度与显示逻辑**
+  - 新增 `ASSEMBLY_PROMPT_KEYS`（defaultPrompts.ts），列出当前实际参与游戏组装的 19 个提示词 key。
+  - 提示词管理面板仅显示上述 key，保证「所见即所用」；未在列表中的 key 仍存在于 `getSystemPrompts()`（导入兼容），但不在面板中展示。
+  - 面板顶部增加说明：「以下提示词会在游戏中参与组装，可直接编辑、启用/禁用或调整权重」及当前显示数量。
   - `promptStorage.loadByCategory()` 按 `ASSEMBLY_PROMPT_KEYS` 过滤，并移除无提示词的分类。
 
-- **Legacy 说明**  
+- **Legacy 说明**
   - 在 defaultPrompts 注释中标明：`definitions/` 下非 ming 文件为旧版定义，本模块仅引用 `definitions/ming/*`。
 
 #### 涉及文件
@@ -883,26 +897,26 @@
 
 ### 提示词组装（调试可视化）
 
-- **功能**  
-  - 在系统设置中开启「调试模式」并保存后，侧边栏出现「提示词组装」入口。  
-  - 打开后面板展示**最近一次**发送给 API 的系统提示词：全文 + 各模组的「提示词构成 / 生成原因 / 在那个 flow 引用 / 内容」。  
-  - 支持主回合、分步第 1/2 步、开局第 1/2 步的录制；录制条件与侧栏可见性一致（`uiStore.debugMode`）。  
+- **功能**
+  - 在系统设置中开启「调试模式」并保存后，侧边栏出现「提示词组装」入口。
+  - 打开后面板展示**最近一次**发送给 API 的系统提示词：全文 + 各模组的「提示词构成 / 生成原因 / 在那个 flow 引用 / 内容」。
+  - 支持主回合、分步第 1/2 步、开局第 1/2 步的录制；录制条件与侧栏可见性一致（`uiStore.debugMode`）。
   - 纯观察与复制，**不修改实际发送的 prompt**；promptAssembler 的 `onSection` 仅用于收集元数据，返回值与是否传入无关。
 
-- **实现要点**  
-  - `promptAssemblyStore`：存 lastSnapshot（fullPrompt、modules、flowName、timestamp）。  
-  - `promptAssembler`：可选 `options.onSection` 回调，每段 push 时顺带调用，不改变拼接结果。  
-  - `AIBidirectionalSystem`：主流程与分步/开局流程在构建完 systemPrompt 后，若 `uiStore.debugMode` 则 `promptAssemblyStore.record(...)`。  
+- **实现要点**
+  - `promptAssemblyStore`：存 lastSnapshot（fullPrompt、modules、flowName、timestamp）。
+  - `promptAssembler`：可选 `options.onSection` 回调，每段 push 时顺带调用，不改变拼接结果。
+  - `AIBidirectionalSystem`：主流程与分步/开局流程在构建完 systemPrompt 后，若 `uiStore.debugMode` 则 `promptAssemblyStore.record(...)`。
   - 设置中调试模式与 `uiStore.debugMode` 同步，便于侧栏与录制一致。
 
-- **UI**  
-  - 路由 `prompt-assembly`，面板 `PromptAssemblyPanel.vue`；无数据时显示说明（开启调试并发送一次请求后可见）。  
+- **UI**
+  - 路由 `prompt-assembly`，面板 `PromptAssemblyPanel.vue`；无数据时显示说明（开启调试并发送一次请求后可见）。
   - 侧栏按钮描述缩短为「查看发送的提示词构成」，并增加 `min-width: 0` / `overflow-x: hidden` 避免横向溢出。
 
 #### 涉及文件
 
-- `stores/promptAssemblyStore.ts`、`stores/uiStore.ts`（debugMode 同步）  
-- `promptAssembler.ts`、`AIBidirectionalSystem.ts`  
+- `stores/promptAssemblyStore.ts`、`stores/uiStore.ts`（debugMode 同步）
+- `promptAssembler.ts`、`AIBidirectionalSystem.ts`
 - `PromptAssemblyPanel.vue`、`LeftSidebar.vue`、`GameView.vue`、`SettingsPanel.vue`、`router/index.ts`、`i18n/index.ts`
 
 ---
@@ -925,30 +939,30 @@
 
 #### 变更摘要
 
-- **玩家法身（角色.身体）与修仙版对齐**  
-  - 将 MING 版 `1.5 身体/法身` 的数据结构扩展为与修仙版一致：身高、体重、体脂率、三围、外观特征、敏感点、开发度、纹身与印记、胸部描述、私处描述、生殖器描述等字段。  
+- **玩家法身（角色.身体）与修仙版对齐**
+  - 将 MING 版 `1.5 身体/法身` 的数据结构扩展为与修仙版一致：身高、体重、体脂率、三围、外观特征、敏感点、开发度、纹身与印记、胸部描述、私处描述、生殖器描述等字段。
   - 明确说明：仅当 `系统配置.nsfwMode=true` 且为酒馆端时，才会生成/更新 `角色.身体`；**游戏过程中可通过 `set 角色.身体` 或 `set 角色.身体.xxx` 更新法身数据**。
 
-- **开局法身生成：强制使用 `角色.身体`**  
-  - 角色初始化提示词（MING 与修仙版）统一约定：  
-    - **唯一合法 key 为 `角色.身体`**，禁止在开局的 `tavern_commands` 中使用 `角色.身体部位开发`。  
-    - 初始 value 至少包含：身高、体重、三围、至少一项描述（胸部/私处/生殖器描述）、以及 **敏感点(string[])、开发度(Record<部位名,0-100>)、纹身与印记(string[])**。  
-  - 业务规则中原有「玩家身体部位开发（存储位置：`角色.身体部位开发`）」的说法改为：  
+- **开局法身生成：强制使用 `角色.身体`**
+  - 角色初始化提示词（MING 与修仙版）统一约定：
+    - **唯一合法 key 为 `角色.身体`**，禁止在开局的 `tavern_commands` 中使用 `角色.身体部位开发`。
+    - 初始 value 至少包含：身高、体重、三围、至少一项描述（胸部/私处/生殖器描述）、以及 **敏感点(string[])、开发度(Record<部位名,0-100>)、纹身与印记(string[])**。
+  - 业务规则中原有「玩家身体部位开发（存储位置：`角色.身体部位开发`）」的说法改为：
     - 开局只写入 `角色.身体`，**`角色.身体部位开发` 仅供变量面板/扩展逻辑使用，不在初始化和常规 AI 指令中写入**。
 
-- **法身 UI 提示优化**  
+- **法身 UI 提示优化**
   - `BodyStatsPanel` 在酒馆 + NSFW 开启但无法身数据时，会提示「成人内容已开启，当前存档尚未生成法身数据，请在酒馆中完善角色设定或重新创建角色」，避免误以为被“私密模式”隐藏。
 
-- **地点路人 NPC：支持按 NSFW 配置生成私密档案**  
-  - 地点路人 NPC 生成提示词新增 `nsfwMode` 与 `nsfwGenderFilter` 输入：  
-    - 当 NSFW 开启且 NPC 性别符合过滤条件（all / female / male）时，要求为该 NPC 输出完整 `私密信息`（PrivacyProfile），字段包括：是否为处女/处男、身体部位数组（部位名称/敏感度/开发度/特征描述）、性格倾向、性取向、性癖好、性渴望程度、当前性状态、体液分泌状态、性交总次数、性伴侣名单、最近一次性行为时间、特殊体质等。  
+- **地点路人 NPC：支持按 NSFW 配置生成私密档案**
+  - 地点路人 NPC 生成提示词新增 `nsfwMode` 与 `nsfwGenderFilter` 输入：
+    - 当 NSFW 开启且 NPC 性别符合过滤条件（all / female / male）时，要求为该 NPC 输出完整 `私密信息`（PrivacyProfile），字段包括：是否为处女/处男、身体部位数组（部位名称/敏感度/开发度/特征描述）、性格倾向、性取向、性癖好、性渴望程度、当前性状态、体液分泌状态、性交总次数、性伴侣名单、最近一次性行为时间、特殊体质等。
   - 仅在酒馆环境下追加一段 PrivacyProfile 字段说明到数据结构提示词中，帮助模型在 NSFW 模式下正确生成 NPC 私密档案。
 
 #### 涉及文件
 
-- 提示词与数据结构：`businessRules.ts`、`businessRulesMing.ts`、`dataDefinitions.ts`、`dataDefinitionsMing.ts`  
-- 角色初始化：`characterInitializationPrompts.ts`、`characterInitializationPromptsMing.ts`、`characterInitialization.ts`  
-- NPC 生成与执行逻辑：`locationNpcGenerationPromptsMing.ts`、`AIBidirectionalSystem.ts`、`locationUtils.ts`  
+- 提示词与数据结构：`businessRules.ts`、`businessRulesMing.ts`、`dataDefinitions.ts`、`dataDefinitionsMing.ts`
+- 角色初始化：`characterInitializationPrompts.ts`、`characterInitializationPromptsMing.ts`、`characterInitialization.ts`
+- NPC 生成与执行逻辑：`locationNpcGenerationPromptsMing.ts`、`AIBidirectionalSystem.ts`、`locationUtils.ts`
 - UI 与文案：`BodyStatsPanel.vue`、`i18n/index.ts`
 
 ---
@@ -1119,7 +1133,7 @@ AI 生成的 `push 世界.信息.地点信息` 指令此前常不生效，导致
 
 #### 变更摘要
 
-- **原因**：`characterInitialization` 中的 `EnhancedWorldGenerator`  stub 接收 `enhancedConfig`（来自 `characterCreationStore.selectedWorld` 的 name / era / description）但未使用，`buildStubWorldInfo()` 固定返回 世界名称/世界背景/世界纪元 的默认值。
+- **原因**：`characterInitialization` 中的 `EnhancedWorldGenerator` stub 接收 `enhancedConfig`（来自 `characterCreationStore.selectedWorld` 的 name / era / description）但未使用，`buildStubWorldInfo()` 固定返回 世界名称/世界背景/世界纪元 的默认值。
 - **修改**：`EnhancedWorldGenerator` 构造函数保存 `config`，`buildStubWorldInfo()` 从 `config.worldName`、`config.worldBackground`、`config.worldEra` 填入 世界名称、世界背景、世界纪元、世界描述、世界观；缺省时仍回退默认值。
 
 #### 涉及文件

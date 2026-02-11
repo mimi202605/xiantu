@@ -1,16 +1,23 @@
 # 更新日志
 
+## [MING] 通用版 0.2.57 (2026-02-11)
+
+- **视频背景**：封面视频背景由 `ming_background_horizontal.mp4` 更换为 `ming_background_video.mp4`（Gemini Veo 生成）。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.56 (2026-02-08)
 
 - **世界心跳**：修复加载后不触发（loadFromSaveData 按 truthy 解析 启用）；dataRepair 保留原心跳配置并规范 启用；周期判定 truthy + 诊断日志；npc.记忆总结 非数组时规范再拼接，避免 TypeError 导致手动/周期心跳失败。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.55 (2026-02-08)
 
 - **角色创建/预设**：预设名称占位与导入提示统一为「特质」表述；预设数据保留 spiritRoot 键名兼容旧文件。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
@@ -18,35 +25,35 @@
 
 - **记忆中心**：新增「已发送信息」tab，记录玩家发给 API 的原文并支持复制，仅供查阅、不参与 prompt；复制增加 execCommand 兜底。
 - **Prompt**：NPC 私密档案（PrivacyProfile）补全「最近一次性行为时间」与逻辑一致性说明；身体部位中特殊印记改为可选描述。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.53 (2026-02-08)
 
 - **视频背景**：全屏背景视频由 `ming_background_wide.mp4` 更换为 `ming_background_horizontal.mp4`；VideoBackground 默认 src 同步更新，移除旧宽屏资源。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.52 (2026-02-08)
 
 - **资源与版本**：新增全屏视频背景资源 `public/ming_background_wide.mp4`；游戏版本号升级为 1.0.2（package.json，界面 APP_VERSION 同步）。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.51 (2026-02-08)
 
 - **视频背景**：修复 VideoBackground 四周边框黑边问题；容器使用 100vw/100vh 填满视口，视频使用 min-width/min-height 与 object-fit: cover，并略微放大裁掉可能内嵌的 letterbox。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.50 (2026-02-08)
 
 - **游戏版本**：package.json 版本号由 1.0.0 升级为 1.0.1（界面与构建产物中的 APP_VERSION 同步更新）。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
@@ -54,42 +61,42 @@
 
 - **界面品牌与链接**：游戏内顶栏标题由「仙途」改为「天命」；左下角 GitHub 与教程/赞助内链接改为本仓库（michael2221807/ming）；赞助支持弹窗移除支付宝/微信二维码，改为 GitHub Star 按钮；教程标题改为「天命教程」。
 - **地位显示**：顶栏玩家名旁、续前世因缘存档卡片、右侧栏、角色详情、存档面板中，境界改为地位（数据用 地位 ?? 境界 兼容旧档）；统一用 名称·阶段 或 名称 格式化显示。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.48 (2026-02-08)
 
-- **README**：自动构建表格中 GitHub Pages 触发条件改为仅「推送 v* tag」。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+- **README**：自动构建表格中 GitHub Pages 触发条件改为仅「推送 v\* tag」。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.47 (2026-02-08)
 
-- **README 自动构建与部署**：重写为触发方式表格（v* tag → Release/Docker/Pages，main → Pages，push/PR → CI）；补充 GitHub Pages 访问地址、Source 须选 Actions、environment protection 报错处理；注明可手动运行 Pages/Docker 工作流。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+- **README 自动构建与部署**：重写为触发方式表格（v\* tag → Release/Docker/Pages，main → Pages，push/PR → CI）；补充 GitHub Pages 访问地址、Source 须选 Actions、environment protection 报错处理；注明可手动运行 Pages/Docker 工作流。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.46 (2026-02-08)
 
 - **GitHub Pages 源码展示 EJS 问题**：index.html 移除 EJS 模板语法，改为占位 `<base href="__BASE_PATH__" data-build-replace>`；webpack 增加 BaseTagReplacePlugin 在构建时根据 BASE_PATH 替换或移除该标签；README 注明 Pages 须选择 GitHub Actions 作为 Source 部署构建产物。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.45 (2026-02-08)
 
 - **gameStateStore**：存档加载中 `relationships` 未再赋值，改为 `const`。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.44 (2026-02-08)
 
 - **类型与数据结构对齐**：修复 type-check 报错，代码与当前类型定义一致。境界→地位、气血/灵气/神识→体力/精力/洞察力、后天六司→后天六维属性；specialNpcs（NpcProfile 属性/背包/地位/特质）、offlineInitialization、worldHeartbeatService、characterStore、dataRepair、characterCreationStore 等已按新 schema 更新。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
@@ -97,196 +104,196 @@
 
 - **GitHub Pages**：修复部署后空白页；构建时设置 BASE_PATH（如 `/ming/`），publicPath 与 `<base href>` 使资源在子路径正确加载；新增 404.html 作 SPA 回退；README 注明 Pages 访问地址。
 - **构建产物**：生产环境打包输出由 `XianTu.js` 更名为 `ming.js`。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.42 (2026-02-08)
 
 - **README 致谢**：文末增加致谢小节，注明 MING 基于 [仙途（XianTu）](https://github.com/qianye60/XianTu) 衍生，感谢千叶大佬原作与开源。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.41 (2026-02-08)
 
 - **README 功能概览**：突出 MING 与原版差异——强化 NPC 与世界的互动；前置 NPC 与关系网、动态地图与探索、世界心跳三块，再接 AI 叙事与通用框架等。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.40 (2026-02-08)
 
 - **README**：封面与主题截图改为本地 `public/`（天命-cover.jpg、天命-dark.png、天命-light.png）；标题与功能概览按天命/MING 通用版与 changelog 更新；visitors/stars/forks 改为占位 `your-username/ming` 便于替换。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.39 (2026-02-08)
 
 - **亮色主题**：降低亮度、加强边框可见性（全局 token 柔光；创角各步与 step-selection 统一用变量）；创角主区与模式选择主区改为半透明 + 毛玻璃，与暗色一致透出视频背景。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.38 (2026-02-08)
 
 - **封面与模式选择**：主标题「仙途」改为「天命」（保留样式）；副标题与「择一道途」改为天命意象（命数自定前路在握、择一天命）；模式卡片与按钮改为独行己命/共书天命等表述，并补充 i18n。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.37 (2026-02-08)
 
 - **封面背景**：默认视频文件名改为 `ming_background.mp4`（仍置于 `public/`），VideoBackground 默认 src 与 public/README 已同步。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.36 (2026-02-08)
 
 - **封面背景本地化**：封面视频改为优先使用本地 `public/background.mp4`；新增 `public/` 静态目录，构建时复制到 dist，开发时由 devServer 提供；VideoBackground 默认 src 改为 `./background.mp4`；新增 copy-webpack-plugin 依赖。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.35 (2026-02-08)
 
 - **创角流程**：天道点界面统一改为「天命点」；Step1/Step2 起显示剩余天命点；七步进度改为四字诗意命名（万象择一、禀赋天成、因果前缘、性灵所钟、才情所钟、命格初成、一览终章）并补充 i18n。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.34 (2026-02-08)
 
 - **探索地图**：右上角「当前位置」图例改为红圈（透明底 + 红色描边），与地图上当前所在地高亮一致。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.33 (2026-02-08)
 
 - **探索地图**：修复滚轮放大时对准目标结构仍进入错误结构的问题；改为以指针在 SVG 中的位置选「包含该点的最深节点」入栈，整轮循环共用同一焦点、nextTick 清空，并用视口 rect 做坐标换算。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.32 (2026-02-08)
 
 - **探索地图（原坤舆图）**：按根节点分 20 色系（同根及子节点同色）、当前所在地红色描边高亮；区域放大后双击空白回退上一级；地图页增加教程按钮与使用说明弹窗；重命名为「探索地图」；探索状态仅于悬停 tooltip 显示（已探索/未探索/部分探索，名称精确匹配），移除右上角已探索/未探索图例并更新说明文案。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.31 (2026-02-08)
 
 - **坤舆图（地图）**：嵌套层级一致性（细化时排除祖先的 clearance，避免第二层被压扁）；细化视图只渲染 focus + 直接子 + 孙、有子节点显示方框（rx 按半径比例）；滚轮/双击均可正常钻取，视口用「与视口相交」判定；缩小仅按占比出栈、最外层展开态可平移且不因 scale 强制回退；视口与 viewBox 按实际 DOM 比例、无限背景与网格。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.30 (2026-02-07)
 
 - **游戏变量编辑弹窗 UI**：修复变量名、变量值与预览区内容贴边/左侧裁切问题；弹窗略加宽，输入框与预览区增加水平内边距与 box-sizing，支持横向滚动。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.29 (2026-02-07)
 
 - **大版本迁移：修仙命名 → 通用命名（不兼容旧存档）**：灵根→特质（Ming 仅读写 特质）、境界→地位、先天/后天六司→六维属性、气血/灵气/神识→体力/精力/洞察力、灵石四档→金钱（现金/铜/银/金）；类型/迁移/修复/校验/初始化/提示词/UI/i18n/stateChangeFormatter 已统一；开局特质保留完整对象结构写入 角色.身份.特质。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.28 (2026-02-07)
 
 - **世界心跳功能落地**：心跳面板与路由、侧栏与设置中心跳配置、关系网络扩展（在做事项等）、类型与提示词与数据验证补全、实现计划与笔记文档；贡献指南增加中文提交信息避免乱码说明。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.27 (2026-02-07)
 
 - **世界心跳默认值**：默认改为每 5 回合更新、历史 10 条、遗忘 10 回合（原 3/20/30）；store、迁移、修复、服务与回退值已统一；存档迁移在已有心跳对象时补全 `周期数值`，导入导出正常。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.26 (2026-02-07)
 
 - **地点-NPC：追加时去重 + 校准顺序优化**：`appendNpcsToLocation` 在追加前从其他地点的 地点NPC 中移除同名 NPC，保证全局有且只有一个同名 NPC（同行 NPC 移入新地点时从原地点去掉）。`calibrateNpcLocationSync` 调整顺序：先 关系→地点（只改地点NPC），再地点去重，最后 地点→关系（绝大多数只改地点NPC）；地点未更新时从关系 sync 到地点仍成立。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.25 (2026-02-07)
 
 - **地点-NPC 双向校准**：新增 `calibrateNpcLocationSync`（locationUtils），保证「关系[npc].当前位置」与「世界.信息.地点信息[地点].地点NPC」一致；API 回写与数据修复时均执行校准；设计文档更新（地图 rescale、地点 NPC 去重、关系网络与 NPC 关系更新等）。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.24 (2026-02-07)
 
 - **提示词组装（调试）**：内存仅保留当前一个回合内的快照（主回合单条，或 分步第1步+分步第2步 等）；新回合开始自动清空上一回合。面板支持当前回合内多步切换；新增「导出」按钮，可下载当前回合快照为 JSON 保存。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.23 (2026-02-06)
 
 - **NPC 境界默认「凡人」**：境界不再强制生成时，关系网络与详情中未带境界的 NPC 显示默认「凡人」；Ming 地点路人 NPC 结构说明中境界改为可选字段（不填则界面显示凡人）。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.22 (2026-02-06)
 
 - **Prompt 清理计划落地**：灵石→金钱、气血→体力/灵气→精力（神识可选）、品质系统通用、灵根→特质；删除地点势力不重叠与冲突回合制规则；CoT 通用版（getCotCorePromptMing）；角色生成与迁移写入 体力/精力；UI 核心数值与货币/特质文案全面通用化；Legacy 提示词文件头标注。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.21 (2026-02-06)
 
 - **六司属性通用化**：根骨→体质、灵性→直觉。数据与类型（InnateAttributes、六司定义与示例）、存档迁移（V3 下主角与 NPC 六司键名迁移+兼容读取）、前端与 i18n（创建/详情/关系网络/判定说明等仅用体质、直觉）、prompt 与文档（prompt-cleanup-plan、save-schema-v3）已全部更新。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.20 (2026-02-06)
 
 - **存档与导入导出**：核对存档系统与当前数据结构一致；修复 SavePanel「导出所有存档」使用槽位 key（save.id）从 IndexedDB 加载，与单档/角色导出一致，避免槽位名与显示名不一致时导出错误。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.19 (2026-02-06)
 
 - **坤舆图（minimap）性能**：布局与组件优化，行为不变。locationMapUtils：子节点布局 O(n²)→O(n)、细化块内单次遍历建 bbox、递归平移替代数组收集、Set 直填；MapMinimap：移除未用 viewportSvgSize 依赖、合并过滤为单次遍历。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.18 (2026-02-06)
 
 - **坤舆图（minimap）**：细化放大时外部与内部同比例缩放（布局用固定参考尺寸，不再随视口变化）；zoom out 提高细化退出阈值，避免内部圈跑到框外；进入/更新细化时自动将「当前 focus 及其子级」适配视口并居中，保证内部结构完整显示在屏幕内（同级/父级不参与）。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.17 (2026-02-05)
 
 - **提示词组装（调试）**：支持最近 20 条步骤切换；每步展示真实模组明细（构成/生成原因/flow/内容）；全文与每模组显示约 N tokens；新增「本步骤发送的记忆」区块（分步第 1 步的 assistant 记忆）及「本步骤对应的 API 调用」说明（system/assistant/user 各 role 来源）。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 
 ## [MING] 通用版 0.2.16 (2026-02-05)
 
-- **提示词管理**：仅展示参与游戏组装的提示词（ASSEMBLY_PROMPT_KEYS），面板增加透明度说明与数量；过滤未使用分类，不改变实际发送内容。  
-- **提示词组装（调试）**：调试模式开启后侧栏出现「提示词组装」，可查看最近一次发送给 API 的提示词全文及各模组构成；主回合 / 分步 / 开局均支持录制，纯观察不修改 prompt。  
+- **提示词管理**：仅展示参与游戏组装的提示词（ASSEMBLY_PROMPT_KEYS），面板增加透明度说明与数量；过滤未使用分类，不改变实际发送内容。
+- **提示词组装（调试）**：调试模式开启后侧栏出现「提示词组装」，可查看最近一次发送给 API 的提示词全文及各模组构成；主回合 / 分步 / 开局均支持录制，纯观察不修改 prompt。
 
 详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
@@ -300,12 +307,13 @@
 
 ## [MING] 通用版 0.2.14 (2026-02-04)
 
-NSFW 玩家法身与 NPC 私密档案逻辑统一：  
-- 将 MING 版 `1.5 身体/法身` 扩展为与修仙版一致的完整结构（含敏感点、开发度、纹身与印记等），并明确游戏中可通过 `set 角色.身体` 或子路径更新。  
-- 角色初始化提示词与业务规则统一为：开局仅允许用 `角色.身体` 写入玩家法身，禁止使用 `角色.身体部位开发`；初始 value 至少包含身高/体重/三围/描述以及敏感点、开发度、纹身与印记。  
-- 地点路人 NPC 生成提示词接入 NSFW 配置（`nsfwMode` / `nsfwGenderFilter`），在符合条件时要求生成完整 `私密信息`（PrivacyProfile）。  
+NSFW 玩家法身与 NPC 私密档案逻辑统一：
+
+- 将 MING 版 `1.5 身体/法身` 扩展为与修仙版一致的完整结构（含敏感点、开发度、纹身与印记等），并明确游戏中可通过 `set 角色.身体` 或子路径更新。
+- 角色初始化提示词与业务规则统一为：开局仅允许用 `角色.身体` 写入玩家法身，禁止使用 `角色.身体部位开发`；初始 value 至少包含身高/体重/三围/描述以及敏感点、开发度、纹身与印记。
+- 地点路人 NPC 生成提示词接入 NSFW 配置（`nsfwMode` / `nsfwGenderFilter`），在符合条件时要求生成完整 `私密信息`（PrivacyProfile）。
 - 法身 UI 在 NSFW 开启但无数据时提供更清晰的提示文案，避免误判为“私密模式”隐藏。  
-详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
 
 ---
 

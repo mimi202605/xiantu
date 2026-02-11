@@ -49,3 +49,7 @@ server/
 
 # Documentation
 docs/
+
+# Cursor
+.cursor
+
