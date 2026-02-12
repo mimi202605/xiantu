@@ -1,5 +1,10 @@
 # 更新日志
 
+## [MING] 通用版 0.2.58 (2026-02-11)
+
+- **回溯强化**：对话回滚统一化（Round/Heartbeat/Narrative/NPC/Map 均回滚至 `上次对话`）；`canRollback` 适配 IndexedDB（Slot 存在即允许回滚 / 延迟加载）；回滚后清理 undo 历史与 ActionQueue；详细 Toast 提示变更差异。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
 ## [MING] 通用版 0.2.57 (2026-02-11)
 
 - **视频背景**：封面视频背景由 `ming_background_horizontal.mp4` 更换为 `ming_background_video.mp4`（Gemini Veo 生成）。  

@@ -4,6 +4,21 @@
 
 ---
 
+## [0.2.58] - 2026-02-11
+
+### 回溯功能：对话/状态统一回滚
+
+- **Feature**：`rollbackToLastConversation` 返回回滚差异（Round/Heartbeat/Narrative diffs），UI 显示详细 Toast。
+- **Fix**：`canRollback` 检查 Slot 存在而非仅内存数据，支持 IndexedDB 此时不在内存中的场景（Lazy Load）。
+- **Undo Sync**：回滚后 `enhancedActionQueue.clearUndoHistory()` 清除 localStorage 中的 `gm_undo_actions` 及内存 ActionQueue，防止 stale undo actions。
+- **Coverage**：确认 `toSaveData()` 已覆盖所有 Design Spec Items（Heartbeat/NPC/Round/SentMsg/Map/Events），无需额外补丁。
+
+#### 涉及文件
+
+- `src/stores/characterStore.ts`
+- `src/components/dashboard/MainGamePanel.vue`
+- `src/utils/enhancedActionQueue.ts` (Referenced)
+
 ## [0.2.57] - 2026-02-11
 
 ### 视频背景：Gemini Veo 生成资源

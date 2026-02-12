@@ -615,7 +615,7 @@ const isImageFullScreen = ref(false);
 
 const generateSceneImage = async () => {
   if (isGeneratingImage.value) return;
-  
+
   const text = currentNarrative.value?.content;
   if (!text || text.length < 5) {
     toast.warning('当前剧情内容过少，无法生成');
@@ -738,11 +738,14 @@ const hasActiveCharacter = computed(() => !!gameStateStore.character);
 
 
 // 计算属性：是否可以回滚
+// 🔥 修复：即使 存档数据 未加载到内存（仅在 IndexedDB 中），只要槽位存在就允许回滚
+// rollbackToLastConversation() 内部会处理从 IndexedDB 延迟加载
 const canRollback = computed(() => {
   const profile = characterStore.activeCharacterProfile;
   if (!profile || profile.模式 !== '单机') return false;
   const lastConversation = profile.存档列表?.['上次对话'];
-  return lastConversation?.存档数据 !== null && lastConversation?.存档数据 !== undefined;
+  // 槽位存在即可回滚（数据可能在 IndexedDB 中，rollbackToLastConversation 会延迟加载）
+  return !!lastConversation;
 });
 
 // 回滚到上次对话
@@ -754,13 +757,24 @@ const rollbackToLastConversation = async () => {
 
   uiStore.showRetryDialog({
     title: '回滚确认',
-    message: '确定要回滚到上次对话前的状态吗？当前进度将被替换。',
+    message: '确定要回滚到上次对话前的状态吗？当前进度将被替换（包括心跳、NPC、回合、记忆等所有变更）。',
     confirmText: '确认回滚',
     cancelText: '取消',
     onConfirm: async () => {
       try {
-        await characterStore.rollbackToLastConversation();
-        toast.success('已回滚到上次对话前的状态');
+        const rollbackInfo = await characterStore.rollbackToLastConversation();
+
+        // 🔥 清除装备/物品撤回历史（rollback 后这些 undo 数据已过时）
+        enhancedActionQueue.clearUndoHistory();
+        actionQueue.clearActions();
+
+        // 🔥 构建详细的回滚摘要
+        const details: string[] = [];
+        if (rollbackInfo.roundNumberDiff > 0) details.push(`回合 -${rollbackInfo.roundNumberDiff}`);
+        if (rollbackInfo.heartbeatCountDiff > 0) details.push(`心跳记录 -${rollbackInfo.heartbeatCountDiff}`);
+        if (rollbackInfo.narrativeCountDiff > 0) details.push(`叙事 -${rollbackInfo.narrativeCountDiff}`);
+        const summary = details.length > 0 ? `（${details.join('，')}）` : '';
+        toast.success(`已回滚到上次对话前的状态${summary}`);
       } catch (error) {
         console.error('回滚失败:', error);
         toast.error(`回滚失败: ${error instanceof Error ? error.message : '未知错误'}`);

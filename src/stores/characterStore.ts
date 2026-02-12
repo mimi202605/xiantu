@@ -1935,7 +1935,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
   /**
    * [新增] 回滚到上次对话的状态
    */
-  const rollbackToLastConversation = async () => {
+  const rollbackToLastConversation = async (): Promise<{ roundNumberDiff: number; heartbeatCountDiff: number; narrativeCountDiff: number }> => {
     const profile = activeCharacterProfile.value;
     const active = rootState.value.当前激活存档;
 
@@ -1975,6 +1975,12 @@ export const useCharacterStore = defineStore('characterV3', () => {
       throw new Error('没有可用于回滚的"上次对话"存档。请确保已启用"对话前自动备份"功能。');
     }
 
+    // 🔥 回滚前：采集当前状态用于对比汇报
+    const gameStateStore = useGameStateStore();
+    const currentRound = gameStateStore.roundNumber ?? 0;
+    const currentHeartbeatCount = gameStateStore.worldHeartbeat?.历史?.length ?? 0;
+    const currentNarrativeCount = gameStateStore.narrativeHistory?.length ?? 0;
+
     // 1. 用"上次对话"的数据深拷贝覆盖当前激活的存档数据
     const activeSlot = profile.存档列表[active.存档槽位];
     if (!activeSlot) {
@@ -2009,10 +2015,24 @@ export const useCharacterStore = defineStore('characterV3', () => {
     await commitMetadataToStorage();
 
     // 🔥 修复：同步到gameStateStore，确保UI立即更新
-    const gameStateStore = useGameStateStore();
     gameStateStore.loadFromSaveData(rolledBackData);
 
-    debug.log('角色商店', '✅ 已成功回滚到上次对话前的状态');
+    // 🔥 回滚后：计算差异用于 UI 汇报
+    const rolledBackRound = gameStateStore.roundNumber ?? 0;
+    const rolledBackHeartbeatCount = gameStateStore.worldHeartbeat?.历史?.length ?? 0;
+    const rolledBackNarrativeCount = gameStateStore.narrativeHistory?.length ?? 0;
+
+    debug.log('角色商店', '✅ 已成功回滚到上次对话前的状态', {
+      roundNumberDiff: currentRound - rolledBackRound,
+      heartbeatCountDiff: currentHeartbeatCount - rolledBackHeartbeatCount,
+      narrativeCountDiff: currentNarrativeCount - rolledBackNarrativeCount,
+    });
+
+    return {
+      roundNumberDiff: Math.max(0, currentRound - rolledBackRound),
+      heartbeatCountDiff: Math.max(0, currentHeartbeatCount - rolledBackHeartbeatCount),
+      narrativeCountDiff: Math.max(0, currentNarrativeCount - rolledBackNarrativeCount),
+    };
   };
 
 
