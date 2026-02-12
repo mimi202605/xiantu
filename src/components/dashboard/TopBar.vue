@@ -27,6 +27,8 @@
         </span>
         <span class="separator">|</span>
         <span class="time-value">{{ gameTime }}</span>
+        <span class="separator">|</span>
+        <span class="turn-value">{{ t('回合') }} {{ turnCount }}</span>
       </div>
     </div>
 
@@ -139,6 +141,10 @@ const gameTime = computed(() => {
     console.error('[TopBar] Error getting gameTime:', e)
     return `${t('仙道')}${t('元年')}1${t('月')}1${t('日')} 00:00`
   }
+})
+
+const turnCount = computed(() => {
+  return gameStateStore.roundNumber || 0
 })
 
 const toggleFullscreen = () => {
@@ -461,6 +467,13 @@ onMounted(() => {
   font-family: 'Courier New', monospace;
 }
 
+.turn-value {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-family: 'Courier New', monospace;
+}
+
 .right-section {
   display: flex;
   align-items: center;
@@ -585,6 +598,11 @@ onMounted(() => {
     white-space: nowrap;
   }
 
+  .turn-value {
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
   .fullscreen-btn {
     width: 26px;
     height: 26px;
@@ -630,6 +648,10 @@ onMounted(() => {
   }
 
   .time-value {
+    font-size: 0.6rem;
+  }
+
+  .turn-value {
     font-size: 0.6rem;
   }
 }
