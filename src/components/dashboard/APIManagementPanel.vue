@@ -200,8 +200,9 @@
                   @change="updateAssignment('main', ($event.target as HTMLSelectElement).value)"
                   class="setting-select"
                 >
+                  <option value="default">{{ t('使用主API') }}</option>
                   <option
-                    v-for="api in apiStore.enabledAPIs"
+                    v-for="api in apiStore.enabledAPIs.filter(a => a.id !== 'default')"
                     :key="api.id"
                     :value="api.id"
                   >
@@ -311,7 +312,7 @@
 
           <!-- 辅助功能列表 -->
             <div
-              v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'embedding']"
+              v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'world_heartbeat', 'location_npc_generation', 'embedding']"
               :key="funcType"
               class="setting-item"
             >
@@ -347,6 +348,32 @@
                       type="checkbox"
                       :checked="apiStore.isFunctionEnabled('text_optimization')"
                       @change="apiStore.setFunctionEnabled('text_optimization', ($event.target as HTMLInputElement).checked)"
+                    />
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- location_npc_generation 功能的启用开关 -->
+                <div v-if="funcType === 'location_npc_generation'" class="inline-toggle">
+                  <label class="toggle-label">启用</label>
+                  <label class="setting-switch compact">
+                    <input
+                      type="checkbox"
+                      :checked="apiStore.isFunctionEnabled('location_npc_generation')"
+                      @change="apiStore.setFunctionEnabled('location_npc_generation', ($event.target as HTMLInputElement).checked)"
+                    />
+                    <span class="switch-slider"></span>
+                  </label>
+                </div>
+
+                <!-- world_heartbeat 功能的启用开关 -->
+                <div v-if="funcType === 'world_heartbeat'" class="inline-toggle">
+                  <label class="toggle-label">启用</label>
+                  <label class="setting-switch compact">
+                    <input
+                      type="checkbox"
+                      :checked="worldHeartbeatEnabled"
+                      @change="onWorldHeartbeatEnabledChange"
                     />
                     <span class="switch-slider"></span>
                   </label>
@@ -597,12 +624,17 @@ const vectorMemoryService = {
 };
 import { getNsfwSettingsFromStorage, type NsfwGenderFilter } from '@/utils/nsfw';
 import { isTavernEnv } from '@/utils/tavern';
+import { useGameStateStore } from '@/stores/gameStateStore';
+import { useCharacterStore } from '@/stores/characterStore';
+
 import { toast } from '@/utils/toast';
 import { useI18n } from '@/i18n';
 
 const { t } = useI18n();
 const apiStore = useAPIManagementStore();
 const uiStore = useUIStore();
+const gameStateStore = useGameStateStore();
+const characterStore = useCharacterStore();
 
 // 初始化加载
 onMounted(() => {
@@ -616,7 +648,27 @@ onMounted(() => {
 // AI服务通用配置
 const streamingEnabled = ref(true);
 const splitResponseGeneration = ref(false); // 分步生成开关，默认关闭
+// 向量记忆启用状态
 const vectorMemoryEnabled = ref(false);
+
+// 世界心跳（来自 gameStateStore.worldHeartbeat，随存档保存）
+const worldHeartbeatEnabled = computed(() => gameStateStore.worldHeartbeat?.启用 ?? false);
+
+const persistWorldHeartbeat = async () => {
+  if (gameStateStore.isGameLoaded) {
+    try {
+      await characterStore.saveCurrentGame();
+    } catch (e) {
+      console.warn('[API管理] 世界心跳配置持久化失败:', e);
+    }
+  }
+};
+
+function onWorldHeartbeatEnabledChange(e: Event) {
+  const checked = (e.target as HTMLInputElement).checked;
+  gameStateStore.updateState('worldHeartbeat.启用', checked);
+  persistWorldHeartbeat();
+}
 const vectorMemoryMaxCount = ref(10);
 const isTavernEnvFlag = ref(isTavernEnv());
 const nsfwMode = ref(true);
@@ -642,6 +694,7 @@ const saveGameSettings = (updates: Record<string, unknown>) => {
 const loadAIServiceConfig = () => {
   const config = aiService.getConfig();
   streamingEnabled.value = config.streaming !== false;
+  retryCount.value = config.maxRetries ?? 1;
 };
 
 const loadLocalSettings = () => {
@@ -653,14 +706,6 @@ const loadLocalSettings = () => {
   // 加载分步生成设置
   const gameSettings = readGameSettings();
   splitResponseGeneration.value = gameSettings.splitResponseGeneration === true; // 默认关闭
-
-  // 加载重试次数设置
-  const savedRetryCount = gameSettings.retryCount;
-  if (typeof savedRetryCount === 'number' && savedRetryCount >= 0 && savedRetryCount <= 5) {
-    retryCount.value = savedRetryCount;
-  } else {
-    retryCount.value = 1; // 默认1次
-  }
 };
 
 const saveSplitResponseSetting = () => {
@@ -803,7 +848,10 @@ const getFunctionName = (type: APIUsageType): string => {
     cot: '思维链',
     instruction_generation: '指令生成',
     world_generation: '世界生成',
-    event_generation: '事件生成'
+    world_generation: '世界生成',
+    event_generation: '事件生成',
+    world_heartbeat: '世界心跳',
+    location_npc_generation: '地点NPC生成'
   };
   return names[type] || type;
 };
@@ -820,7 +868,11 @@ const getFunctionDesc = (type: APIUsageType): string => {
       cot: '思维链推理（启用后可配置独立API）',
       instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
       world_generation: '生成世界、地点等（可配置Raw/标准模式）',
-      event_generation: '生成世界事件（可配置Raw/标准模式）'
+      instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
+      world_generation: '生成世界、地点等（可配置Raw/标准模式）',
+      event_generation: '生成世界事件（可配置Raw/标准模式）',
+      world_heartbeat: '周期性世界模拟与演变（可配置Raw/标准模式）',
+      location_npc_generation: '玩家到达新地点时生成路人NPC（可配置Raw/标准模式）'
     };
     return descs[type] || '';
   } else {
@@ -833,7 +885,11 @@ const getFunctionDesc = (type: APIUsageType): string => {
       cot: '思维链推理（启用后可配置独立API）',
       instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
       world_generation: '生成世界、地点等内容（开局时使用）',
-      event_generation: '生成世界事件（可用快速模型）'
+      instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
+      world_generation: '生成世界、地点等内容（开局时使用）',
+      event_generation: '生成世界事件（可用快速模型）',
+      world_heartbeat: '周期性世界模拟与演变（建议使用快速模型）',
+      location_npc_generation: '玩家到达新地点时生成路人NPC（建议使用快速模型）'
     };
     return descs[type] || '';
   }

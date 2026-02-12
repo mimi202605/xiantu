@@ -2554,6 +2554,13 @@ ${saveDataJson}`;
       nsfwGenderFilter
     });
 
+    const { useAPIManagementStore } = await import('@/stores/apiManagementStore');
+    const apiStore = useAPIManagementStore();
+    if (!apiStore.isFunctionEnabled('location_npc_generation')) {
+      console.log('[AI双向系统] 地点路人 NPC 生成已禁用，跳过生成');
+      return;
+    }
+
     const tavernHelper = getTavernHelper();
     const { aiService } = await import('@/services/aiService');
     let rawResponse: string;
@@ -2565,7 +2572,7 @@ ${saveDataJson}`;
             { role: 'user', content: prompt }
           ],
           should_stream: false,
-          usageType: 'main'
+          usageType: 'location_npc_generation'
         })
       );
     } else {
@@ -2575,7 +2582,7 @@ ${saveDataJson}`;
           { role: 'user', content: prompt }
         ],
         should_stream: false,
-        usageType: 'main'
+        usageType: 'location_npc_generation'
       });
     }
 

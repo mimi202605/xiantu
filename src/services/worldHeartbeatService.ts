@@ -160,7 +160,7 @@ export async function runSingleHeartbeat(
         { role: 'user', content: prompt },
       ],
       should_stream: false,
-      usageType: 'event_generation',
+      usageType: 'world_heartbeat',
     }) as string | Record<string, unknown> | null;
   } catch (e) {
     console.error('[世界心跳] AI 调用失败:', e);

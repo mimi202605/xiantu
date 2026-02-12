@@ -1,5 +1,10 @@
 # 更新日志
 
+## [MING] 通用版 0.2.60 (2026-02-12)
+
+- **API 优化**：新增「世界心跳」与「NPC生成」独立 API 配置与开关；修复重试次数不生效与 URL 路径重复 `/v1` 问题；新增 <600ms 快速失败保护（不重试本地错误）。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
 ## [MING] 通用版 0.2.58 (2026-02-11)
 
 - **回溯强化**：对话回滚统一化（Round/Heartbeat/Narrative/NPC/Map 均回滚至 `上次对话`）；`canRollback` 适配 IndexedDB（Slot 存在即允许回滚 / 延迟加载）；回滚后清理 undo 历史与 ActionQueue；详细 Toast 提示变更差异。  

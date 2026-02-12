@@ -544,7 +544,7 @@ class AIService {
           throw new Error('请求已被取消');
         }
         return await tavernHelper.generate(options);
-      });
+      }, { retries: this.config.maxRetries ?? 1 });
     } catch (error) {
       throw this.toUserFacingError(error);
     }
@@ -566,7 +566,7 @@ class AIService {
           throw new Error('请求已被取消');
         }
         return await tavernHelper.generateRaw(options);
-      });
+      }, { retries: this.config.maxRetries ?? 1 });
       return String(result);
     } catch (error) {
       throw this.toUserFacingError(error);
@@ -588,6 +588,9 @@ class AIService {
         console.log(`[AI服务] ${label} 请求已被取消，停止重试`);
         throw new Error('请求已取消');
       }
+
+      // 开始计时
+      const startTime = Date.now();
 
       try {
         // 使用 Promise.race 来同时监听函数执行和取消信号
@@ -619,6 +622,14 @@ class AIService {
         }
 
         lastError = error;
+
+        // 检查失败耗时，如果非常短（< 600ms），说明可能是本地错误或立即拒绝，不建议重试
+        const duration = Date.now() - startTime;
+        if (duration < 600) {
+          console.warn(`[AI服务] ${label} 失败耗时过短 (${duration}ms)，可能是本地配置错误/立即拒绝，放弃重试`);
+          throw error;
+        }
+
         const retryable = this.isRetryableError(error);
         if (!retryable || attempt >= retries) break;
 
@@ -912,7 +923,10 @@ class AIService {
     streaming: boolean,
     onStreamChunk?: (chunk: string) => void
   ): Promise<string> {
-    const { provider, url, apiKey, model, temperature, maxTokens } = this.config.customAPI!;
+    const { provider, url: originalUrl, apiKey, model, temperature, maxTokens } = this.config.customAPI!;
+    // 确保URL不包含末尾的 /v1，因为后面会手动拼接
+    const url = originalUrl.replace(/\/v1\/?$/, '');
+
     const safeMaxTokens = this.clampMaxTokensForContext(provider, model, messages, maxTokens || 16000);
 
     try {

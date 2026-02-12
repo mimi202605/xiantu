@@ -4,6 +4,31 @@
 
 ---
 
+## [0.2.60] - 2026-02-12
+
+### API 配置优化：独立配置与重试机制
+
+- **独立 API 配置与开关**
+  - **功能开关**：API 管理面板新增「世界心跳」与「新地点NPC生成」开关；「世界心跳」开关状态与系统设置（gameState）同步。
+  - **独立模型**：可在 API 管理面板为心跳、NPC 生成等功能指定独立的 API 连接配置（模型/地址/Key）。
+  - **逻辑控制**：`AIBidirectionalSystem` 在调用 NPC 生成前检查开关状态，关闭时跳过生成。
+
+- **重试机制增强**
+  - **生效修复**：修复 API 重试次数设置在 Web/酒馆模式下未正确应用的问题（原固定为 2 次，现读取配置）。
+  - **快速失败（Quick-Fail）**：新增保护逻辑，若 API 请求在 600ms 内失败（通常为本地配置错误或连接被拒），则跳过重试，避免无效循环与日志刷屏。
+
+- **URL 路径自动清理**
+  - **v1 重复修复**：修复自定义 API 地址（如 `.../v1`）与自动拼接路径组合时产生 `/v1/v1/...` 的问题；现自动移除配置 URL 末尾的 `/v1` 或 `/`。
+
+#### 涉及文件
+
+- `src/components/dashboard/APIManagementPanel.vue`
+- `src/stores/apiManagementStore.ts`
+- `src/services/aiService.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+
+---
+
 ## [0.2.59] - 2026-02-12
 
 ### UI：顶部栏增加回合数显示
