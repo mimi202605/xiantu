@@ -4,6 +4,30 @@
 
 ---
 
+## [0.2.61] - 2026-02-12
+
+### 辅助功能清理与向量记忆模块移除
+
+- **Vector Memory (Embedding) 移除**
+  - **原因**：底层服务 `vectorMemoryService.ts` 缺失，导致相关功能不可用且引发报错。
+  - **变更**：
+    - 移除 `MemoryCenterPanel.vue` 中的「向量记忆」标签页及相关逻辑。
+    - 移除 `APIManagementPanel.vue` 中的「Embedding」配置项及 `vectorMemoryService` Mock 对象。
+    - 移除 `apiManagementStore.ts` 中的 `embedding` API 类型。
+- **辅助功能代码清理**
+  - **World Generation**：确认功能正常，移除重复的配置项。
+  - **Sect Generation**：确认已废弃，移除相关注释代码。
+  - **Refactor**：优化 `apiManagementStore.ts` 与 `APIManagementPanel.vue` 代码结构，移除冗余的 `world_generation` 定义。
+
+#### 涉及文件
+
+- `src/components/dashboard/MemoryCenterPanel.vue`
+- `src/components/dashboard/APIManagementPanel.vue`
+- `src/stores/apiManagementStore.ts`
+- `src/services/vectorMemoryService.ts` (Reference only, file was missing)
+
+---
+
 ## [0.2.60] - 2026-02-12
 
 ### API 配置优化：独立配置与重试机制

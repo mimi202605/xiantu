@@ -195,130 +195,6 @@
           </div>
         </div>
       </template>
-      <template v-else-if="activeFilter === 'vector'">
-        <div class="vector-toolbar">
-          <div class="vector-status">
-            <span class="status-dot" :class="{ enabled: vectorEnabled }"></span>
-            <span class="status-text">
-              {{ vectorEnabled ? '向量检索已启用' : '向量检索未启用（不会参与AI检索）' }}
-            </span>
-            <div class="status-subtext" :class="{ warning: !embeddingStatus.available }">
-              <template v-if="embeddingStatus.available">
-                Embedding：{{ embeddingStatus.provider }}/{{ embeddingStatus.model }}
-              </template>
-              <template v-else>
-                {{ embeddingStatus.reason }}
-              </template>
-            </div>
-            <div class="embedding-api-selector">
-              <label class="selector-label">Embedding API：</label>
-              <select
-                v-model="selectedEmbeddingApiId"
-                @change="updateEmbeddingApiId(selectedEmbeddingApiId)"
-                class="api-select"
-              >
-                <option :value="undefined">使用默认（embedding 类型分配的 API）</option>
-                <option
-                  v-for="api in availableAPIs"
-                  :key="api.id"
-                  :value="api.id"
-                >
-                  {{ api.name }} ({{ api.provider }}/{{ api.model }})
-                </option>
-              </select>
-            </div>
-          </div>
-          <div class="vector-actions">
-            <button
-              class="action-btn info"
-              @click="rebuildVectorFromLongTerm"
-              :disabled="vectorLoading || vectorConverting || longTermMemories.length === 0"
-              :title="longTermMemories.length === 0 ? '当前没有长期记忆可转化' : '清空并重新生成向量库（优先使用Embedding）'"
-            >
-              一键转化长期记忆
-            </button>
-            <button class="action-btn info" @click="refreshVectorMemories" :disabled="vectorLoading">刷新</button>
-            <button class="action-btn warning" @click="clearVectorMemories" :disabled="vectorLoading || vectorTotalCount === 0">清空向量库</button>
-          </div>
-        </div>
-
-        <div v-if="vectorLoading" class="loading-state">
-          <div class="loading-spinner">⏳</div>
-          <div class="loading-text">{{ vectorLoadingText }}</div>
-        </div>
-
-        <div v-else-if="vectorError" class="empty-state">
-          <div class="empty-icon">⚠️</div>
-          <div class="empty-text">{{ vectorError }}</div>
-        </div>
-
-        <div v-else-if="vectorTotalCount === 0" class="empty-state">
-          <div class="empty-icon">🧬</div>
-          <div class="empty-text">向量库为空</div>
-          <button
-            class="action-btn info"
-            @click="rebuildVectorFromLongTerm"
-            :disabled="vectorConverting || longTermMemories.length === 0"
-          >
-            一键转化长期记忆
-          </button>
-        </div>
-
-        <div v-else class="vector-content">
-          <div class="vector-stats" v-if="vectorStats">
-            <div class="stats-item">
-              <span class="stats-label">总数</span>
-              <span class="stats-value">{{ vectorStats.total }}</span>
-            </div>
-            <div class="stats-item" v-if="Object.keys(vectorStats.byCategory).length">
-              <span class="stats-label">分类</span>
-              <span class="stats-value">
-                <span v-for="(entry, idx) in Object.entries(vectorStats.byCategory)" :key="entry[0]" class="stats-chip">
-                  {{ entry[0] }}: {{ entry[1] }}<span v-if="idx < Object.keys(vectorStats.byCategory).length - 1"> · </span>
-                </span>
-              </span>
-            </div>
-          </div>
-
-          <div class="pagination-controls" v-if="vectorTotalCount > pageSize">
-            <div class="pagination-info">第 {{ currentPage }} / {{ vectorTotalPages }} 页，共 {{ vectorTotalCount }} 条</div>
-            <div class="pagination-buttons">
-              <button class="page-btn" @click="goToFirstPage" :disabled="currentPage === 1"><ChevronsLeft :size="16" /></button>
-              <button class="page-btn" @click="goToPage(currentPage - 1)" :disabled="currentPage === 1"><ChevronLeft :size="16" /></button>
-              <button class="page-btn" @click="goToPage(currentPage + 1)" :disabled="currentPage === vectorTotalPages"><ChevronRight :size="16" /></button>
-              <button class="page-btn" @click="goToLastPage" :disabled="currentPage === vectorTotalPages"><ChevronsRight :size="16" /></button>
-            </div>
-            <div class="pagination-jump">
-              <input
-                type="number"
-                v-model="jumpToPage"
-                placeholder="页"
-                class="jump-input"
-                @keyup.enter="handleJumpToPage"
-                min="1"
-                :max="vectorTotalPages"
-              />
-              <button class="jump-btn" @click="handleJumpToPage">跳转</button>
-            </div>
-          </div>
-
-          <div class="vector-list">
-            <div v-for="entry in vectorEntriesPaged" :key="entry.id" class="vector-card">
-              <div class="vector-card-header">
-                <div class="vector-badges">
-                  <span class="vector-badge">{{ entry.category }}</span>
-                  <span class="vector-badge secondary">重要: {{ entry.importance }}</span>
-                </div>
-                <div class="vector-time">{{ formatTime(entry.timestamp) }}</div>
-              </div>
-              <div class="vector-tags" v-if="entry.tags?.length">
-                <span v-for="tag in entry.tags" :key="tag" class="vector-tag">#{{ tag }}</span>
-              </div>
-              <div class="vector-text">{{ entry.content }}</div>
-            </div>
-          </div>
-        </div>
-      </template>
 
       <template v-else>
       <div v-if="loading" class="loading-state">
@@ -525,25 +401,8 @@ import { toast } from '@/utils/toast';
 import { debug } from '@/utils/debug';
 import { type MemoryFormatConfig } from '@/utils/memoryFormatConfig';
 import { AIBidirectionalSystem } from '@/utils/AIBidirectionalSystem'; // 导入AI系统
-// [MING] Removed: import { vectorMemoryService, type VectorMemoryEntry } from '@/services/vectorMemoryService';
-type VectorMemoryEntry = { id: string; content: string; embedding?: number[]; metadata?: any; timestamp?: number; };
-const vectorMemoryService = {
-  initialize: async () => {},
-  isInitialized: () => false,
-  addMemory: async (_content: string, _metadata?: any) => '',
-  search: async (_query: string, _limit?: number) => [] as VectorMemoryEntry[],
-  deleteMemory: async (_id: string) => {},
-  getAllMemories: async () => [] as VectorMemoryEntry[],
-  clearAllMemories: async () => {},
-  getMemoryCount: async () => 0,
-  getConfig: () => ({ enabled: false, embeddingApiId: undefined }),
-  saveConfig: (_config: any) => {},
-  getStats: async () => ({ totalMemories: 0, indexedMemories: 0 }),
-  getEmbeddingStatus: () => ({ isConfigured: false, apiName: '' }),
-  rebuildFromLongTermMemories: async (_memories: any[], _options?: any) => ({ success: true, count: 0 }),
-  clear: async () => {},
-};
-import { useAPIManagementStore } from '@/stores/apiManagementStore'; // 导入API管理Store
+
+
 
 interface Memory {
   type: 'short' | 'medium' | 'long';
@@ -569,7 +428,7 @@ interface Memory {
 const characterStore = useCharacterStore();
 const isTavernEnvFlag = isTavernEnv();
 const gameStateStore = useGameStateStore(); // 实例化 gameStateStore
-const apiManagementStore = useAPIManagementStore(); // 实例化 API管理Store
+// const apiManagementStore = useAPIManagementStore(); // [MING] Removed unused store
 const { t } = useI18n();
 // const saveData = computed(() => characterStore.activeSaveSlot?.存档数据); // [已废弃]
 const loading = ref(false);
@@ -607,34 +466,7 @@ const shortTermMemories = ref<Memory[]>([]);
 const mediumTermMemories = ref<Memory[]>([]);
 const longTermMemories = ref<Memory[]>([]);
 
-// 向量记忆（IndexedDB）
-const vectorEntries = ref<VectorMemoryEntry[]>([]);
-const vectorStats = ref<Awaited<ReturnType<typeof vectorMemoryService.getStats>> | null>(null);
-const vectorLoading = ref(false);
-const vectorError = ref('');
-const vectorConverting = ref(false);
-const vectorConvertProgress = ref({ done: 0, total: 0 });
-const vectorEnabled = computed(() => vectorMemoryService.getConfig().enabled);
-const embeddingStatus = computed(() => vectorMemoryService.getEmbeddingStatus());
-const vectorTotalCount = computed(() => vectorStats.value?.total ?? vectorEntries.value.length);
-const vectorTotalPages = computed(() => Math.ceil(vectorTotalCount.value / pageSize.value) || 1);
-const vectorEntriesPaged = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value;
-  const end = start + pageSize.value;
-  return vectorEntries.value.slice(start, end);
-});
-const vectorLoadingText = computed(() => {
-  if (vectorConverting.value) {
-    const { done, total } = vectorConvertProgress.value;
-    const suffix = total > 0 ? `（${done}/${total}）` : '';
-    return `正在向量化长期记忆...${suffix}`;
-  }
-  return '正在读取向量库...';
-});
 
-// Embedding API 选择
-const selectedEmbeddingApiId = ref<string | undefined>(vectorMemoryService.getConfig().embeddingApiId);
-const availableAPIs = computed(() => apiManagementStore.enabledAPIs);
 
 // 合并所有记忆用于显示
 const memories = computed(() => {
@@ -653,7 +485,7 @@ const memoryTypes = computed(() => [
   { key: 'medium', name: t('中期'), icon: '💭' },
   { key: 'long', name: t('长期'), icon: '💾' },
   { key: 'sent', name: t('已发送信息'), icon: '📤' },
-  { key: 'vector', name: '向量库', icon: '🧬' }
+  // { key: 'vector', name: '向量库', icon: '🧬' }
 ]);
 
 // 筛选后的记忆（不分页）
@@ -701,7 +533,6 @@ const getTypeCount = (type: string): number => {
     case 'medium': return mediumTermMemories.value.length;
     case 'long': return longTermMemories.value.length;
     case 'sent': return sentMessagesList.value.length;
-    case 'vector': return vectorTotalCount.value;
     default: return 0;
   }
 };
@@ -903,43 +734,14 @@ const addMemory = (type: 'short' | 'medium' | 'long', content: string, importanc
   convertMemories();
 };
 
-const refreshVectorMemories = async () => {
-  if (vectorLoading.value) return;
-  vectorLoading.value = true;
-  vectorError.value = '';
-  try {
-    const [entries, stats] = await Promise.all([
-      vectorMemoryService.getAllMemories(),
-      vectorMemoryService.getStats(),
-    ]);
-    vectorEntries.value = [...entries].sort((a, b) => b.timestamp - a.timestamp);
-    vectorStats.value = stats;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error || '');
-    vectorError.value = message ? `向量库读取失败：${message}` : '向量库读取失败';
-  } finally {
-    vectorLoading.value = false;
-  }
-};
-
-// 更新 Embedding API 选择
-const updateEmbeddingApiId = (apiId: string | undefined) => {
-  selectedEmbeddingApiId.value = apiId;
-  vectorMemoryService.saveConfig({ embeddingApiId: apiId });
-  toast.success('Embedding API 配置已更新');
-};
-
 // 设置活跃筛选器
 const setActiveFilter = async (filterKey: string) => {
   activeFilter.value = filterKey;
   currentPage.value = 1; // 切换筛选器时重置到第一页
   jumpToPage.value = '';
-  if (filterKey === 'vector') {
-    await refreshVectorMemories();
-  }
 };
 
-const getActiveTotalPages = () => (activeFilter.value === 'vector' ? vectorTotalPages.value : totalPages.value);
+const getActiveTotalPages = () => totalPages.value;
 
 // 分页相关函数
 const goToPage = (page: number) => {
@@ -972,69 +774,6 @@ const handleJumpToPage = () => {
 import { useUIStore } from '@/stores/uiStore';
 const uiStore = useUIStore();
 
-const rebuildVectorFromLongTerm = async () => {
-  if (vectorLoading.value || vectorConverting.value) return;
-  if (longTermMemories.value.length === 0) {
-    toast.warning('当前没有长期记忆可转化');
-    return;
-  }
-
-  const count = longTermMemories.value.length;
-  uiStore.showRetryDialog({
-    title: '一键转化长期记忆',
-    message: `将清空当前向量库，并把 ${count} 条长期记忆转化为向量（优先使用Embedding；未配置则回退本地向量）。此操作可能产生 Embedding API 调用与费用。`,
-    confirmText: '开始转化',
-    cancelText: '取消',
-    onConfirm: async () => {
-      vectorLoading.value = true;
-      vectorConverting.value = true;
-      vectorConvertProgress.value = { done: 0, total: count };
-      try {
-        const memories = longTermMemories.value.map(m => m.content).filter(Boolean);
-        const result = await vectorMemoryService.rebuildFromLongTermMemories(memories, {
-          batchSize: 24,
-          onProgress: (done, total) => {
-            vectorConvertProgress.value = { done, total };
-          },
-        });
-        toast.success(
-          result.vectorType === 'embedding'
-            ? `转化完成：${result.imported} 条（Embedding: ${result.embeddingModel || 'unknown'}）`
-            : `转化完成：${result.imported} 条（本地向量）`
-        );
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error || '');
-        toast.error(message ? `转化失败：${message}` : '转化失败');
-      } finally {
-        vectorConverting.value = false;
-        vectorLoading.value = false;
-        vectorConvertProgress.value = { done: 0, total: 0 };
-        await refreshVectorMemories();
-      }
-    },
-    onCancel: () => { },
-  });
-};
-
-const clearVectorMemories = async () => {
-  uiStore.showRetryDialog({
-    title: '清空向量库',
-    message: '确定要清空向量库吗？此操作不可撤销。',
-    confirmText: '确认清空',
-    cancelText: '取消',
-    onConfirm: async () => {
-      try {
-        await vectorMemoryService.clear();
-        await refreshVectorMemories();
-        toast.success('向量库已清空');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error || '');
-        toast.error(message ? `清空失败：${message}` : '清空失败');
-      }
-    },
-    onCancel: () => {}
-  });
-};
 const clearMemory = async () => {
   uiStore.showRetryDialog({
     title: t('清空记忆'),
@@ -1355,11 +1094,8 @@ const exportMemoriesAsNovel = () => {
 onMounted(async () => {
   await loadMemoryData();
   await loadMemoryConfig();
-  try {
-    vectorStats.value = await vectorMemoryService.getStats();
-  } catch {
-    // ignore
-  }
+  await loadMemoryConfig();
+
   // 绑定统一顶栏动作
   panelBus.on('refresh', async () => {
     loading.value = true;
@@ -2371,29 +2107,6 @@ const addTestMediumTermMemory = async () => {
   margin-top: 0.5rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-.selector-label {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-.api-select {
-  flex: 1;
-  padding: 0.4rem 0.6rem;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.api-select:hover {
-  border-color: var(--color-primary);
 }
 
 .api-select:focus {

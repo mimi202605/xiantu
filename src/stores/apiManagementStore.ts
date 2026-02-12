@@ -24,7 +24,7 @@ export interface APIConfig {
 export type APIUsageType =
   | 'main'  // 主游戏流程
   | 'memory_summary'  // 记忆总结（包括NPC记忆）
-  | 'embedding'  // 向量/语义检索用 Embedding
+  | 'memory_summary'  // 记忆总结（包括NPC记忆）
   | 'text_optimization'  // 文本优化
   | 'cot'  // 思维链
   | 'instruction_generation'  // 指令生成
@@ -32,7 +32,6 @@ export type APIUsageType =
   | 'event_generation'  // 世界事件生成（随机事件/世界变革等）
   | 'world_heartbeat'  // 世界心跳（周期性世界模拟）
   | 'location_npc_generation';  // 新地点NPC生成
-  // [MING] sect_generation 已移除（宗门系统已退役）
 
 /**
  * 辅助功能的生成模式（仅酒馆端可选）
@@ -71,11 +70,9 @@ export const useAPIManagementStore = defineStore('apiManagement', () => {
   const DEFAULT_API_ASSIGNMENTS: APIAssignment[] = [
     { type: 'main', apiId: 'default' },
     { type: 'memory_summary', apiId: 'default' },
-    { type: 'embedding', apiId: 'default' },
     { type: 'text_optimization', apiId: 'default' },
     { type: 'cot', apiId: 'default' },
     { type: 'instruction_generation', apiId: 'default' },
-    { type: 'world_generation', apiId: 'default' },
     { type: 'world_generation', apiId: 'default' },
     { type: 'event_generation', apiId: 'default' },
     { type: 'world_heartbeat', apiId: 'default' },
@@ -85,7 +82,6 @@ export const useAPIManagementStore = defineStore('apiManagement', () => {
   const DEFAULT_FUNCTION_MODES: FunctionModeConfig[] = [
     { type: 'memory_summary', mode: 'raw' },
     { type: 'text_optimization', mode: 'raw' },
-    { type: 'world_generation', mode: 'raw' },
     { type: 'world_generation', mode: 'raw' },
     { type: 'event_generation', mode: 'raw' },
     { type: 'world_heartbeat', mode: 'raw' },

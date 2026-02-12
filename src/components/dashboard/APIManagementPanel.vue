@@ -311,15 +311,15 @@
           </div>
 
           <!-- 辅助功能列表 -->
-            <div
-              v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'world_heartbeat', 'location_npc_generation', 'embedding']"
-              :key="funcType"
-              class="setting-item"
-            >
+          <div
+            v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'world_heartbeat', 'location_npc_generation']"
+            :key="funcType"
+            class="setting-item"
+          >
             <div class="setting-info">
               <label class="setting-name">
                 {{ getFunctionName(funcType as APIUsageType) }}
-                <span v-if="funcType !== 'embedding'" class="mode-indicator">
+                <span class="mode-indicator">
                   {{ apiStore.getFunctionMode(funcType as APIUsageType) === 'raw' ? 'Raw' : '标准' }}
                 </span>
               </label>
@@ -327,19 +327,6 @@
             </div>
             <div class="setting-control">
               <div class="control-row">
-                <!-- embedding 功能的启用开关 -->
-                <div v-if="funcType === 'embedding'" class="inline-toggle">
-                  <label class="toggle-label">启用</label>
-                  <label class="setting-switch compact">
-                    <input
-                      type="checkbox"
-                      v-model="vectorMemoryEnabled"
-                      @change="onVectorMemoryChange"
-                    />
-                    <span class="switch-slider"></span>
-                  </label>
-                </div>
-
                 <!-- text_optimization 功能的启用开关 -->
                 <div v-if="funcType === 'text_optimization'" class="inline-toggle">
                   <label class="toggle-label">启用</label>
@@ -384,9 +371,6 @@
                   :value="apiStore.apiAssignments.find(a => a.type === funcType)?.apiId"
                   @change="updateAssignment(funcType as APIUsageType, ($event.target as HTMLSelectElement).value)"
                   class="setting-select"
-                  :class="{ 'disabled-hint': funcType === 'embedding' && !vectorMemoryEnabled }"
-                  :disabled="funcType === 'embedding' && !vectorMemoryEnabled"
-                  :title="funcType === 'embedding' && !vectorMemoryEnabled ? '请先启用向量检索功能' : ''"
                 >
                   <option value="default">使用主API</option>
                   <option
@@ -401,7 +385,7 @@
 
                 <!-- Raw/标准模式选择（仅非embedding功能且为酒馆模式时显示） -->
                 <select
-                  v-if="funcType !== 'embedding' && isTavernEnvFlag"
+                  v-if="isTavernEnvFlag"
                   :value="apiStore.getFunctionMode(funcType as APIUsageType)"
                   @change="updateFunctionMode(funcType as APIUsageType, ($event.target as HTMLSelectElement).value as any)"
                   class="setting-select mode-select"
@@ -444,21 +428,6 @@
                 <input type="checkbox" v-model="splitResponseGeneration" @change="saveSplitResponseSetting" />
                 <span class="switch-slider"></span>
               </label>
-            </div>
-          </div>
-
-          <div v-if="vectorMemoryEnabled" class="setting-item">
-            <div class="setting-info">
-              <label class="setting-name">{{ t('检索数量') }}</label>
-              <span class="setting-desc">{{ t('每次检索的最大记忆条数') }}</span>
-            </div>
-            <div class="setting-control">
-              <select v-model.number="vectorMemoryMaxCount" @change="onVectorMemoryChange" class="setting-select">
-                <option :value="5">5条</option>
-                <option :value="10">10条（推荐）</option>
-                <option :value="15">15条</option>
-                <option :value="20">20条</option>
-              </select>
             </div>
           </div>
 
@@ -605,23 +574,6 @@ import { Plus, Edit2, Trash2, Upload, Download, X, RefreshCw, FlaskConical } fro
 import { useAPIManagementStore, type APIConfig, type APIUsageType } from '@/stores/apiManagementStore';
 import { aiService, API_PROVIDER_PRESETS, type APIProvider } from '@/services/aiService';
 import { useUIStore } from '@/stores/uiStore';
-// [MING] Removed: import { vectorMemoryService } from '@/services/vectorMemoryService';
-const vectorMemoryService = {
-  initialize: async () => {},
-  isInitialized: () => false,
-  addMemory: async (_content: string, _metadata?: any) => '',
-  search: async (_query: string, _limit?: number) => [] as any[],
-  deleteMemory: async (_id: string) => {},
-  getAllMemories: async () => [] as any[],
-  clearAllMemories: async () => {},
-  getMemoryCount: async () => 0,
-  getConfig: () => ({ enabled: false, embeddingApiId: undefined }),
-  saveConfig: (_config: any) => {},
-  getStats: async () => ({ totalMemories: 0, indexedMemories: 0 }),
-  getEmbeddingStatus: () => ({ isConfigured: false, apiName: '' }),
-  rebuildFromLongTermMemories: async (_memories: any[], _options?: any) => ({ success: true, count: 0 }),
-  clear: async () => {},
-};
 import { getNsfwSettingsFromStorage, type NsfwGenderFilter } from '@/utils/nsfw';
 import { isTavernEnv } from '@/utils/tavern';
 import { useGameStateStore } from '@/stores/gameStateStore';
@@ -641,15 +593,14 @@ onMounted(() => {
   apiStore.loadFromStorage();
   loadAIServiceConfig();
   loadLocalSettings();
-  loadVectorMemoryConfig();
+  // loadVectorMemoryConfig(); // Removed
+
 
 });
 
 // AI服务通用配置
 const streamingEnabled = ref(true);
 const splitResponseGeneration = ref(false); // 分步生成开关，默认关闭
-// 向量记忆启用状态
-const vectorMemoryEnabled = ref(false);
 
 // 世界心跳（来自 gameStateStore.worldHeartbeat，随存档保存）
 const worldHeartbeatEnabled = computed(() => gameStateStore.worldHeartbeat?.启用 ?? false);
@@ -669,7 +620,6 @@ function onWorldHeartbeatEnabledChange(e: Event) {
   gameStateStore.updateState('worldHeartbeat.启用', checked);
   persistWorldHeartbeat();
 }
-const vectorMemoryMaxCount = ref(10);
 const isTavernEnvFlag = ref(isTavernEnv());
 const nsfwMode = ref(true);
 const nsfwGenderFilter = ref<NsfwGenderFilter>('female');
@@ -735,24 +685,6 @@ const updateRetryCount = (value: string) => {
   aiService.saveConfig({ ...currentConfig, maxRetries: num });
 
   toast.success(`重试次数已设置为 ${num} 次`);
-};
-
-const loadVectorMemoryConfig = () => {
-  const config = vectorMemoryService.getConfig();
-  vectorMemoryEnabled.value = config.enabled;
-  vectorMemoryMaxCount.value = config.maxRetrieveCount;
-};
-
-const onVectorMemoryChange = () => {
-  vectorMemoryService.saveConfig({
-    enabled: vectorMemoryEnabled.value,
-    maxRetrieveCount: vectorMemoryMaxCount.value,
-  });
-  if (vectorMemoryEnabled.value) {
-    toast.success(`向量记忆检索已启用，每次最多检索 ${vectorMemoryMaxCount.value} 条`);
-  } else {
-    toast.info('向量记忆检索已禁用，将使用全量发送模式');
-  }
 };
 
 // 监听通用配置变化
@@ -840,20 +772,18 @@ const onProviderChange = () => {
 
 // 获取功能名称
 const getFunctionName = (type: APIUsageType): string => {
-  const names: Record<APIUsageType, string> = {
-    main: '主游戏流程',
-    memory_summary: '记忆总结',
-    embedding: '向量检索(Embedding)',
-    text_optimization: '文本优化',
-    cot: '思维链',
-    instruction_generation: '指令生成',
-    world_generation: '世界生成',
-    world_generation: '世界生成',
-    event_generation: '事件生成',
-    world_heartbeat: '世界心跳',
-    location_npc_generation: '地点NPC生成'
+  const map: Record<APIUsageType, string> = {
+    main: t('主游戏流程'),
+    cot: t('思维链(CoT)'),
+    instruction_generation: t('指令生成'),
+    memory_summary: t('记忆总结'),
+    text_optimization: t('文本优化'),
+    world_generation: t('世界生成'),
+    event_generation: t('世界事件'),
+    world_heartbeat: t('世界心跳'),
+    location_npc_generation: t('新地点NPC生成'),
   };
-  return names[type] || type;
+  return map[type] || type;
 };
 
 // 获取功能描述
@@ -863,11 +793,8 @@ const getFunctionDesc = (type: APIUsageType): string => {
     const descs: Record<APIUsageType, string> = {
       main: '游戏主要交互（酒馆模式下永远使用酒馆API）',
       memory_summary: '压缩总结历史记忆，包括NPC记忆（可配置Raw/标准模式）',
-      embedding: '向量记忆语义检索用Embedding（需要embedding模型，建议使用独立API）',
       text_optimization: '优化AI输出文本（可配置Raw/标准模式）',
       cot: '思维链推理（启用后可配置独立API）',
-      instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
-      world_generation: '生成世界、地点等（可配置Raw/标准模式）',
       instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
       world_generation: '生成世界、地点等（可配置Raw/标准模式）',
       event_generation: '生成世界事件（可配置Raw/标准模式）',
@@ -880,11 +807,8 @@ const getFunctionDesc = (type: APIUsageType): string => {
     const descs: Record<APIUsageType, string> = {
       main: '游戏主要交互和剧情生成（核心API）',
       memory_summary: '压缩总结历史记忆，包括NPC记忆（可用快速模型节省成本）',
-      embedding: '向量记忆语义检索用Embedding（需要embedding模型）',
       text_optimization: '优化AI输出的文本质量',
       cot: '思维链推理（启用后可配置独立API）',
-      instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
-      world_generation: '生成世界、地点等内容（开局时使用）',
       instruction_generation: '将用户模糊指令转化为明确游戏指令（一次对话生成）',
       world_generation: '生成世界、地点等内容（开局时使用）',
       event_generation: '生成世界事件（可用快速模型）',
