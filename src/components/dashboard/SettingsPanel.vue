@@ -256,6 +256,19 @@
         <div class="settings-list">
           <div class="setting-item">
             <div class="setting-info">
+              <label class="setting-name">{{ t('强制酒馆模式') }}</label>
+              <span class="setting-desc">{{ t('强制启用酒馆相关逻辑（如特殊NPC事件），即使不在酒馆环境中') }}</span>
+            </div>
+            <div class="setting-control">
+              <label class="setting-switch">
+                <input type="checkbox" v-model="settings.forceTavernMode" @change="onSettingChange" />
+                <span class="switch-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
               <label class="setting-name">{{ t('调试模式') }}</label>
               <span class="setting-desc">{{ t('启用开发者调试信息和详细日志') }}</span>
               <span class="setting-hint" v-if="settings.debugMode">{{ t('开启后侧边栏将显示「提示词组装」，可查看最近一次发送给 API 的提示词构成。') }}</span>
@@ -485,9 +498,10 @@ const settings = reactive({
   fastAnimations: false,
   splitResponseGeneration: false,  // 默认关闭分步生成
 
-  // 🔞 成人内容（仅酒馆环境可用；非酒馆环境将被忽略/隐藏）
+  // 🔞 成人内容（nsfwMode 全局生效；酒馆环境检测逻辑受 forceTavernMode 影响）
   enableNsfwMode: true,
   nsfwGenderFilter: 'female' as 'all' | 'male' | 'female',
+  forceTavernMode: true, // 强制启用酒馆模式逻辑（默认开启，v3.8 改动）
 
 
   // 高级设置
@@ -722,6 +736,9 @@ const resetSettings = () => {
         fontSize: 16,
         fastAnimations: false,
         splitResponseGeneration: false,  // 默认关闭分步生成
+        enableNsfwMode: true,
+        nsfwGenderFilter: 'female',
+        forceTavernMode: true,
         debugMode: false,
         consoleDebug: false,
         performanceMonitor: false,

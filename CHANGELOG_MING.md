@@ -4,6 +4,25 @@
 
 ---
 
+## [0.2.62] - 2026-02-12
+
+### 强制酒馆模式与 NSFW 逻辑解耦
+
+- **强制酒馆模式 (Force Tavern Mode)**
+  - **Feature**：在「设置 -> 游戏设置」中新增「强制酒馆模式」开关（默认开启），允许在非酒馆环境下强制启用酒馆相关逻辑（如特殊NPC随机事件）。
+  - **Logic**：`isTavernEnv` 判断逻辑更新为：`真实酒馆环境 || 强制酒馆模式开启`。
+- **NSFW 逻辑解耦**
+  - **Refactor**：NSFW 内容生成不再依赖 `isTavernEnv`，改为完全由「NSFW 模式」开关控制。
+  - **Effect**：即使在非酒馆模式下，只要开启 NSFW 模式，Prompt 组装时也会包含 NSFW 相关规则与数据定义。
+
+#### 涉及文件
+
+- `src/components/dashboard/SettingsPanel.vue`
+- `src/utils/tavern.ts`
+- `src/utils/prompts/promptAssembler.ts`
+
+---
+
 ## [0.2.61] - 2026-02-12
 
 ### 辅助功能清理与向量记忆模块移除

@@ -1,6 +1,6 @@
 import { getPrompt } from '@/services/defaultPrompts';
 import { SAVE_DATA_STRUCTURE_MING, stripNsfwContentMing } from './definitions/ming/dataDefinitionsMing';
-import { isTavernEnv } from '@/utils/tavern';
+// import { isTavernEnv } from '@/utils/tavern';
 import { getNsfwSettingsFromStorage } from '@/utils/nsfw';
 
 // 导出常用的规则常量（Ming 通用版）
@@ -43,9 +43,15 @@ export async function assembleSystemPrompt(
     getPrompt('worldStandards')
   ]);
 
-  const tavernEnv = isTavernEnv();
-  const sanitizedDataDefinitionsPrompt = tavernEnv ? dataDefinitionsPrompt : stripNsfwContentMing(dataDefinitionsPrompt);
-  const sanitizedBusinessRulesPrompt = tavernEnv ? businessRulesPrompt : stripNsfwContentMing(businessRulesPrompt);
+  // [Ming] NSFW 内容开关不再依赖于酒馆环境，而是完全由设置控制 (nsfwMode)
+  // const tavernEnv = isTavernEnv(); // 移除旧逻辑依赖
+  const settingsFromStore = getNsfwSettingsFromStorage();
+  const cfg = (gameState?.系统?.配置 ?? {}) as Record<string, unknown>;
+  // 优先使用游戏内配置，否则使用全局设置
+  const nsfwMode = typeof cfg.nsfwMode === 'boolean' ? cfg.nsfwMode : settingsFromStore.nsfwMode;
+
+  const sanitizedDataDefinitionsPrompt = nsfwMode ? dataDefinitionsPrompt : stripNsfwContentMing(dataDefinitionsPrompt);
+  const sanitizedBusinessRulesPrompt = nsfwMode ? businessRulesPrompt : stripNsfwContentMing(businessRulesPrompt);
 
   const promptSections: string[] = [];
 
@@ -81,14 +87,12 @@ export async function assembleSystemPrompt(
     }
   }
 
-  if (tavernEnv) {
-    const settingsFromStore = getNsfwSettingsFromStorage();
-    const cfg = (gameState?.系统?.配置 ?? {}) as Record<string, unknown>;
-    const nsfwMode = typeof cfg.nsfwMode === 'boolean' ? cfg.nsfwMode : settingsFromStore.nsfwMode;
+  // 始终注入 NSFW 设置规则（即使是 disabled 状态，也明确告知 AI 禁止生成）
+  {
     const nsfwGenderFilter =
       typeof cfg.nsfwGenderFilter === 'string' ? cfg.nsfwGenderFilter : settingsFromStore.nsfwGenderFilter;
     const content = [
-      '# NSFW设置（酒馆端）',
+      '# NSFW设置',
       `- nsfwMode: ${nsfwMode ? 'true' : 'false'}`,
       `- nsfwGenderFilter: ${nsfwGenderFilter}`,
       '- 当 nsfwMode=true 且 NPC性别符合过滤条件时，创建NPC必须生成完整私密信息(PrivacyProfile)',
@@ -96,7 +100,7 @@ export async function assembleSystemPrompt(
       '- 当 nsfwMode=false 或 性别不匹配 时，禁止生成私密信息'
     ].join('\n');
     promptSections.push(content);
-    push?.({ key: 'nsfwSettings', 构成: 'NSFW设置', 生成原因: '酒馆端私密信息生成范围', content });
+    push?.({ key: 'nsfwSettings', 构成: 'NSFW设置', 生成原因: '私密信息生成范围控制', content });
   }
 
   const onlineState = gameState?.系统?.联机 || gameState?.onlineState;

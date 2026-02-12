@@ -117,13 +117,31 @@ function getNativeTavernHelper(): any | null {
  * @returns {boolean} true表示启用NSFW内容，false表示禁用
  */
 export function isTavernEnv(forceDisableNSFW: boolean = false): boolean {
-  // 如果显式要求禁用NSFW，返回false
+  // 如果显式要求禁用NSFW，返回false (此参数名历史遗留，实际现在主要用于 force parameter check)
   if (forceDisableNSFW) {
     return false;
   }
 
-  // 默认返回true，无论是否在真实酒馆环境中
-  // 这使得NSFW内容默认启用
+  // 1. 优先检查真实的酒馆环境
+  if (getNativeTavernHelper()) {
+    return true;
+  }
+
+  // 2. 检查 "强制酒馆模式" 设置 (默认为 true)
+  try {
+    const saved = localStorage.getItem('dad_game_settings');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // 如果设置中明确定义了该选项，则使用设置值
+      if (parsed.forceTavernMode !== undefined) {
+        return !!parsed.forceTavernMode;
+      }
+    }
+  } catch {
+    // ignore error
+  }
+
+  // 3. 默认开启 (符合用户需求 "Force Tarven Mode should be default turn on")
   return true;
 }
 
