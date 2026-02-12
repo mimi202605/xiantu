@@ -4,6 +4,37 @@
 
 ---
 
+## [0.2.63] - 2026-02-12
+
+### NPC 优化：降级逻辑与生成配置
+
+- **NPC 自动降级（Maintenance）**
+  - **Logic**：每回合结束时（独立于世界心跳）执行 `runNpcMaintenance`，检测并不在「实时关注」列表的重点 NPC。
+  - **Rule**：若重点 NPC 活跃时间超过 `npcDemotionThreshold`（默认 5 回合）未更新，自动降级为普通 NPC，减少 prompt token 消耗。
+  - **Independence**：降级逻辑不再依赖世界心跳开启，确保长期运行的游戏性能。
+
+- **Prompt 优化：按需过滤**
+  - **Filter**：构建 Prompt 时，非当前位置且非「实时关注」的普通 NPC 将被剔除，不再发送给 AI。
+  - **Effect**：大幅降低上下文 Token 占用，同时保留重点 NPC 与玩家当前位置 NPC 的互动能力。
+
+- **配置增强（UI & Config）**
+  - **Settings**：设置面板新增「NPC 设置」区块。
+  - **Features**：
+    - `NPC 降级阈值`：配置重点 NPC 转普通的非活跃回合数（1-999）。
+    - `新地点重点NPC生成数量`：配置到达新地点时生成的重点 NPC 数量范围（Min-Max）。
+  - **Relationship Panel**：关系网络列表默认过滤掉普通 NPC，仅显示重点 NPC 与「实时关注」的 NPC；普通 NPC 需勾选显示才可见。
+
+#### 涉及文件
+
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/services/worldHeartbeatService.ts`
+- `src/components/dashboard/SettingsPanel.vue`
+- `src/components/dashboard/RelationshipNetworkPanel.vue`
+- `src/utils/prompts/tasks/locationNpcGenerationPromptsMing.ts`
+- `src/types/game.d.ts`
+
+---
+
 ## [0.2.62] - 2026-02-12
 
 ### 强制酒馆模式与 NSFW 逻辑解耦

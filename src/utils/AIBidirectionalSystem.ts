@@ -31,7 +31,7 @@ import { mergeInto扩展 } from '@/services/gameStateIndexer';
 import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
 import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync } from '@/utils/locationUtils';
 import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/locationNpcGenerationPromptsMing';
-import type { LocationEntry } from '@/types/game';
+import type { LocationEntry, NpcProfile } from '@/types/game';
 
 type PlainObject = Record<string, unknown>;
 
@@ -639,6 +639,26 @@ class AIBidirectionalSystemClass {
       // 🔥 构建精简版存档数据（用于叙事判定，减少token消耗）
       // 无论单步还是分步模式，都使用精简版存档
       const buildNarrativeState = (): Record<string, unknown> => {
+        // 过滤 NPC：仅保留 重点NPC、实时关注NPC 或 当前位置NPC
+        const filterRelationships = (relationships: Record<string, NpcProfile> | undefined) => {
+          if (!relationships) return {};
+          const filtered: Record<string, NpcProfile> = {};
+          const playerLocationDesc = stateForAI.角色?.位置?.描述;
+
+          for (const [name, npc] of Object.entries(relationships)) {
+             // 缺省视为重点
+            const type = npc.类型 || '重点';
+            const isImportant = type === '重点';
+            const isTracked = npc.实时关注 === true;
+            const isLocal = npc.当前位置?.描述 === playerLocationDesc;
+
+            if (isImportant || isTracked || isLocal) {
+              filtered[name] = npc;
+            }
+          }
+          return filtered;
+        };
+
         return {
           元数据: { 时间: stateForAI.元数据?.时间 },
           角色: {
@@ -651,7 +671,7 @@ class AIBidirectionalSystemClass {
             // 装备/功法/修炼/技能 已退役，不再注入叙事判定
           },
           社交: {
-            关系: stateForAI.社交?.关系,
+            关系: filterRelationships(stateForAI.社交?.关系),
             任务: stateForAI.社交?.任务,
             事件: stateForAI.社交?.事件,
             记忆: {
@@ -2148,6 +2168,13 @@ ${step1Text}
       (latestNarrative as any).stateChanges = stateChangesLog;
     }
 
+    // [MING] 确保无论心跳是否开启，每回合都执行一次 NPC 维护（降级不活跃重点NPC）
+    // 放在最后执行，以免影响本回合的交互逻辑
+    if (!isInitialization) {
+      const { runNpcMaintenance } = await import('@/services/worldHeartbeatService');
+      runNpcMaintenance(saveData as SaveData);
+    }
+
     if (!isInitialization) {
       const gameStateStore = useGameStateStore();
       gameStateStore.loadFromSaveData(saveData);
@@ -2540,6 +2567,11 @@ ${saveDataJson}`;
       typeof 系统配置?.nsfwGenderFilter === 'string'
         ? 系统配置.nsfwGenderFilter
         : nsfwFromStorage.nsfwGenderFilter;
+    const importantNpcGenerationRange =
+      系统配置?.importantNpcGenerationRange &&
+      typeof 系统配置.importantNpcGenerationRange === 'object'
+        ? 系统配置.importantNpcGenerationRange
+        : undefined;
 
     const prompt = buildLocationNpcGenerationPrompt({
       locationDesc,
@@ -2551,7 +2583,8 @@ ${saveDataJson}`;
           ? { 年: gameTime.年, 月: gameTime.月, 日: gameTime.日 }
           : undefined,
       nsfwMode: nsfwMode || undefined,
-      nsfwGenderFilter
+      nsfwGenderFilter,
+      importantNpcGenerationRange
     });
 
     const { useAPIManagementStore } = await import('@/stores/apiManagementStore');

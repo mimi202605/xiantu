@@ -1329,7 +1329,8 @@ const relationshipStats = computed(() => {
     }
 
     const npc = value as any;
-    if (npc.类型 === '普通') continue;
+    // 过滤掉普通 NPC，除非被实时关注
+    if (npc.类型 === '普通' && !npc.实时关注) continue;
     const nameFromValue = typeof npc.名字 === 'string' ? npc.名字.trim() : '';
     const nameFromKey = typeof key === 'string' ? key.trim() : '';
     const finalName = nameFromValue || nameFromKey;

@@ -466,7 +466,11 @@ async function generateOpeningScene(saveData: SaveData, baseInfo: CharacterBaseI
     mapConfig: (saveData as any).世界?.信息?.地图配置,
     systemSettings: tavernEnv
       ? (ensureSystemConfigHasNsfw((saveData as any).系统?.配置 ?? {}) as any)
-      : ((saveData as any).系统?.配置 || {})
+      : ({
+          ...(saveData as any).系统?.配置 || {},
+          npcDemotionThreshold: 5,
+          importantNpcGenerationRange: { min: 0, max: 1 },
+        }),
   };
 
   if (tavernEnv) {

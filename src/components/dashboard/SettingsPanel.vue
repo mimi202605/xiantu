@@ -248,6 +248,65 @@
         </div>
       </div>
 
+      <!-- NPC 设置 -->
+      <div class="settings-section">
+        <div class="section-header">
+          <h4 class="section-title">👥 {{ t('NPC 设置') }}</h4>
+        </div>
+        <div class="settings-list">
+          <!-- 重点NPC降级阈值 -->
+          <div class="setting-item">
+            <div class="setting-info">
+              <label class="setting-name">{{ t('NPC 降级阈值') }}</label>
+              <span class="setting-desc">{{ t('重点NPC若不被关注，超过N回合未活跃将降级为普通NPC') }}</span>
+              <span class="setting-hint">{{ t('默认: 5 回合') }}</span>
+            </div>
+            <div class="setting-control">
+              <input
+                type="number"
+                class="config-input"
+                min="1"
+                max="999"
+                :value="npcDemotionThreshold"
+                @input="onNpcDemotionThresholdInput"
+              />
+            </div>
+          </div>
+
+          <!-- 重点NPC生成数量范围 -->
+          <div class="setting-item">
+            <div class="setting-info">
+              <label class="setting-name">{{ t('新地点重点NPC生成数量') }}</label>
+              <span class="setting-desc">{{ t('到达新地点时，生成的重点NPC数量范围') }}</span>
+              <span class="setting-hint">{{ t('默认: 0 - 1') }}</span>
+            </div>
+            <div class="setting-control" style="display: flex; gap: 0.5rem; align-items: center;">
+              <input
+                type="number"
+                class="config-input"
+                style="width: 60px"
+                min="0"
+                max="10"
+                :value="importantNpcGenerationMin"
+                @input="onImportantNpcGenerationMinInput"
+                placeholder="Min"
+              />
+              <span>-</span>
+              <input
+                type="number"
+                class="config-input"
+                style="width: 60px"
+                min="0"
+                max="10"
+                :value="importantNpcGenerationMax"
+                @input="onImportantNpcGenerationMaxInput"
+                placeholder="Max"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 高级设置 -->
       <div class="settings-section">
         <div class="section-header">
@@ -459,6 +518,47 @@ function onWorldHeartbeatForgetRoundsInput(e: Event) {
   const v = Math.max(0, Math.min(999, Number((e.target as HTMLInputElement).value) || 30));
   gameStateStore.updateState('worldHeartbeat.遗忘回合数', v);
   persistWorldHeartbeat();
+}
+
+// NPC 设置相关
+const npcDemotionThreshold = computed(() => (gameStateStore.systemConfig as any)?.npcDemotionThreshold ?? 5);
+const importantNpcGenerationMin = computed(() => (gameStateStore.systemConfig as any)?.importantNpcGenerationRange?.min ?? 0);
+const importantNpcGenerationMax = computed(() => (gameStateStore.systemConfig as any)?.importantNpcGenerationRange?.max ?? 1);
+
+const persistSystemConfig = async () => {
+  if (gameStateStore.isGameLoaded) {
+    try {
+      await characterStore.saveCurrentGame();
+    } catch (e) {
+      console.warn('[设置] 系统配置持久化失败:', e);
+    }
+  }
+};
+
+function onNpcDemotionThresholdInput(e: Event) {
+  const v = Math.max(1, Math.min(999, Number((e.target as HTMLInputElement).value) || 5));
+  gameStateStore.updateState('systemConfig.npcDemotionThreshold', v);
+  persistSystemConfig();
+}
+
+function onImportantNpcGenerationMinInput(e: Event) {
+  const v = Math.max(0, Math.min(10, Number((e.target as HTMLInputElement).value) || 0));
+  // 确保 min <= max
+  if (v > importantNpcGenerationMax.value) {
+    gameStateStore.updateState('systemConfig.importantNpcGenerationRange.max', v);
+  }
+  gameStateStore.updateState('systemConfig.importantNpcGenerationRange.min', v);
+  persistSystemConfig();
+}
+
+function onImportantNpcGenerationMaxInput(e: Event) {
+  const v = Math.max(0, Math.min(10, Number((e.target as HTMLInputElement).value) || 1));
+  // 确保 max >= min
+  if (v < importantNpcGenerationMin.value) {
+    gameStateStore.updateState('systemConfig.importantNpcGenerationRange.min', v);
+  }
+  gameStateStore.updateState('systemConfig.importantNpcGenerationRange.max', v);
+  persistSystemConfig();
 }
 
 // 更新玩家道号

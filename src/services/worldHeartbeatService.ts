@@ -264,5 +264,54 @@ export async function runSingleHeartbeat(
     (心跳 as any).上次心跳回合序号 = options.triggerMode === '周期' ? Math.max(0, 回合序号 - 1) : 回合序号;
   }
 
+  // 执行 NPC 维护（降级不活跃重点 NPC）
+  runNpcMaintenance(saveData);
+
   return { saveData, record };
+}
+
+/**
+ * 运行 NPC 维护任务：降级不活跃的重点 NPC、清理无效数据等。
+ * 此操作不产生回溯记录，直接修改 saveData。
+ */
+export function runNpcMaintenance(saveData: SaveData): { demotedCount: number; demotedNames: string[] } {
+  const anySave = saveData as any;
+  const relationships = anySave.社交?.关系 as Record<string, NpcProfile> | undefined;
+  if (!relationships) return { demotedCount: 0, demotedNames: [] };
+
+  const config = (saveData as any).系统?.配置;
+  const threshold = typeof config?.npcDemotionThreshold === 'number' ? config.npcDemotionThreshold : 5;
+  const currentTurn = anySave.元数据?.回合序号 ?? 0;
+
+  const demotedNames: string[] = [];
+
+  for (const [name, npc] of Object.entries(relationships)) {
+    // 缺省类型视为重点
+    const type = npc.类型 || '重点';
+
+    // 仅处理重点 NPC
+    if (type !== '重点') continue;
+
+    // 实时关注的 NPC 不降级
+    if (npc.实时关注 === true) continue;
+
+    const lastUpdate = npc.上次主回合更新回合;
+    // 如果从未更新过（undefined），暂不降级，或者视为很久没更新？
+    // 策略：新生成的 NPC 上次更新回合可能是 undefined，给予保护期？
+    // 假设 undefined = 0，如果当前回合 < threshold 则不降级（开局保护）
+    // 或者：只有明确有 lastUpdate 且超时的才降级。
+    // 稳妥起见：if lastUpdate is undefined, do not demote yet (let them be active once).
+    if (typeof lastUpdate !== 'number') continue;
+
+    if (currentTurn - lastUpdate > threshold) {
+      npc.类型 = '普通';
+      demotedNames.push(name);
+    }
+  }
+
+  if (demotedNames.length > 0) {
+    console.log(`[NPC维护] 降级了 ${demotedNames.length} 个不活跃重点 NPC: ${demotedNames.join('、')}`);
+  }
+
+  return { demotedCount: demotedNames.length, demotedNames };
 }

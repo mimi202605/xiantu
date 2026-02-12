@@ -20,6 +20,8 @@ export interface LocationNpcGenerationInput {
   /** 成人内容已开启时，符合性别的 NPC 须带 私密信息 */
   nsfwMode?: boolean;
   nsfwGenderFilter?: NsfwGenderFilter;
+  /** 重点 NPC 生成数量范围 */
+  importantNpcGenerationRange?: { min: number; max: number };
 }
 
 const RESPONSE_FORMAT = `
@@ -87,7 +89,8 @@ export function buildLocationNpcGenerationPrompt(input: LocationNpcGenerationInp
     existingNpcNames,
     gameTime,
     nsfwMode,
-    nsfwGenderFilter = 'female'
+    nsfwGenderFilter = 'female',
+    importantNpcGenerationRange = { min: 0, max: 1 }
   } = input;
 
   const yearHint = gameTime?.年 != null ? `当前游戏年：${gameTime.年}。出生日期.年 必须 < ${gameTime.年}。` : '';
@@ -99,7 +102,7 @@ export function buildLocationNpcGenerationPrompt(input: LocationNpcGenerationInp
 根据**当前地点**与**世界观**，判断该场景是否会有路人、店员、路人修士等。若有，生成 0～N 个 NPC，用 tavern_commands 输出；若无则输出空数组。
 
 ## 原则（铁律）
-- **多数为 普通 NPC，极少数为 重点 NPC**。例如：一个茶馆可有 2～4 个普通（茶客、伙计），最多 1 个重点（说书人/掌柜）。
+- **多数为 普通 NPC，生成 ${importantNpcGenerationRange.min}～${importantNpcGenerationRange.max} 个 重点 NPC**。例如：一个茶馆可有 2～4 个普通（茶客、伙计），${importantNpcGenerationRange.max} 个重点（说书人/掌柜）。
 - 仅生成**逻辑上会出现在该地点**的人（店铺有店员/顾客、街道有行人、荒野可无人）。
 - 姓名不得与已有 NPC 重复。已有名字：${existingNpcNames.length ? existingNpcNames.join('、') : '无'}。
 - 每个 NPC 的 \`当前位置.描述\` 必须**完全等于**：\`${locationDesc}\`。

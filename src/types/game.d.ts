@@ -33,8 +33,10 @@ export interface SystemConfig extends AIMetadata {
     品质控制?: string;
   };
   提示?: string | string[]; // 可放置给AI的约束提示，随存档一并注入
-  nsfwMode?: boolean; // 是否开启NSFW模式
-  nsfwGenderFilter?: 'all' | 'male' | 'female'; // NSFW性别过滤
+  nsfwMode?: boolean; // Whether to enable NSFW mode
+  nsfwGenderFilter?: 'all' | 'male' | 'female'; // NSFW gender filter
+  npcDemotionThreshold?: number; // Turns of inactivity before demotion (default 5)
+  importantNpcGenerationRange?: { min: number; max: number }; // Range of important NPCs to generate at new locations (default 0-1)
 }
 
 // --- 状态变更日志接口 ---
