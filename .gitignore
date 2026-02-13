@@ -53,3 +53,10 @@ docs/
 # Cursor
 .cursor
 
+
+# Agentic Framework & Private Data
+private/
+.agent/
+.cursor/
+docs/
+testing_gamedata/

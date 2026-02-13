@@ -4,6 +4,33 @@
 
 ---
 
+## [0.2.64] - 2026-02-13
+
+### 开发框架：Agentic Framework & 私有仓库
+
+- **Agentic Framework（`.agent/`）**
+  - **Rules**：建立 `domain-rules`、`coding-standards`、`project-structure`、`tech-stack` 规则文件，标准化 AI 辅助开发上下文。
+  - **Workflows**：创建可复用工作流：`test`、`commit`、`review`、`refactor`、`debug`、`plan`。
+  - **Game Testing Workflows**：
+    - `setup-new-game.md`：新游戏环境初始化（API → 导入设置 → 预设 → 世界生成）。
+    - `setup-load-game.md`：加载已有存档（API → 导入存档 → 设置）。
+    - `game-round.md`：执行并验证一轮游戏生成周期。
+  - **Manual Import Rule**：明确标注文件导入需用户手动操作，数据丢失时立即请求用户协助。
+
+- **私有仓库分离**
+  - **Structure**：将 `.agent/`、`.cursor/`、`docs/`、`testing_gamedata/` 移至 `private/` 目录。
+  - **Git**：`private/` 作为独立 Git 仓库，推送至 `michael2221807/ming_private`。
+  - **Junctions**：通过 Windows Directory Junctions 链接回项目根目录，工具无感知。
+  - **`.gitignore`**：主仓库忽略 `private/`、`.agent/`、`.cursor/`、`docs/`、`testing_gamedata/`。
+  - **Setup Script**：`private/setup_private_env.bat` 支持新机器一键恢复链接。
+  - **Bootstrap**：`SETUP.md` 提供新环境完整搭建指南。
+
+- **Browser Debugging**
+  - **Port**：确认开发服务器端口 `9091`。
+  - **Workflow**：`debug.md` 包含浏览器连接与 `HOME` 环境变量配置说明。
+
+---
+
 ## [0.2.63] - 2026-02-12
 
 ### NPC 优化：降级逻辑与生成配置
