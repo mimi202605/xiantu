@@ -1,0 +1,49 @@
+# Agent Configuration
+# This file is tracked by git and serves as the bootstrap pointer
+# for AI agents. The actual framework files live in private/.agent/.
+#
+# IMPORTANT: After cloning this repo, run:
+#   git clone https://github.com/michael2221807/ming_private.git private
+#   private\setup_private_env.bat  (as Administrator)
+#
+# This will create directory junctions so .agent/ and .cursor/ are accessible.
+
+# ============================================================
+# PROJECT CONTEXT (for AI agents)
+# ============================================================
+# Tech Stack: Vue 3 + TypeScript + Webpack + Pinia + Tailwind CSS
+# Dev Server: http://localhost:9091 (webpack devServer)
+# API Proxy: /api -> http://localhost:8000
+#
+# Key Files:
+#   src/utils/AIBidirectionalSystem.ts  - AI prompt assembly & response parsing
+#   src/services/worldHeartbeatService.ts - Background world simulation
+#   src/utils/locationUtils.ts - NPC location management
+#   webpack.config.js - Build config, dev server, proxy
+#
+# Agent Framework Location:
+#   Workflows: private/.agent/workflows/  (or .agent/workflows/ if junctions are set up)
+#   Rules:     private/.agent/rules/      (or .agent/rules/ if junctions are set up)
+#   Templates: private/.agent/templates/
+#
+# Available Workflows:
+#   - setup-new-game.md    : Initialize new game test environment
+#   - setup-load-game.md   : Load existing game save
+#   - game-round.md        : Run one round of game generation
+#   - debug.md             : Connect browser for debugging (port 9091)
+#   - test.md              : Run linting and type checks
+#   - commit.md            : Standardized git commit
+#   - refactor.md          : Safe refactoring checklist
+#   - review.md            : Code review checklist
+#   - plan.md              : Feature planning template
+#
+# Private Repo: https://github.com/michael2221807/ming_private.git
+#   Contains: .agent/, .cursor/, docs/, testing_gamedata/
+#   Setup:    See SETUP.md for new machine instructions
+#
+# CRITICAL RULES:
+#   - File imports (settings, saves, presets) require USER manual action.
+#     Do NOT try to automate file picker interactions.
+#   - If data is lost (e.g., after browser restart), STOP and ask the user
+#     to re-import. Do not try to fix it programmatically.
+#   - API keys must be entered by the user. Never store or commit API keys.
