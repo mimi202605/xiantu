@@ -466,6 +466,11 @@ class AIBidirectionalSystemClass {
         delete stateForAI.系统.历史.叙事;
       }
 
+      // [MING] 移除世界心跳数据（含历史快照），避免 prompt 爆炸
+      if (stateForAI.世界?.状态?.心跳) {
+        delete stateForAI.世界.状态.心跳;
+      }
+
       // [MING] 向量记忆已移除 - 使用简化的全量记忆模式
       // eslint-disable-next-line prefer-const
       let vectorMemorySection = '';

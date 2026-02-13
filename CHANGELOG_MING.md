@@ -24,6 +24,10 @@
     - `新地点重点NPC生成数量`：配置到达新地点时生成的重点 NPC 数量范围（Min-Max）。
   - **Relationship Panel**：关系网络列表默认过滤掉普通 NPC，仅显示重点 NPC 与「实时关注」的 NPC；普通 NPC 需勾选显示才可见。
 
+- **Prompt 优化：剔除心跳历史**
+  - **Removal**：从 Prompt Payload 中彻底移除 `世界.状态.心跳` 对象。
+  - **Effect**：消除因心跳历史快照堆积导致的 Prompt 膨胀问题，显著提升长线游戏 Token 效率。
+
 #### 涉及文件
 
 - `src/utils/AIBidirectionalSystem.ts`
