@@ -1,6 +1,13 @@
 # 更新日志
 
-## [MING] 通用版 0.2.63 (2026-02-12)
+# 更新日志
+
+## [MING] 通用版 0.2.65 (2026-02-13)
+
+- **系统重构**：`AIBidirectionalSystem` 核心重构完成。拆分为请求协调、提示词构建、响应解析、状态更新、事件管理等 8 个独立组件；原文件作为 Facade 保持兼容。通过类型检查与冒烟测试验证。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
 
 - **NPC 优化**：新增重点 NPC 自动降级（配置阈值）、Prompt 过滤普通 NPC、新地点生成数量范围配置；关系网面板默认隐藏普通 NPC；Prompt 剔除心跳历史数据以减少 Token 消耗。  
   详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
