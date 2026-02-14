@@ -4,6 +4,38 @@
 
 ---
 
+## [0.2.66] - 2026-02-14
+
+### NPC 编辑增强与 Agent 工作流升级
+
+- **NPC 身体部位编辑 (Body Parts Editing)**
+  - **功能**: 在 NSFW Tab 新增身体部位管理功能，支持添加、编辑、删除部位。
+  - **UI**: 采用全新的 **Glassmorphism (通过 Teleport 挂载)** 模态窗设计，包含毛玻璃背景、发光输入框与平滑动画。
+  - **交互**: 提供部位名称、特征描述、特殊印记、敏感度/开发度（0-100）的完整编辑能力。
+
+- **私密信息概览编辑 (Private Info Inline Editing)**
+  - **功能**: 私密信息概览区域（如性取向、处女状态、性格倾向等）支持 **行内点击编辑**。
+  - **交互**: 布尔值字段点击切换，文本/数值字段点击弹出输入框，支持快捷保存/取消。
+
+- **Agent 工作流升级**
+  - **Workflow**: 重写 `.agent/workflows/plan.md`，强制执行「深度分析 -> 结构化拆解 -> 分阶段实施」的开发流程。
+  - **规范**: 明确要求在编码前进行详细的需求与代码库分析，并记录设计失败教训（`mistakes_and_prevention.md`）。
+
+- **其他修复与优化**
+  - **Location Utils**: 增强 `ensureLocationExists` 逻辑，确保层级地点数据的完整性。
+  - **Heartbeat**: 优化世界心跳与 NPC 位置同步逻辑。
+  - **HTML 结构**: 修复 `RelationshipNetworkPanel.vue` 中丢失的闭合标签问题。
+
+#### 涉及文件
+
+- `src/components/dashboard/RelationshipNetworkPanel.vue`
+- `src/style.css` (Glassmorphism styles)
+- `.agent/workflows/plan.md`
+- `mistakes_and_prevention.md`
+- `task.md`
+
+---
+
 ## [0.2.65] - 2026-02-13
 
 ### 系统重构：AIBidirectionalSystem 模块化

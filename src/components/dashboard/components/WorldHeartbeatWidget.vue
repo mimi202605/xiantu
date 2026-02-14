@@ -67,7 +67,6 @@
 import { computed, ref } from 'vue';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useCharacterStore } from '@/stores/characterStore';
-import { runSingleHeartbeat } from '@/services/worldHeartbeatService';
 import type { HeartbeatRecord, WorldHeartbeatConfig } from '@/types/game';
 import { cloneDeep } from 'lodash';
 import { toast } from '@/utils/toast';
@@ -98,10 +97,6 @@ function recordKey(record: HeartbeatRecord, reversedIndex: number): string {
   return `hb-${total - 1 - reversedIndex}`;
 }
 
-function recordId(r: HeartbeatRecord): string {
-  return `${r.时间}-${r.回合序号}-${r.触发方式}`;
-}
-
 function toggleExpand(record: HeartbeatRecord, reversedIndex: number) {
   const id = recordKey(record, reversedIndex);
   const next = new Set(expandedIds.value);
@@ -117,15 +112,13 @@ async function onManualTrigger() {
   }
   isRunning.value = true;
   try {
-    const saveData = gameStateStore.toSaveData();
-    if (!saveData) {
-      toast.error('无法获取存档');
-      return;
+    const result = await gameStateStore.performHeartbeat({ triggerMode: '手动' });
+    if (result.success) {
+      toast.success('心跳已执行');
+    } else {
+      console.error('[世界心跳] 手动触发失败:', result.message);
+      toast.error('心跳执行失败');
     }
-    const { saveData: updated } = await runSingleHeartbeat(saveData, { triggerMode: '手动' });
-    gameStateStore.loadFromSaveData(updated);
-    await characterStore.saveCurrentGame();
-    toast.success('心跳已执行');
   } catch (e) {
     console.error('[世界心跳] 手动触发失败:', e);
     toast.error('心跳执行失败');

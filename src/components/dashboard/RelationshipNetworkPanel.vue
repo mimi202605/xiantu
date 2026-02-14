@@ -6,7 +6,12 @@
         <!-- 左侧：人物列表 -->
         <div class="relationship-list">
           <div class="list-header">
-            <h3 class="panel-title">人物关系</h3>
+            <div class="list-header-top">
+              <h3 class="panel-title">人物关系</h3>
+              <button class="create-npc-btn" @click="createNewNpc" title="新建人物">
+                <Plus :size="14" /> 新建
+              </button>
+            </div>
             <div class="search-bar">
               <Search :size="16" />
               <input v-model="searchQuery" placeholder="搜索人物..." class="search-input" />
@@ -116,6 +121,14 @@
                   <h3 class="detail-name">{{ selectedPerson.名字 }}</h3>
                   <div class="action-buttons">
                     <button
+                      @click="refineNpcWithAI"
+                      class="action-btn refine-btn"
+                      :disabled="isRefiningNpc"
+                      :title="isRefiningNpc ? 'AI完善中...' : 'AI完善此人物'"
+                    >
+                      <Wand2 :size="16" :class="{ 'animate-spin': isRefiningNpc }" />
+                    </button>
+                    <button
                       @click="downloadCharacterData"
                       class="action-btn download-btn"
                       title="下载完整人物数据"
@@ -141,14 +154,30 @@
                   </div>
                 </div>
                 <div class="detail-badges">
-                  <span class="relationship-badge">{{ selectedPerson.与玩家关系 || '相识' }}</span>
-                  <span class="intimacy-badge" :class="getIntimacyClass(selectedPerson.好感度)">
-                    好感 {{ selectedPerson.好感度 || 0 }}
+                  <span class="relationship-badge editable-badge" @click="editField !== '与玩家关系' && startEdit('与玩家关系', selectedPerson.与玩家关系)">
+                    <template v-if="editField === '与玩家关系'">
+                      <input v-model="editValue" class="badge-edit-input" @keyup.enter="confirmEdit('与玩家关系')" @keyup.escape="cancelEdit" />
+                      <button class="badge-action-btn confirm" @click.stop="confirmEdit('与玩家关系')" title="确认"><Check :size="10" /></button>
+                      <button class="badge-action-btn cancel" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                    </template>
+                    <template v-else>{{ selectedPerson.与玩家关系 || '相识' }}</template>
                   </span>
-                  <span class="race-badge">{{ selectedPerson.种族 || '人族' }}</span>
-                  <span v-if="selectedPerson.势力归属" class="faction-badge">{{
-                    selectedPerson.势力归属
-                  }}</span>
+                  <span class="intimacy-badge editable-badge" :class="getIntimacyClass(selectedPerson.好感度)" @click="editField !== '好感度' && startEdit('好感度', selectedPerson.好感度)">
+                    <template v-if="editField === '好感度'">
+                      好感 <input type="number" v-model.number="editValue" class="badge-edit-input badge-edit-num" min="-100" max="100" @keyup.enter="confirmEdit('好感度')" @keyup.escape="cancelEdit" />
+                      <button class="badge-action-btn confirm" @click.stop="confirmEdit('好感度')" title="确认"><Check :size="10" /></button>
+                      <button class="badge-action-btn cancel" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                    </template>
+                    <template v-else>好感 {{ selectedPerson.好感度 || 0 }}</template>
+                  </span>
+                  <span class="race-badge editable-badge" @click="editField !== '种族' && startEdit('种族', selectedPerson.种族)">
+                    <template v-if="editField === '种族'">
+                      <input v-model="editValue" class="badge-edit-input" @keyup.enter="confirmEdit('种族')" @keyup.escape="cancelEdit" />
+                      <button class="badge-action-btn confirm" @click.stop="confirmEdit('种族')" title="确认"><Check :size="10" /></button>
+                      <button class="badge-action-btn cancel" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                    </template>
+                    <template v-else>{{ selectedPerson.种族 || '人族' }}</template>
+                  </span>
                 </div>
               </div>
             </div>
@@ -175,29 +204,76 @@
                   <div class="detail-section">
                     <h5 class="section-title">📋 基本信息</h5>
                     <div class="info-grid-responsive">
-                      <div class="info-item-row">
-                        <span class="info-label">{{ t('地位') }}</span
-                        ><span class="info-value">{{ getNpcRealm(selectedPerson) }}</span>
+                      <div class="info-item-row editable-row" @click="editField !== '地位' && startEdit('地位', getNpcRealm(selectedPerson))">
+                        <span class="info-label">{{ t('地位') }}</span>
+                        <template v-if="editField === '地位'">
+                          <input v-model="editValue" class="inline-edit-input" @keyup.enter="confirmEdit('地位')" @keyup.escape="cancelEdit" />
+                          <div class="edit-actions-inline">
+                            <button class="edit-ok-btn" @click.stop="confirmEdit('地位')" title="确认"><Check :size="12" /></button>
+                            <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                          </div>
+                        </template>
+                        <span v-else class="info-value">{{ getNpcRealm(selectedPerson) }} <Edit :size="12" class="inline-edit-icon" /></span>
                       </div>
-                      <div class="info-item-row">
-                        <span class="info-label">性别</span
-                        ><span class="info-value">{{ selectedPerson.性别 || '未知' }}</span>
+                      <div class="info-item-row editable-row" @click="editField !== '性别' && startEdit('性别', selectedPerson.性别)">
+                        <span class="info-label">性别</span>
+                        <template v-if="editField === '性别'">
+                          <input v-model="editValue" class="inline-edit-input" @keyup.enter="confirmEdit('性别')" @keyup.escape="cancelEdit" />
+                          <div class="edit-actions-inline">
+                            <button class="edit-ok-btn" @click.stop="confirmEdit('性别')" title="确认"><Check :size="12" /></button>
+                            <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                          </div>
+                        </template>
+                        <span v-else class="info-value">{{ selectedPerson.性别 || '未知' }} <Edit :size="12" class="inline-edit-icon" /></span>
                       </div>
-                      <div class="info-item-row">
-                        <span class="info-label">年龄</span
-                        ><span class="info-value">{{ getNpcAge(selectedPerson) }}</span>
+                      <div class="info-item-row editable-row" @click="editField !== '年龄' && startEdit('年龄', selectedPerson.出生日期)">
+                        <span class="info-label">年龄</span>
+                        <template v-if="editField === '年龄'">
+                          <input v-model="editValue" class="inline-edit-input" placeholder="出生日期 如 980年3月" @keyup.enter="confirmEdit('年龄')" @keyup.escape="cancelEdit" />
+                          <div class="edit-actions-inline">
+                            <button class="edit-ok-btn" @click.stop="confirmEdit('年龄')" title="确认"><Check :size="12" /></button>
+                            <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                          </div>
+                        </template>
+                        <span v-else class="info-value">{{ getNpcAge(selectedPerson) }} <Edit :size="12" class="inline-edit-icon" /></span>
                       </div>
-                      <div class="info-item-row">
-                        <span class="info-label">{{ traitOrRootLabel }}</span
-                        ><span class="info-value">{{ getNpcSpiritRoot(selectedPerson) }}</span>
+                      <div class="info-item-row editable-row" @click="editField !== '特质' && startEdit('特质', selectedPerson.特质)">
+                        <span class="info-label">{{ traitOrRootLabel }}</span>
+                        <template v-if="editField === '特质'">
+                          <input v-model="editValue" class="inline-edit-input" @keyup.enter="confirmEdit('特质')" @keyup.escape="cancelEdit" />
+                          <div class="edit-actions-inline">
+                            <button class="edit-ok-btn" @click.stop="confirmEdit('特质')" title="确认"><Check :size="12" /></button>
+                            <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                          </div>
+                        </template>
+                        <span v-else class="info-value">{{ getNpcSpiritRoot(selectedPerson) }} <Edit :size="12" class="inline-edit-icon" /></span>
                       </div>
-                      <div class="info-item-row" v-if="selectedPerson.当前位置">
-                        <span class="info-label">位置</span
-                        ><span class="info-value">{{ selectedPerson.当前位置.描述 }}</span>
+                      <div class="info-item-row editable-row">
+                        <span class="info-label">位置</span>
+                        <template v-if="editField === '当前位置'">
+                          <div class="location-edit-wrapper">
+                            <input v-model="locationSearchQuery" class="inline-edit-input" placeholder="输入或搜索地点，支持 A·B·C 格式" list="npc-location-list" @keyup.escape="cancelEdit" />
+                            <datalist id="npc-location-list">
+                              <option v-for="loc in allLocationNames" :key="loc" :value="loc" />
+                            </datalist>
+                            <div class="location-edit-actions">
+                              <button class="loc-confirm-btn" @click="confirmEdit('当前位置')" title="确认"><Check :size="14" /> 确认</button>
+                              <button class="loc-cancel-btn" @click="cancelEdit" title="取消"><X :size="14" /> 取消</button>
+                            </div>
+                          </div>
+                        </template>
+                        <span v-else class="info-value" @click="startEdit('当前位置', selectedPerson.当前位置)">{{ selectedPerson.当前位置?.描述 || '未知' }} <Edit :size="12" class="inline-edit-icon" /></span>
                       </div>
-                      <div class="info-item-row" v-if="selectedPerson.出生">
-                        <span class="info-label">出生</span
-                        ><span class="info-value">{{ getNpcOrigin(selectedPerson.出生) }}</span>
+                      <div class="info-item-row editable-row" @click="editField !== '出生' && startEdit('出生', selectedPerson.出生)">
+                        <span class="info-label">出生</span>
+                        <template v-if="editField === '出生'">
+                          <input v-model="editValue" class="inline-edit-input" @keyup.enter="confirmEdit('出生')" @keyup.escape="cancelEdit" />
+                          <div class="edit-actions-inline">
+                            <button class="edit-ok-btn" @click.stop="confirmEdit('出生')" title="确认"><Check :size="12" /></button>
+                            <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                          </div>
+                        </template>
+                        <span v-else class="info-value">{{ getNpcOrigin(selectedPerson.出生) || '普通人' }} <Edit :size="12" class="inline-edit-icon" /></span>
                       </div>
                     </div>
                   </div>
@@ -206,37 +282,53 @@
                   <div class="detail-section" v-if="hasNpcCoreStats(selectedPerson)">
                     <h5 class="section-title">核心数值</h5>
                     <div class="npc-vitals-container">
-                      <div class="npc-vital-row">
-                        <div class="npc-vital-meta">
-                          <span class="npc-vital-name">{{ t('体力') }}</span>
-                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '体力') }}</span>
+                      <div class="npc-vital-row" v-for="statKey in ['体力','精力']" :key="statKey">
+                        <div class="npc-vital-meta editable-row" @click="editField !== `stat_${statKey}` && startEdit(`stat_${statKey}`, { cur: getNpcStatCurrent(selectedPerson, statKey), max: getNpcStatMax(selectedPerson, statKey) })">
+                          <span class="npc-vital-name">{{ t(statKey) }}</span>
+                          <template v-if="editField === `stat_${statKey}`">
+                            <span class="stat-edit-group">
+                              <input type="number" v-model.number="editValue.cur" class="inline-edit-input-sm" min="0" @keyup.escape="cancelEdit" />
+                              /
+                              <input type="number" v-model.number="editValue.max" class="inline-edit-input-sm" min="1" @keyup.escape="cancelEdit" />
+                              <button class="edit-ok-btn" @click.stop="updateStatValue(statKey, editValue.cur, editValue.max); cancelEdit()" title="确认"><Check :size="10" /></button>
+                              <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                            </span>
+                          </template>
+                          <span v-else class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, statKey) }} <Edit :size="10" class="inline-edit-icon" /></span>
                         </div>
                         <div class="npc-vital-track">
-                          <div class="npc-vital-bar red-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '体力') + '%' }"></div>
-                        </div>
-                      </div>
-                      <div class="npc-vital-row">
-                        <div class="npc-vital-meta">
-                          <span class="npc-vital-name">{{ t('精力') }}</span>
-                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '精力') }}</span>
-                        </div>
-                        <div class="npc-vital-track">
-                          <div class="npc-vital-bar blue-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '精力') + '%' }"></div>
+                          <div class="npc-vital-bar" :class="statKey === '体力' ? 'red-bar' : 'blue-bar'" :style="{ width: getNpcStatPercentage(selectedPerson, statKey) + '%' }"></div>
                         </div>
                       </div>
                       <div class="npc-vital-row" v-if="hasNpcStatPair(selectedPerson, '洞察力')">
-                        <div class="npc-vital-meta">
+                        <div class="npc-vital-meta editable-row" @click="editField !== 'stat_洞察力' && startEdit('stat_洞察力', { cur: getNpcStatCurrent(selectedPerson, '洞察力'), max: getNpcStatMax(selectedPerson, '洞察力') })">
                           <span class="npc-vital-name">{{ t('洞察力') }}</span>
-                          <span class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '洞察力') }}</span>
+                          <template v-if="editField === 'stat_洞察力'">
+                            <span class="stat-edit-group">
+                              <input type="number" v-model.number="editValue.cur" class="inline-edit-input-sm" min="0" @keyup.escape="cancelEdit" />
+                              /
+                              <input type="number" v-model.number="editValue.max" class="inline-edit-input-sm" min="1" @keyup.escape="cancelEdit" />
+                              <button class="edit-ok-btn" @click.stop="updateStatValue('洞察力', editValue.cur, editValue.max); cancelEdit()" title="确认"><Check :size="10" /></button>
+                              <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                            </span>
+                          </template>
+                          <span v-else class="npc-vital-nums">{{ formatNpcStatPair(selectedPerson, '洞察力') }} <Edit :size="10" class="inline-edit-icon" /></span>
                         </div>
                         <div class="npc-vital-track">
                           <div class="npc-vital-bar gold-bar" :style="{ width: getNpcStatPercentage(selectedPerson, '洞察力') + '%' }"></div>
                         </div>
                       </div>
                       <div class="npc-vital-row">
-                        <div class="npc-vital-meta">
+                        <div class="npc-vital-meta editable-row" @click="editField !== 'stat_寿元' && startEdit('stat_寿元', getNpcLifespanMax(selectedPerson))">
                           <span class="npc-vital-name">寿元</span>
-                          <span class="npc-vital-nums">{{ formatNpcLifespan(selectedPerson) }}</span>
+                          <template v-if="editField === 'stat_寿元'">
+                            <span class="stat-edit-group">
+                              上限 <input type="number" v-model.number="editValue" class="inline-edit-input-sm" min="1" @keyup.escape="cancelEdit" />
+                              <button class="edit-ok-btn" @click.stop="updateLifespanMax(editValue); cancelEdit()" title="确认"><Check :size="10" /></button>
+                              <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                            </span>
+                          </template>
+                          <span v-else class="npc-vital-nums">{{ formatNpcLifespan(selectedPerson) }} <Edit :size="10" class="inline-edit-icon" /></span>
                         </div>
                         <div class="npc-vital-track">
                           <div class="npc-vital-bar purple-bar" :style="{ width: getNpcLifespanPercentage(selectedPerson) + '%' }"></div>
@@ -246,74 +338,71 @@
                   </div>
 
                   <!-- 外貌与性格 -->
-                  <div
-                    class="detail-section"
-                    v-if="selectedPerson.外貌描述 || selectedPerson.性格特征?.length"
-                  >
+                  <div class="detail-section">
                     <h5 class="section-title">外貌与性格</h5>
-                    <div v-if="selectedPerson.外貌描述" class="appearance-description">
-                      <p class="description-text">{{ selectedPerson.外貌描述 }}</p>
+                    <div class="appearance-description">
+                      <template v-if="editField === '外貌描述'">
+                        <textarea v-model="editValue" class="inline-edit-textarea" rows="3" @keyup.escape="cancelEdit" />
+                        <div class="edit-actions-row">
+                          <button class="edit-confirm-btn" @click="confirmEdit('外貌描述')">确定</button>
+                          <button class="edit-cancel-btn" @click="cancelEdit">取消</button>
+                        </div>
+                      </template>
+                      <p v-else class="description-text editable-text" @click="startEdit('外貌描述', selectedPerson.外貌描述)">{{ selectedPerson.外貌描述 || '点击添加外貌描述...' }} <Edit :size="12" class="inline-edit-icon" /></p>
                     </div>
-                    <div
-                      v-if="selectedPerson.性格特征?.length"
-                      class="talents-grid"
-                      style="margin-top: 1rem"
-                    >
+                    <div class="talents-grid editable-list" style="margin-top: 1rem">
                       <span
-                        v-for="trait in selectedPerson.性格特征"
+                        v-for="(trait, index) in (selectedPerson.性格特征 || [])"
                         :key="trait"
-                        class="talent-tag"
-                        >{{ trait }}</span
-                      >
+                        class="talent-tag with-delete"
+                      >{{ trait }}<button class="tag-delete-btn" @click.stop="removeListItem('性格特征', index)" title="删除">&times;</button></span>
+                      <span class="talent-tag add-tag" @click="newListItemInput = ''; startEdit('性格特征_add', '')">
+                        <template v-if="editField === '性格特征_add'">
+                          <input v-model="newListItemInput" class="tag-add-input" placeholder="新性格" @keyup.enter="addListItem('性格特征', newListItemInput); cancelEdit()" @keyup.escape="cancelEdit" @blur="{ if(newListItemInput.trim()) addListItem('性格特征', newListItemInput); cancelEdit(); }" />
+                        </template>
+                        <template v-else><Plus :size="12" /> 添加</template>
+                      </span>
                     </div>
                   </div>
 
                   <!-- 天赋与六维属性 -->
-                  <div
-                    class="detail-section"
-                    v-if="selectedPerson.天赋?.length || (selectedPerson as any).先天六维属性 || (selectedPerson as any).先天六司"
-                  >
-                    <h5 class="section-title">{{ t('天赋与六维属性') }}</h5>
-                    <div v-if="selectedPerson.天赋?.length">
-                      <h6 class="subsection-title">天赋能力</h6>
-                      <div class="talents-grid">
+                    <div
+                      class="detail-section"
+                      v-if="true"
+                    >
+                      <h5 class="section-title">{{ t('天赋与六维属性') }}</h5>
+                      <div>
+                        <h6 class="subsection-title">天赋能力</h6>
+                      <div class="talents-grid editable-list">
                         <span
                           v-for="(talent, index) in selectedPerson.天赋"
                           :key="index"
-                          class="talent-tag"
+                          class="talent-tag with-delete"
                           @click="showTalentDetail(talent)"
                           style="cursor: pointer"
                         >
                           {{ getTalentName(talent) }}
+                          <button class="tag-delete-btn" @click.stop="removeListItem('天赋', index)" title="删除">&times;</button>
+                        </span>
+                        <span class="talent-tag add-tag" @click="newListItemInput = ''; startEdit('天赋_add', '')">
+                          <template v-if="editField === '天赋_add'">
+                            <input v-model="newListItemInput" class="tag-add-input" placeholder="新天赋" @keyup.enter="addListItem('天赋', newListItemInput); cancelEdit()" @keyup.escape="cancelEdit" @blur="{ if(newListItemInput.trim()) addListItem('天赋', newListItemInput); cancelEdit(); }" />
+                          </template>
+                          <template v-else><Plus :size="12" /> 添加</template>
                         </span>
                       </div>
                     </div>
                     <div v-if="(selectedPerson as any).先天六维属性 || (selectedPerson as any).先天六司" style="margin-top: 1rem">
                       <h6 class="subsection-title">{{ t('先天六维属性') }}</h6>
                       <div class="attributes-grid">
-                        <div class="attribute-item">
-                          <span class="attr-label">体质</span
-                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).体质 ?? (npcInnateAttrs(selectedPerson) as any).根骨 ?? 0 }}</span>
-                        </div>
-                        <div class="attribute-item">
-                          <span class="attr-label">直觉</span
-                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).直觉 ?? (npcInnateAttrs(selectedPerson) as any).灵性 ?? 0 }}</span>
-                        </div>
-                        <div class="attribute-item">
-                          <span class="attr-label">悟性</span
-                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).悟性 || 0 }}</span>
-                        </div>
-                        <div class="attribute-item">
-                          <span class="attr-label">气运</span
-                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).气运 || 0 }}</span>
-                        </div>
-                        <div class="attribute-item">
-                          <span class="attr-label">魅力</span
-                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).魅力 || 0 }}</span>
-                        </div>
-                        <div class="attribute-item">
-                          <span class="attr-label">心性</span
-                          ><span class="attr-value">{{ npcInnateAttrs(selectedPerson).心性 || 0 }}</span>
+                        <div class="attribute-item editable-row" v-for="attrName in ['体质','直觉','悟性','气运','魅力','心性']" :key="attrName" @click="editField !== `attr_${attrName}` && startEdit(`attr_${attrName}`, npcInnateAttrs(selectedPerson)[attrName] || 0)">
+                          <span class="attr-label">{{ attrName }}</span>
+                          <template v-if="editField === `attr_${attrName}`">
+                            <input type="number" v-model.number="editValue" class="inline-edit-input-sm" min="0" max="100" @keyup.enter="updateInnateAttr(attrName, editValue); cancelEdit()" @keyup.escape="cancelEdit" />
+                            <button class="edit-ok-btn" @click.stop="updateInnateAttr(attrName, editValue); cancelEdit()" title="确认"><Check :size="10" /></button>
+                            <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                          </template>
+                          <span v-else class="attr-value">{{ npcInnateAttrs(selectedPerson)[attrName] || 0 }} <Edit :size="10" class="inline-edit-icon" /></span>
                         </div>
                       </div>
                     </div>
@@ -340,15 +429,20 @@
                   <div class="detail-section personality-section">
                     <h5 class="section-title">⚠️ 人格底线</h5>
                     <div class="personality-bottomlines">
-                      <div v-if="selectedPerson.人格底线?.length" class="bottomline-tags">
+                      <div class="bottomline-tags editable-list">
                         <span
-                          v-for="(line, index) in selectedPerson.人格底线"
+                          v-for="(line, index) in (selectedPerson.人格底线 || [])"
                           :key="index"
-                          class="bottomline-tag"
-                          >{{ line }}</span
-                        >
+                          class="bottomline-tag with-delete"
+                        >{{ line }}<button class="tag-delete-btn" @click.stop="removeListItem('人格底线', index)" title="删除">&times;</button></span>
+                        <span class="bottomline-tag add-tag" @click="newListItemInput = ''; startEdit('人格底线_add', '')">
+                          <template v-if="editField === '人格底线_add'">
+                            <input v-model="newListItemInput" class="tag-add-input" placeholder="新底线" @keyup.enter="addListItem('人格底线', newListItemInput); cancelEdit()" @keyup.escape="cancelEdit" @blur="{ if(newListItemInput.trim()) addListItem('人格底线', newListItemInput); cancelEdit(); }" />
+                          </template>
+                          <template v-else><Plus :size="12" /> 添加</template>
+                        </span>
                       </div>
-                      <div v-else class="bottomline-empty">未记录人格底线</div>
+                      <div v-if="!(selectedPerson.人格底线?.length)" class="bottomline-empty">未记录人格底线</div>
                     </div>
                     <div class="bottomline-warning">
                       <span class="warning-icon">⚡</span>
@@ -364,21 +458,35 @@
                   <div class="detail-section highlight-section">
                     <h5 class="section-title">💭 当前状态（实时）</h5>
                     <div class="realtime-status">
-                      <div class="status-item">
+                      <div class="status-item editable-row" @click="editField !== '当前外貌状态' && startEdit('当前外貌状态', selectedPerson.当前外貌状态)">
                         <span class="status-icon">😶</span>
                         <div class="status-content">
                           <div class="status-label">外貌状态</div>
-                          <div class="status-text">
-                            {{ selectedPerson.当前外貌状态 || '神态自然，衣衫整洁' }}
+                          <template v-if="editField === '当前外貌状态'">
+                            <input v-model="editValue" class="inline-edit-input" @keyup.enter="confirmEdit('当前外貌状态')" @keyup.escape="cancelEdit" />
+                            <div class="edit-actions-inline">
+                              <button class="edit-ok-btn" @click.stop="confirmEdit('当前外貌状态')" title="确认"><Check :size="12" /></button>
+                              <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                            </div>
+                          </template>
+                          <div v-else class="status-text editable-text">
+                            {{ selectedPerson.当前外貌状态 || '神态自然，衣衫整洁' }} <Edit :size="12" class="inline-edit-icon" />
                           </div>
                         </div>
                       </div>
-                      <div class="status-item">
+                      <div class="status-item editable-row" @click="editField !== '当前内心想法' && startEdit('当前内心想法', selectedPerson.当前内心想法)">
                         <span class="status-icon">💭</span>
                         <div class="status-content">
                           <div class="status-label">内心想法</div>
-                          <div class="status-text">
-                            {{ selectedPerson.当前内心想法 || '心如止水，平静无波' }}
+                          <template v-if="editField === '当前内心想法'">
+                            <input v-model="editValue" class="inline-edit-input" @keyup.enter="confirmEdit('当前内心想法')" @keyup.escape="cancelEdit" />
+                            <div class="edit-actions-inline">
+                              <button class="edit-ok-btn" @click.stop="confirmEdit('当前内心想法')" title="确认"><Check :size="12" /></button>
+                              <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                            </div>
+                          </template>
+                          <div v-else class="status-text editable-text">
+                            {{ selectedPerson.当前内心想法 || '心如止水，平静无波' }} <Edit :size="12" class="inline-edit-icon" />
                           </div>
                         </div>
                       </div>
@@ -402,12 +510,19 @@
                   <div class="detail-section highlight-section">
                     <h5 class="section-title">📌 在做事项</h5>
                     <div class="realtime-status">
-                      <div class="status-item">
+                      <div class="status-item editable-row" @click="editField !== '在做事项' && startEdit('在做事项', selectedPerson.在做事项)">
                         <span class="status-icon">📌</span>
                         <div class="status-content">
                           <div class="status-label">当前在做事项</div>
-                          <div class="status-text">
-                            {{ selectedPerson.在做事项 || '暂无' }}
+                          <template v-if="editField === '在做事项'">
+                            <input v-model="editValue" class="inline-edit-input" @keyup.enter="confirmEdit('在做事项')" @keyup.escape="cancelEdit" />
+                            <div class="edit-actions-inline">
+                              <button class="edit-ok-btn" @click.stop="confirmEdit('在做事项')" title="确认"><Check :size="12" /></button>
+                              <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="12" /></button>
+                            </div>
+                          </template>
+                          <div v-else class="status-text editable-text">
+                            {{ selectedPerson.在做事项 || '暂无' }} <Edit :size="12" class="inline-edit-icon" />
                           </div>
                         </div>
                       </div>
@@ -438,43 +553,95 @@
                         <h6 class="subsection-title">概览</h6>
 
                         <div class="info-grid-responsive">
-                          <div class="info-item-row">
-                            <span class="info-label">是否为处女</span
-                            ><span class="info-value">{{ privacy.是否为处女 ? '是' : '否' }}</span>
+                          <div class="info-item-row editable-row" @click="editField !== '是否为处女' && startEdit('是否为处女', privacy.是否为处女)">
+                            <span class="info-label">是否为处女</span>
+                            <template v-if="editField === '是否为处女'">
+                              <select v-model="editValue" class="inline-edit-select" @click.stop>
+                                <option :value="true">是</option>
+                                <option :value="false">否</option>
+                              </select>
+                              <div class="edit-actions-inline">
+                                <button class="edit-ok-btn" @click.stop="confirmEdit('是否为处女')"><Check :size="12" /></button>
+                                <button class="edit-no-btn" @click.stop="cancelEdit"><X :size="12" /></button>
+                              </div>
+                            </template>
+                            <span v-else class="info-value">{{ privacy.是否为处女 ? '是' : '否' }} <Edit :size="10" class="inline-edit-icon" /></span>
                           </div>
-                          <div class="info-item-row">
-                            <span class="info-label">性格倾向</span
-                            ><span class="info-value">{{ privacy.性格倾向 || '无' }}</span>
+                          <div class="info-item-row editable-row" @click="editField !== '性格倾向' && startEdit('性格倾向', privacy.性格倾向)">
+                            <span class="info-label">性格倾向</span>
+                            <template v-if="editField === '性格倾向'">
+                              <input v-model="editValue" class="inline-edit-input-sm" @keyup.enter="confirmEdit('性格倾向')" @keyup.escape="cancelEdit" @click.stop />
+                              <div class="edit-actions-inline">
+                                <button class="edit-ok-btn" @click.stop="confirmEdit('性格倾向')"><Check :size="12" /></button>
+                                <button class="edit-no-btn" @click.stop="cancelEdit"><X :size="12" /></button>
+                              </div>
+                            </template>
+                            <span v-else class="info-value">{{ privacy.性格倾向 || '无' }} <Edit :size="10" class="inline-edit-icon" /></span>
                           </div>
-                          <div class="info-item-row">
-                            <span class="info-label">性取向</span
-                            ><span class="info-value">{{ privacy.性取向 || '无' }}</span>
+                          <div class="info-item-row editable-row" @click="editField !== '性取向' && startEdit('性取向', privacy.性取向)">
+                            <span class="info-label">性取向</span>
+                            <template v-if="editField === '性取向'">
+                              <input v-model="editValue" class="inline-edit-input-sm" @keyup.enter="confirmEdit('性取向')" @keyup.escape="cancelEdit" @click.stop />
+                              <div class="edit-actions-inline">
+                                <button class="edit-ok-btn" @click.stop="confirmEdit('性取向')"><Check :size="12" /></button>
+                                <button class="edit-no-btn" @click.stop="cancelEdit"><X :size="12" /></button>
+                              </div>
+                            </template>
+                            <span v-else class="info-value">{{ privacy.性取向 || '无' }} <Edit :size="10" class="inline-edit-icon" /></span>
                           </div>
-                          <div class="info-item-row">
-                            <span class="info-label">当前性状态</span
-                            ><span class="info-value">{{ privacy.当前性状态 || '无' }}</span>
+                          <div class="info-item-row editable-row" @click="editField !== '当前性状态' && startEdit('当前性状态', privacy.当前性状态)">
+                            <span class="info-label">当前性状态</span>
+                            <template v-if="editField === '当前性状态'">
+                              <input v-model="editValue" class="inline-edit-input-sm" @keyup.enter="confirmEdit('当前性状态')" @keyup.escape="cancelEdit" @click.stop />
+                              <div class="edit-actions-inline">
+                                <button class="edit-ok-btn" @click.stop="confirmEdit('当前性状态')"><Check :size="12" /></button>
+                                <button class="edit-no-btn" @click.stop="cancelEdit"><X :size="12" /></button>
+                              </div>
+                            </template>
+                            <span v-else class="info-value">{{ privacy.当前性状态 || '无' }} <Edit :size="10" class="inline-edit-icon" /></span>
                           </div>
-                          <div class="info-item-row">
-                            <span class="info-label">体液分泌状态</span
-                            ><span class="info-value"
+                          <div class="info-item-row editable-row" @click="editField !== '体液分泌状态' && startEdit('体液分泌状态', privacy.体液分泌状态)">
+                            <span class="info-label">体液分泌状态</span>
+                            <template v-if="editField === '体液分泌状态'">
+                              <input v-model="editValue" class="inline-edit-input-sm" @keyup.enter="confirmEdit('体液分泌状态')" @keyup.escape="cancelEdit" @click.stop />
+                              <div class="edit-actions-inline">
+                                <button class="edit-ok-btn" @click.stop="confirmEdit('体液分泌状态')"><Check :size="12" /></button>
+                                <button class="edit-no-btn" @click.stop="cancelEdit"><X :size="12" /></button>
+                              </div>
+                            </template>
+                            <span v-else class="info-value"
                               ><span
                                 class="status-badge"
                                 :class="`status-${privacy.体液分泌状态 || '正常'}`"
-                                >{{ privacy.体液分泌状态 || '正常' }}</span
+                                >{{ privacy.体液分泌状态 || '正常' }} <Edit :size="10" class="inline-edit-icon" /></span
                               ></span
                             >
                           </div>
-                          <div class="info-item-row">
-                            <span class="info-label">性交总次数</span
-                            ><span class="info-value">{{ privacy.性交总次数 ?? 0 }}</span>
+                          <div class="info-item-row editable-row" @click="editField !== '性交总次数' && startEdit('性交总次数', privacy.性交总次数)">
+                            <span class="info-label">性交总次数</span>
+                            <template v-if="editField === '性交总次数'">
+                              <input type="number" v-model.number="editValue" class="inline-edit-input-sm" min="0" @keyup.enter="confirmEdit('性交总次数')" @keyup.escape="cancelEdit" @click.stop />
+                              <div class="edit-actions-inline">
+                                <button class="edit-ok-btn" @click.stop="confirmEdit('性交总次数')"><Check :size="12" /></button>
+                                <button class="edit-no-btn" @click.stop="cancelEdit"><X :size="12" /></button>
+                              </div>
+                            </template>
+                            <span v-else class="info-value">{{ privacy.性交总次数 ?? 0 }} <Edit :size="10" class="inline-edit-icon" /></span>
                           </div>
                         </div>
 
                         <div class="development-bars" style="margin-top: 0.75rem">
-                          <div class="dev-bar-item">
+                          <div class="dev-bar-item editable-row" @click="editField !== '性渴望程度' && startEdit('性渴望程度', privacy.性渴望程度)">
                             <div class="dev-bar-header">
                               <span class="dev-label">性渴望程度</span>
-                              <span class="dev-value">{{ privacy.性渴望程度 ?? 0 }}/100</span>
+                              <template v-if="editField === '性渴望程度'">
+                                <div class="edit-container-inline">
+                                  <input type="number" v-model.number="editValue" class="inline-edit-input-sm" min="0" max="100" @keyup.enter="confirmEdit('性渴望程度')" @keyup.escape="cancelEdit" @click.stop />
+                                  <button class="edit-ok-btn" @click.stop="confirmEdit('性渴望程度')"><Check :size="12" /></button>
+                                  <button class="edit-no-btn" @click.stop="cancelEdit"><X :size="12" /></button>
+                                </div>
+                              </template>
+                              <span v-else class="dev-value" style="display:flex; align-items:center;">{{ privacy.性渴望程度 ?? 0 }}/100 <Edit :size="10" class="inline-edit-icon" style="margin-left:4px" /></span>
                             </div>
                             <div class="dev-bar-track">
                               <div
@@ -493,42 +660,63 @@
 
                       <!-- 偏好/体质 -->
                       <div
-                        v-if="privacyFetishesAll.length || privacyTraitsAll.length"
                         class="nsfw-subsection"
                       >
                         <h6 class="subsection-title">偏好与体质</h6>
-                        <div v-if="privacyFetishesAll.length" class="bottomline-tags">
+                        <div class="bottomline-tags editable-list">
                           <span
                             v-for="(kink, index) in privacyFetishesAll"
                             :key="`${kink}-${index}`"
-                            class="fetish-tag"
-                            >{{ kink }}</span
-                          >
+                            class="fetish-tag with-delete"
+                            >{{ kink }}
+                            <button class="tag-delete-btn" @click.stop="removeListItemByValue('性癖好', kink, '私密信息.性癖好')" title="删除">&times;</button>
+                          </span>
+                        </div>
+                        <div class="bottomline-tags editable-list" style="margin-top: 0.5rem">
+                           <span class="fetish-tag add-tag" @click="newListItemInput = ''; startEdit('性癖好_add', '')">
+                            <template v-if="editField === '性癖好_add'">
+                              <input v-model="newListItemInput" class="tag-add-input" placeholder="新性癖" @keyup.enter="addListItem('性癖好', newListItemInput, '私密信息.性癖好'); cancelEdit()" @keyup.escape="cancelEdit" @blur="{ if(newListItemInput.trim()) addListItem('性癖好', newListItemInput, '私密信息.性癖好'); cancelEdit(); }" />
+                            </template>
+                            <template v-else><Plus :size="12" /> 添加性癖</template>
+                          </span>
                         </div>
                         <div
-                          v-if="privacyTraitsAll.length"
-                          class="bottomline-tags"
+                          class="bottomline-tags editable-list"
                           style="margin-top: 0.5rem"
                         >
                           <span
                             v-for="(trait, index) in privacyTraitsAll"
                             :key="`${trait}-${index}`"
-                            class="special-trait-tag"
-                            >{{ trait }}</span
-                          >
+                            class="special-trait-tag with-delete"
+                            >{{ trait }}
+                            <button class="tag-delete-btn" @click.stop="removeListItemByValue('特殊体质', trait, '私密信息.特殊体质')" title="删除">&times;</button>
+                          </span>
+                           <span class="special-trait-tag add-tag" @click="newListItemInput = ''; startEdit('特殊体质_add', '')">
+                            <template v-if="editField === '特殊体质_add'">
+                              <input v-model="newListItemInput" class="tag-add-input" placeholder="新体质" @keyup.enter="addListItem('特殊体质', newListItemInput, '私密信息.特殊体质'); cancelEdit()" @keyup.escape="cancelEdit" @blur="{ if(newListItemInput.trim()) addListItem('特殊体质', newListItemInput, '私密信息.特殊体质'); cancelEdit(); }" />
+                            </template>
+                            <template v-else><Plus :size="12" /> 添加体质</template>
+                          </span>
                         </div>
                       </div>
 
                       <!-- 性伴侣名单 -->
-                      <div v-if="privacyPartnersAll.length" class="nsfw-subsection">
+                      <div class="nsfw-subsection">
                         <h6 class="subsection-title">性伴侣名单</h6>
-                        <div class="bottomline-tags partner-list">
+                        <div class="bottomline-tags partner-list editable-list">
                           <span
                             v-for="(partner, index) in privacyPartners"
                             :key="`${partner}-${index}`"
-                            class="partner-tag"
-                            >{{ partner }}</span
-                          >
+                            class="partner-tag with-delete"
+                            >{{ partner }}
+                            <button class="tag-delete-btn" @click.stop="removeListItemByValue('性伴侣名单', partner, '私密信息.性伴侣名单')" title="删除">&times;</button>
+                          </span>
+                          <span class="partner-tag add-tag" @click="newListItemInput = ''; startEdit('性伴侣名单_add', '')">
+                            <template v-if="editField === '性伴侣名单_add'">
+                              <input v-model="newListItemInput" class="tag-add-input" placeholder="新伴侣" @keyup.enter="addListItem('性伴侣名单', newListItemInput, '私密信息.性伴侣名单'); cancelEdit()" @keyup.escape="cancelEdit" @blur="{ if(newListItemInput.trim()) addListItem('性伴侣名单', newListItemInput, '私密信息.性伴侣名单'); cancelEdit(); }" />
+                            </template>
+                            <template v-else><Plus :size="12" /> 添加</template>
+                          </span>
                         </div>
                         <button
                           v-if="privacyPartnersAll.length > privacyPartners.length"
@@ -552,19 +740,32 @@
                       </div>
 
                       <!-- 身体部位 -->
-                      <div v-if="privacyBodyPartsAll.length" class="nsfw-subsection">
-                        <h6 class="subsection-title">身体部位</h6>
+                      <div class="nsfw-subsection">
+                        <div class="subsection-header-row">
+                          <h6 class="subsection-title">身体部位</h6>
+                          <button class="add-btn-sm" @click="openAddBodyPartModal">
+                            <Plus :size="12" /> 添加
+                          </button>
+                        </div>
 
                         <div class="body-parts-list">
                           <div
                             v-for="(part, index) in privacyBodyParts"
                             :key="`${part.部位名称}-${index}`"
-                            class="body-part-item"
+                            class="body-part-item editable-card"
                           >
                             <div class="part-header">
                               <span class="part-name">{{
                                 part.部位名称 || `部位${index + 1}`
                               }}</span>
+                              <div class="part-actions-hover">
+                                <button class="action-btn-icon" @click.stop="openEditBodyPartModal(part, index)" title="编辑">
+                                  <Edit :size="12" />
+                                </button>
+                                <button class="action-btn-icon delete" @click.stop="deleteBodyPart(index)" title="删除">
+                                  <Trash2 :size="12" />
+                                </button>
+                              </div>
                               <span v-if="part.特殊印记" class="part-mark">{{
                                 part.特殊印记
                               }}</span>
@@ -619,7 +820,12 @@
                       </div>
                     </div>
 
-                    <div v-else class="bottomline-empty">暂无私密信息（等待AI生成）</div>
+                    <div v-else class="bottomline-empty">
+                      暂无私密信息
+                      <button class="create-blank-btn" @click="createBlankPrivacyProfile">
+                        <Plus :size="14" /> 创建空白模板
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -769,10 +975,21 @@
                 <!-- Tab 5: 背包 -->
                 <div v-show="activeTab === 'inventory'" class="tab-panel">
                   <div class="detail-section">
-                    <h5 class="section-title">背包</h5>
+                    <div class="section-header-row">
+                      <h5 class="section-title">背包</h5>
+                      <button class="add-item-btn" @click="showAddItemModal = true" title="添加物品">
+                        <Plus :size="14" /> 添加物品
+                      </button>
+                    </div>
                     <div v-if="selectedPerson.背包?.金钱 || (selectedPerson.背包 as any)?.灵石" class="spirit-stones-grid">
-                      <div class="spirit-stone-item" v-for="g in ['现金','铜','银','金']" :key="g">
-                        <span>{{ t(g) }}{{ t('金钱') }}</span><span>{{ getNpcCurrencyTier(selectedPerson, g) }}</span>
+                      <div class="spirit-stone-item editable-row" v-for="g in ['现金','铜','银','金']" :key="g" @click="editField !== `货币_${g}` && startEdit(`货币_${g}`, getNpcCurrencyTier(selectedPerson, g))">
+                        <span>{{ t(g) }}{{ t('金钱') }}</span>
+                        <template v-if="editField === `货币_${g}`">
+                          <input type="number" v-model.number="editValue" class="inline-edit-input-sm" min="0" @keyup.enter="updateCurrency(g, editValue); cancelEdit()" @keyup.escape="cancelEdit" />
+                          <button class="edit-ok-btn" @click.stop="updateCurrency(g, editValue); cancelEdit()" title="确认"><Check :size="10" /></button>
+                          <button class="edit-no-btn" @click.stop="cancelEdit" title="取消"><X :size="10" /></button>
+                        </template>
+                        <span v-else>{{ getNpcCurrencyTier(selectedPerson, g) }} <Edit :size="10" class="inline-edit-icon" /></span>
                       </div>
                     </div>
                     <div class="npc-inventory" style="margin-top: 1rem">
@@ -786,6 +1003,9 @@
                           <div class="item-header">
                             <span class="item-name">{{ item.名称 || itemId }}</span>
                             <span class="item-type">{{ item.类型 || '其他' }}</span>
+                            <button class="item-delete-btn" @click.stop="deleteNpcItem(String(itemId))" title="删除此物品">
+                              <X :size="12" />
+                            </button>
                           </div>
                           <div class="item-quality" v-if="item.品质">
                             <span class="quality-text"
@@ -830,6 +1050,43 @@
                       </div>
                     </div>
                   </div>
+
+
+
+                  <!-- 添加物品弹窗 -->
+                  <div v-if="showAddItemModal" class="modal-overlay" @click.self="showAddItemModal = false">
+                    <div class="add-item-modal">
+                      <h4 class="modal-title">添加物品</h4>
+                      <div class="modal-form">
+                        <div class="form-group">
+                          <label>名称</label>
+                          <input v-model="newItemForm.名称" class="form-input" placeholder="物品名称" />
+                        </div>
+                        <div class="form-group">
+                          <label>类型</label>
+                          <select v-model="newItemForm.类型" class="form-input">
+                            <option v-for="t in ['武器', '护甲', '药品', '材料', '功法', '其他']" :key="t" :value="t">{{ t }}</option>
+                          </select>
+                        </div>
+                        <div class="form-group">
+                          <label>品质</label>
+                          <input v-model="newItemForm.品质" class="form-input" placeholder="如：凡品/精品/传说" />
+                        </div>
+                        <div class="form-group">
+                          <label>数量</label>
+                          <input type="number" v-model.number="newItemForm.数量" class="form-input" min="1" />
+                        </div>
+                        <div class="form-group">
+                          <label>描述</label>
+                          <textarea v-model="newItemForm.描述" class="form-input form-textarea" rows="2" placeholder="物品描述（可选）" />
+                        </div>
+                      </div>
+                      <div class="modal-actions">
+                        <button class="modal-btn confirm" @click="addItemToNpc">确定添加</button>
+                        <button class="modal-btn cancel" @click="showAddItemModal = false">取消</button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <!-- End of Tab 5: 背包 -->
 
@@ -857,6 +1114,44 @@
       </div>
     </div>
   </div>
+  <Teleport to="body">
+    <div v-if="showBodyPartModal" class="modal-overlay" @click.self="showBodyPartModal = false">
+      <div class="add-item-modal glass-modal">
+        <div class="modal-header">
+          <h4 class="modal-title">{{ editingBodyPartIndex === -1 ? '添加身体部位' : '编辑身体部位' }}</h4>
+          <button class="close-btn" @click="showBodyPartModal = false"><X :size="20" /></button>
+        </div>
+        <div class="modal-form">
+          <div class="form-group">
+            <label>部位名称</label>
+            <input v-model="bodyPartForm.部位名称" class="form-input glow-input" placeholder="如：胸部、大腿" />
+          </div>
+          <div class="form-group">
+            <label>特殊印记</label>
+            <input v-model="bodyPartForm.特殊印记" class="form-input glow-input" placeholder="如：蝴蝶纹身" />
+          </div>
+          <div class="form-group-row">
+            <div class="form-group half">
+              <label>敏感度 (0-100)</label>
+              <input type="number" v-model.number="bodyPartForm.敏感度" class="form-input glow-input" min="0" max="100" />
+            </div>
+            <div class="form-group half">
+              <label>开发度 (0-100)</label>
+              <input type="number" v-model.number="bodyPartForm.开发度" class="form-input glow-input" min="0" max="100" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>特征描述</label>
+            <textarea v-model="bodyPartForm.特征描述" class="form-input form-textarea glow-input" rows="3" placeholder="部位的详细外观描述..." />
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn cancel" @click="showBodyPartModal = false">取消</button>
+          <button class="modal-btn confirm glow-btn" @click="saveBodyPart">确定</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -868,8 +1163,10 @@ import type { NpcProfile, Item, BodyPartDevelopment, PrivacyProfile, SaveData } 
 import type { SpiritRoot } from '@/types';
 import {
   Users2, Search,
-  Loader2, ChevronRight, Package, ArrowRightLeft, Eye, EyeOff, Trash2, ArrowLeft, Download, BookOpen, Lock, Unlock
+  Loader2, ChevronRight, Package, ArrowRightLeft, Eye, EyeOff, Trash2, ArrowLeft, Download, BookOpen, Lock, Unlock, Edit, Plus, X, Check, Wand2
 } from 'lucide-vue-next';
+import { collectAllLocationNames, ensureLocationExists, appendNpcsToLocation } from '@/utils/locationUtils';
+import { validateAndRepairNpcProfile } from '@/utils/dataValidation';
 import { useUIStore } from '@/stores/uiStore';
 import { useCharacterStore } from '@/stores/characterStore';
 import { useGameStateStore } from '@/stores/gameStateStore';
@@ -1030,6 +1327,663 @@ const historyActivityList = computed(() => {
   return Array.isArray(arr) ? arr : [];
 });
 
+// ==================== NPC 编辑功能 ====================
+
+// 编辑状态
+const editField = ref<string | null>(null);
+const editValue = ref<any>(null);
+const isCreatingNpc = ref(false);
+const isRefiningNpc = ref(false);
+const showAddItemModal = ref(false);
+const showLocationDropdown = ref(false);
+const locationSearchQuery = ref('');
+
+// 新增物品表单
+const newItemForm = ref({
+  名称: '',
+  类型: '其他' as string,
+  品质: '',
+  数量: 1,
+  描述: '',
+});
+
+// 身体部位编辑表单
+const showBodyPartModal = ref(false);
+const editingBodyPartIndex = ref(-1);
+const bodyPartForm = ref<BodyPartDevelopment>({
+  部位名称: '',
+  特征描述: '',
+  特殊印记: '',
+  敏感度: 0,
+  开发度: 0,
+});
+
+// 所有地点名称（用于位置 dropdown）
+const allLocationNames = computed(() => {
+  const saveData = gameStateStore.getCurrentSaveData();
+  if (!saveData) return [];
+  return collectAllLocationNames(saveData as Record<string, unknown>);
+});
+
+// 过滤后的地点
+const filteredLocations = computed(() => {
+  const q = locationSearchQuery.value.trim().toLowerCase();
+  if (!q) return allLocationNames.value;
+  return allLocationNames.value.filter(name => name.toLowerCase().includes(q));
+});
+
+// 查找 NPC 在 store 中的 key
+const getNpcStoreKey = (): string | null => {
+  if (!selectedPerson.value) return null;
+  return findRelationshipKeyByName(selectedPerson.value.名字);
+};
+
+// 开始编辑某个字段
+const startEdit = (field: string, currentValue: any) => {
+  editField.value = field;
+  editValue.value = typeof currentValue === 'object' ? JSON.parse(JSON.stringify(currentValue)) : currentValue;
+  if (field === '当前位置') {
+    showLocationDropdown.value = true;
+    locationSearchQuery.value = typeof currentValue === 'string' ? currentValue : (currentValue?.描述 || '');
+  }
+};
+
+// 取消编辑
+const cancelEdit = () => {
+  editField.value = null;
+  editValue.value = null;
+  showLocationDropdown.value = false;
+  locationSearchQuery.value = '';
+};
+
+// 核心：更新 NPC 字段
+const updateNpcField = async (field: string, value: any, nestedPath?: string) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+
+  const npc = gameStateStore.relationships[key];
+  if (nestedPath) {
+    // 处理嵌套路径，如 '属性.体力.当前'
+    const parts = nestedPath.split('.');
+    let target: any = npc;
+    for (let i = 0; i < parts.length - 1; i++) {
+      if (!target[parts[i]]) target[parts[i]] = {};
+      target = target[parts[i]];
+    }
+    target[parts[parts.length - 1]] = value;
+  } else {
+    (npc as any)[field] = value;
+  }
+
+  // 刷新 selectedPerson
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast(`已更新 ${field}`, { type: 'success' });
+};
+
+// 确认编辑
+const confirmEdit = async (field: string) => {
+  if (editField.value !== field) return;
+  const value = editValue.value;
+
+  // 字段验证
+  if (field === '好感度') {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num < -100 || num > 100) {
+      uiStore.showToast('好感度必须在 -100 到 100 之间', { type: 'error' });
+      return;
+    }
+    await updateNpcField(field, num);
+  } else if (field === '名字') {
+    const str = String(value).trim();
+    if (!str) {
+      uiStore.showToast('名字不能为空', { type: 'error' });
+      return;
+    }
+    // 更新 store key（名字是 key）
+    const oldKey = getNpcStoreKey();
+    if (!oldKey || !gameStateStore.relationships?.[oldKey]) return;
+    const npcData = gameStateStore.relationships[oldKey];
+    npcData.名字 = str;
+    // 如果名字变了，需要重新映射 key
+    if (oldKey !== str) {
+      gameStateStore.relationships[str] = npcData;
+      delete gameStateStore.relationships[oldKey];
+    }
+    selectedPerson.value = { ...gameStateStore.relationships[str] };
+    await gameStateStore.saveGame();
+    uiStore.showToast('已更新名字', { type: 'success' });
+  } else if (field === '当前位置') {
+    const locName = String(locationSearchQuery.value || editValue.value).trim();
+    if (!locName) {
+      uiStore.showToast('位置不能为空', { type: 'error' });
+      return;
+    }
+    await updateNpcLocation(locName);
+  } else if (['性渴望程度', '性交总次数'].includes(field)) {
+    const num = Number(value);
+    if (!Number.isFinite(num) || num < 0) {
+      uiStore.showToast('数值必须为非负数', { type: 'error' });
+      return;
+    }
+    if (field === '性渴望程度' && num > 100) {
+      uiStore.showToast('性渴望程度必须在 0-100 之间', { type: 'error' });
+      return;
+    }
+    await updateNpcField(field, num, `私密信息.${field}`);
+  } else if (field === '是否为处女') {
+    await updateNpcField(field, value, '私密信息.是否为处女');
+  } else if (field === '地位') {
+    // 地位 can be string or {名称, 阶段}
+    await updateNpcField(field, value);
+  } else if (field === '年龄') {
+    const newAge = parseInt(String(value));
+    if (Number.isFinite(newAge) && newAge >= 0) {
+      const currentYear = (gameStateStore.worldInfo as any)?.时间?.年 ?? (characterData.value as any)?.元数据?.时间?.年 ?? 0;
+      const newBirthYear = currentYear - newAge;
+
+      const key = getNpcStoreKey();
+      if (key && gameStateStore.relationships?.[key]) {
+        const npc = gameStateStore.relationships[key];
+        if (!npc.出生日期) (npc as any).出生日期 = { 年: newBirthYear, 月: 1, 日: 1 };
+        else npc.出生日期.年 = newBirthYear;
+
+        selectedPerson.value = { ...gameStateStore.relationships[key] };
+        await gameStateStore.saveGame();
+        uiStore.showToast(`已更新年龄为 ${newAge}岁`, { type: 'success' });
+      }
+    }
+  } else if (['性格倾向', '性取向', '当前性状态', '体液分泌状态'].includes(field)) {
+    // 私密信息概览字段
+    await updateNpcField(field, value, `私密信息.${field}`);
+  } else {
+    await updateNpcField(field, value);
+  }
+  cancelEdit();
+};
+
+// ==================== 身体部位编辑逻辑 ====================
+
+const openAddBodyPartModal = () => {
+  editingBodyPartIndex.value = -1;
+  bodyPartForm.value = {
+    部位名称: '',
+    特征描述: '',
+    特殊印记: '',
+    敏感度: 0,
+    开发度: 0,
+  };
+  showBodyPartModal.value = true;
+};
+
+const openEditBodyPartModal = (part: BodyPartDevelopment, index: number) => {
+  editingBodyPartIndex.value = index;
+  // 深拷贝防止直接修改
+  bodyPartForm.value = JSON.parse(JSON.stringify(part));
+  showBodyPartModal.value = true;
+};
+
+const saveBodyPart = async () => {
+  if (!selectedPerson.value) return;
+  const name = bodyPartForm.value.部位名称?.trim();
+  if (!name) {
+    uiStore.showToast('部位名称不能为空', { type: 'error' });
+    return;
+  }
+
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+
+  // 确保结构存在
+  if (!npc.私密信息) (npc as any).私密信息 = {};
+  if (!npc.私密信息!.身体部位) npc.私密信息!.身体部位 = [];
+
+  const parts = npc.私密信息!.身体部位;
+
+  // 准备数据
+  const newPart: BodyPartDevelopment = {
+    ...bodyPartForm.value,
+    敏感度: clampPercent(bodyPartForm.value.敏感度),
+    开发度: clampPercent(bodyPartForm.value.开发度),
+  };
+
+  if (editingBodyPartIndex.value === -1) {
+    // 新增
+    parts.push(newPart);
+    uiStore.showToast(`已添加部位: ${name}`, { type: 'success' });
+  } else {
+    // 编辑
+    if (editingBodyPartIndex.value >= 0 && editingBodyPartIndex.value < parts.length) {
+      parts[editingBodyPartIndex.value] = newPart;
+      uiStore.showToast(`已更新部位: ${name}`, { type: 'success' });
+    }
+  }
+
+  // 保存
+  selectedPerson.value = { ...npc };
+  await gameStateStore.saveGame();
+  showBodyPartModal.value = false;
+};
+
+const deleteBodyPart = async (index: number) => {
+  if (!confirm('确定要删除这个身体部位吗？')) return;
+
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+
+  if (npc.私密信息?.身体部位 && index >= 0 && index < npc.私密信息.身体部位.length) {
+    const removed = npc.私密信息.身体部位.splice(index, 1)[0];
+    selectedPerson.value = { ...npc };
+    await gameStateStore.saveGame();
+    uiStore.showToast(`已删除部位: ${removed.部位名称}`, { type: 'success' });
+  }
+};
+
+// 更新 NPC 位置（含地图联动）
+const updateNpcLocation = async (locName: string) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+
+  const npc = gameStateStore.relationships[key];
+  const oldLoc = npc.当前位置?.描述;
+
+  // 更新 NPC 位置
+  if (!npc.当前位置) {
+    (npc as any).当前位置 = { 描述: locName };
+  } else {
+    npc.当前位置.描述 = locName;
+  }
+
+  // 获取 saveData 进行地图联动
+  const saveData = gameStateStore.toSaveData() as Record<string, unknown>;
+
+  // 确保地点存在（支持 A·B·C 格式自动创建）
+  const existingNames = allLocationNames.value;
+  if (!existingNames.includes(locName)) {
+    ensureLocationExists(saveData, locName);
+  }
+
+  // 将 NPC 添加到新地点的 地点NPC
+  appendNpcsToLocation(saveData, locName, [npc.名字]);
+
+  // 同步地点信息回 store
+  const worldInfo = (saveData as any)?.世界?.信息;
+  if (worldInfo) {
+    gameStateStore.worldInfo = worldInfo;
+  }
+
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  showLocationDropdown.value = false;
+  locationSearchQuery.value = '';
+  uiStore.showToast(`已更新位置: ${oldLoc || '无'} → ${locName}`, { type: 'success' });
+};
+
+// 选择位置 dropdown 条目
+const selectLocation = (locName: string) => {
+  locationSearchQuery.value = locName;
+  editValue.value = locName;
+};
+
+// 列表字段：新增项
+const addListItem = async (field: string, value: string, nestedPath?: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return;
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+
+  const npc = gameStateStore.relationships[key];
+  let arr: any[];
+  if (nestedPath) {
+    const parts = nestedPath.split('.');
+    let target: any = npc;
+    for (const p of parts) {
+      if (!target[p]) target[p] = [];
+      target = target[p];
+    }
+    arr = target;
+  } else {
+    if (!Array.isArray((npc as any)[field])) (npc as any)[field] = [];
+    arr = (npc as any)[field];
+  }
+
+  if (Array.isArray(arr) && !arr.includes(trimmed)) {
+    arr.push(trimmed);
+    selectedPerson.value = { ...gameStateStore.relationships[key] };
+    await gameStateStore.saveGame();
+    uiStore.showToast(`已添加: ${trimmed}`, { type: 'success' });
+  }
+};
+
+// 列表字段：删除项
+const removeListItem = async (field: string, index: number, nestedPath?: string) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+
+  const npc = gameStateStore.relationships[key];
+  let arr: any[];
+  if (nestedPath) {
+    const parts = nestedPath.split('.');
+    let target: any = npc;
+    for (const p of parts) { target = target?.[p]; }
+    arr = target;
+  } else {
+    arr = (npc as any)[field];
+  }
+
+  if (Array.isArray(arr) && index >= 0 && index < arr.length) {
+    const removed = arr.splice(index, 1)[0];
+    selectedPerson.value = { ...gameStateStore.relationships[key] };
+    await gameStateStore.saveGame();
+    uiStore.showToast(`已删除: ${typeof removed === 'string' ? removed : JSON.stringify(removed)}`, { type: 'success' });
+  }
+};
+
+// 列表字段：按值删除 (用于 computed 列表)
+const removeListItemByValue = async (field: string, value: string, nestedPath?: string) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+
+  const npc = gameStateStore.relationships[key];
+  let arr: any[];
+  if (nestedPath) {
+    const parts = nestedPath.split('.');
+    let target: any = npc;
+    for (const p of parts) { target = target?.[p]; }
+    arr = target;
+  } else {
+    arr = (npc as any)[field];
+  }
+
+  if (Array.isArray(arr)) {
+    const index = arr.findIndex(item => item === value || item?.trim() === value.trim());
+    if (index !== -1) {
+      const removed = arr.splice(index, 1)[0];
+      selectedPerson.value = { ...gameStateStore.relationships[key] };
+      await gameStateStore.saveGame();
+      uiStore.showToast(`已删除: ${value}`, { type: 'success' });
+    }
+  }
+};
+
+// 六司属性编辑
+const updateInnateAttr = async (attrName: string, value: number, type: '先天' | '后天' = '先天') => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  const fieldKey = type === '先天' ? '先天六维属性' : '后天六维属性';
+  const maxVal = type === '先天' ? 10 : 20;
+  const clamped = Math.max(0, Math.min(maxVal, Math.round(value)));
+  if (!(npc as any)[fieldKey]) (npc as any)[fieldKey] = {};
+  (npc as any)[fieldKey][attrName] = clamped;
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+};
+
+// 核心数值编辑 (体力/精力/洞察力 的当前/上限)
+const updateStatValue = async (statKey: string, curValue: number, maxValue: number) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  if (!npc.属性) (npc as any).属性 = {};
+  (npc.属性 as any)[statKey] = {
+    当前: Math.max(0, Math.round(curValue)),
+    上限: Math.max(1, Math.round(maxValue)),
+  };
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast(`已更新 ${statKey}`, { type: 'success' });
+};
+
+const updateLifespanMax = async (value: number) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  if (!npc.属性) (npc as any).属性 = {};
+  npc.属性.寿元上限 = Math.max(1, Math.round(value));
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast('已更新寿元上限', { type: 'success' });
+};
+
+// 货币编辑
+const updateCurrency = async (tier: string, value: number) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  if (!npc.背包) (npc as any).背包 = { 金钱: {}, 物品: {} };
+  if (!npc.背包.金钱) (npc.背包 as any).金钱 = { 现金: 0, 铜: 0, 银: 0, 金: 0 };
+  (npc.背包.金钱 as any)[tier] = Math.max(0, Math.round(value));
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast(`已更新 ${tier}`, { type: 'success' });
+};
+
+// 新增物品
+const addItemToNpc = async () => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const { 名称, 类型, 品质, 数量, 描述 } = newItemForm.value;
+  if (!名称.trim()) {
+    uiStore.showToast('物品名称不能为空', { type: 'error' });
+    return;
+  }
+  const npc = gameStateStore.relationships[key];
+  if (!npc.背包) (npc as any).背包 = { 金钱: {}, 物品: {} };
+  if (!npc.背包.物品) npc.背包.物品 = {};
+  const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+  npc.背包.物品[itemId] = {
+    名称: 名称.trim(),
+    类型: 类型 as any,
+    数量: Math.max(1, 数量),
+    描述: 描述.trim() || undefined,
+    品质: 品质 ? { quality: 品质 } : undefined,
+  } as any;
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  showAddItemModal.value = false;
+  newItemForm.value = { 名称: '', 类型: '其他', 品质: '', 数量: 1, 描述: '' };
+  uiStore.showToast(`已添加物品: ${名称.trim()}`, { type: 'success' });
+};
+
+// 删除物品
+const deleteNpcItem = async (itemId: string) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  if (!npc.背包?.物品?.[itemId]) return;
+  const itemName = npc.背包.物品[itemId].名称 || itemId;
+  delete npc.背包.物品[itemId];
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast(`已删除物品: ${itemName}`, { type: 'success' });
+};
+
+// NSFW: 创建空白私密信息模板
+const createBlankPrivacyProfile = async () => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  (npc as any).私密信息 = {
+    是否为处女: true,
+    身体部位: [],
+    性格倾向: '',
+    性取向: '',
+    性癖好: [],
+    性渴望程度: 0,
+    当前性状态: '正常',
+    体液分泌状态: '正常',
+    性交总次数: 0,
+    性伴侣名单: [],
+    最近一次性行为时间: '',
+    特殊体质: [],
+  } as PrivacyProfile;
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast('已创建私密信息模板', { type: 'success' });
+};
+
+// NSFW: 新增/删除身体部位
+const addBodyPart = async (partName: string) => {
+  if (!partName.trim()) return;
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  if (!npc.私密信息) return;
+  if (!Array.isArray(npc.私密信息.身体部位)) npc.私密信息.身体部位 = [];
+  npc.私密信息.身体部位.push({
+    部位名称: partName.trim(),
+    敏感度: 0,
+    开发度: 0,
+    特征描述: '',
+  });
+  selectedPerson.value = { ...gameStateStore.relationships[key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast(`已添加身体部位: ${partName.trim()}`, { type: 'success' });
+};
+
+const removeBodyPart = async (index: number) => {
+  const key = getNpcStoreKey();
+  if (!key || !gameStateStore.relationships?.[key]) return;
+  const npc = gameStateStore.relationships[key];
+  if (!Array.isArray(npc.私密信息?.身体部位)) return;
+  const parts = npc.私密信息!.身体部位;
+  const removed = parts.splice(index, 1)[0];
+  selectedPerson.value = { ...gameStateStore.relationships![key] };
+  await gameStateStore.saveGame();
+  uiStore.showToast(`已删除身体部位: ${removed?.部位名称 || ''}`, { type: 'success' });
+};
+
+// NPC 创建
+const generateNpcTemplate = (): NpcProfile => {
+  const gameTime = (characterData.value as any)?.元数据?.时间;
+  const birthYear = (gameTime?.年 ?? 2000) - 25;
+  const playerLoc = (characterData.value as any)?.角色?.身份?.位置?.描述 || (gameStateStore as any).location?.描述 || '未知';
+
+  return {
+    名字: '',
+    性别: '男',
+    出生日期: { 年: birthYear, 月: 1, 日: 1 },
+    种族: '人族',
+    出生: '普通人',
+    外貌描述: '',
+    性格特征: [],
+    地位: { 名称: '凡人', 阶段: '', 当前进度: 0, 下一级所需: 0, 突破描述: '' },
+    特质: '',
+    先天六维属性: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 } as any,
+    属性: {
+      体力: { 当前: 100, 上限: 100 },
+      精力: { 当前: 100, 上限: 100 },
+      寿元上限: 80,
+    },
+    与玩家关系: '陌生人',
+    类型: '重点',
+    好感度: 0,
+    当前位置: { 描述: playerLoc },
+    人格底线: [],
+    记忆: [],
+    记忆总结: [],
+    当前外貌状态: '神态自然',
+    当前内心想法: '...',
+    背包: { 金钱: { 现金: 0, 铜: 0, 银: 0, 金: 0 } as any, 物品: {} },
+    实时关注: false,
+    心跳锁定: false,
+    势力归属: '',
+  } as NpcProfile;
+};
+
+const createNewNpc = async () => {
+  const name = window.prompt('请输入新人物的名字：');
+  if (!name || !name.trim()) return;
+
+  const template = generateNpcTemplate();
+  template.名字 = name.trim();
+
+  // 检查是否已存在
+  if (gameStateStore.relationships?.[name.trim()]) {
+    uiStore.showToast(`人物 "${name.trim()}" 已存在`, { type: 'error' });
+    return;
+  }
+
+  if (!gameStateStore.relationships) {
+    (gameStateStore as any).relationships = {};
+  }
+  gameStateStore.relationships![name.trim()] = template as any;
+
+  // 地图联动
+  const saveData = gameStateStore.toSaveData() as Record<string, unknown>;
+  const locDesc = template.当前位置?.描述;
+  if (locDesc) {
+    ensureLocationExists(saveData, locDesc);
+    appendNpcsToLocation(saveData, locDesc, [name.trim()]);
+    const worldInfo = (saveData as any)?.世界?.信息;
+    if (worldInfo) gameStateStore.worldInfo = worldInfo;
+  }
+
+  await gameStateStore.saveGame();
+  selectedPerson.value = { ...template };
+  isDetailViewActive.value = true;
+  uiStore.showToast(`已创建新人物: ${name.trim()}`, { type: 'success' });
+};
+
+// AI完善NPC
+const refineNpcWithAI = async () => {
+  if (!selectedPerson.value || isRefiningNpc.value) return;
+  const npcName = selectedPerson.value.名字;
+
+  isRefiningNpc.value = true;
+  uiStore.showToast(`正在用AI完善 ${npcName}...`, { type: 'info' });
+
+  try {
+    // 使用通用 action 执行心跳并同步
+    const result = await gameStateStore.performHeartbeat({
+      triggerMode: '手动',
+      candidateNames: [npcName],
+    });
+
+    if (!result.success) {
+      uiStore.showToast(`AI完善失败: ${result.message}`, { type: 'error' });
+      return;
+    }
+
+    // 验证返回数据 (record.快照 包含更新前的，但我们需要更新后的数据来校验?
+    // performHeartbeat 已经同步到 store 了，所以我们可以直接从 store 取)
+
+    // 注意：performHeartbeat 返回的 record.快照 是更新前的。
+    // 我们需要检查 store 里的新数据。
+    const key = findRelationshipKeyByName(npcName);
+    const updatedNpc = gameStateStore.relationships?.[key];
+    if (updatedNpc) {
+      // 校验格式
+      try {
+        const [isValid] = validateAndRepairNpcProfile(updatedNpc);
+        if (!isValid) {
+          console.warn('[AI完善] 数据校验不通过，但已自动应用');
+        }
+      } catch (e) {
+        console.warn('[AI完善] 数据校验警告:', e);
+      }
+
+      selectedPerson.value = { ...updatedNpc };
+      uiStore.showToast(`AI已完善 ${npcName}`, { type: 'success' });
+    } else {
+       // Should not happen if success
+       selectedPerson.value = { ...gameStateStore.relationships![key] };
+    }
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : '未知错误';
+    uiStore.showToast(`AI完善失败: ${msg}`, { type: 'error' });
+    console.error('[AI完善]', error);
+  } finally {
+    isRefiningNpc.value = false;
+  }
+};
+
+// 编辑中的 list 新增临时输入值
+const newListItemInput = ref('');
+
 // Tab管理
 const activeTab = ref('basic');
 const tabs = computed(() => {
@@ -1170,8 +2124,8 @@ const getNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): { current: number
   return { current, max };
 };
 
-const formatNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): string => {
-  const { current, max } = getNpcStatPair(npc, key);
+const formatNpcStatPair = (npc: NpcProfile, key: string): string => {
+  const { current, max } = getNpcStatPair(npc, key as NpcCoreStatKey);
   if (current === null && max === null) return '--';
   if (current === null) return `--/${max}`;
   if (max === null) return `${current}/--`;
@@ -1181,6 +2135,16 @@ const formatNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): string => {
 const getNpcLifespanMax = (npc: NpcProfile): number | null => {
   const raw = (npc as any)?.属性?.寿元上限 ?? (npc as any)?.寿元上限 ?? (npc as any)?.寿命?.上限;
   return toFiniteNumber(raw);
+};
+
+
+
+const getNpcStatCurrent = (npc: NpcProfile, key: string): number => {
+  return getNpcStatPair(npc, key as NpcCoreStatKey).current ?? 0;
+};
+
+const getNpcStatMax = (npc: NpcProfile, key: string): number => {
+  return getNpcStatPair(npc, key as NpcCoreStatKey).max ?? 0;
 };
 
 const hasNpcStatPair = (npc: NpcProfile, key: NpcCoreStatKey): boolean => {
@@ -1298,8 +2262,8 @@ const formatNpcLifespan = (npc: NpcProfile): string => {
   return `${current}/${max}`;
 };
 
-const getNpcStatPercentage = (npc: NpcProfile, key: NpcCoreStatKey): number => {
-  const { current, max } = getNpcStatPair(npc, key);
+const getNpcStatPercentage = (npc: NpcProfile, key: string): number => {
+  const { current, max } = getNpcStatPair(npc, key as NpcCoreStatKey);
   if (current === null || max === null || max === 0) return 0;
   return Math.min(100, Math.round((current / max) * 100));
 };
@@ -4373,4 +5337,549 @@ const confirmDeleteNpc = (person: NpcProfile) => {
     padding: 0.75rem 1rem;
   }
 }
+
+/* ====== NPC Editing UI Styles ====== */
+
+.list-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.create-npc-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #aab);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.create-npc-btn:hover {
+  color: var(--primary, #8af);
+  border-color: var(--primary, #8af);
+  background: rgba(136, 170, 255, 0.1);
+}
+
+/* Editable row: hover-reveal edit icon */
+.editable-row { cursor: pointer; }
+.editable-row:hover { background: rgba(255,255,255,0.02); }
+
+.inline-edit-icon {
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-left: 4px;
+  color: var(--text-muted, #667);
+  vertical-align: middle;
+}
+.editable-row:hover .inline-edit-icon,
+.editable-text:hover .inline-edit-icon,
+.editable-badge:hover .inline-edit-icon,
+.editable-badge:hover .badge-edit-icon {
+  opacity: 0.7;
+}
+
+/* Editable badges */
+.editable-badge {
+  cursor: pointer;
+  position: relative;
+}
+.badge-edit-icon {
+  opacity: 0;
+  transition: opacity 0.15s;
+  margin-left: 2px;
+}
+.badge-edit-input {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--primary, #8af);
+  border-radius: 4px;
+  color: inherit;
+  font-size: 0.7rem;
+  padding: 1px 4px;
+  width: 60px;
+  outline: none;
+}
+.badge-edit-num {
+  width: 40px;
+}
+
+/* Inline edit inputs */
+.inline-edit-input {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--primary, #8af);
+  border-radius: 4px;
+  color: var(--text-primary, #eee);
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.inline-edit-input:focus {
+  border-color: var(--primary-bright, #aaf);
+  box-shadow: 0 0 4px rgba(136,170,255,0.2);
+}
+
+.inline-edit-input-sm {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--primary, #8af);
+  border-radius: 4px;
+  color: var(--text-primary, #eee);
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  width: 60px;
+  outline: none;
+}
+
+.inline-edit-textarea {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--primary, #8af);
+  border-radius: 4px;
+  color: var(--text-primary, #eee);
+  font-size: 0.8rem;
+  padding: 6px 8px;
+  width: 100%;
+  outline: none;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.editable-text {
+  cursor: pointer;
+}
+.editable-text:hover {
+  color: var(--primary, #8af);
+}
+
+/* Edit actions row */
+.edit-actions-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.edit-confirm-btn, .edit-cancel-btn {
+  padding: 3px 10px;
+  font-size: 0.7rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.edit-confirm-btn {
+  background: var(--primary, #8af);
+  color: #000;
+}
+.edit-cancel-btn {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-secondary, #aab);
+}
+
+/* Inline Check/Cancel Buttons */
+.edit-actions-inline {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+.edit-ok-btn, .edit-no-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #fff;
+  transition: all 0.2s;
+}
+.edit-ok-btn {
+  background: rgba(66, 184, 131, 0.2);
+  color: #42b983;
+}
+.edit-ok-btn:hover {
+  background: rgba(66, 184, 131, 0.4);
+}
+.edit-no-btn {
+  background: rgba(255, 80, 80, 0.2);
+  color: #ff5050;
+}
+.edit-no-btn:hover {
+  background: rgba(255, 80, 80, 0.4);
+}
+
+/* Badge Action Buttons */
+.badge-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 2px;
+}
+.badge-action-btn.confirm {
+  background: rgba(66, 184, 131, 0.3);
+  color: #42b983;
+}
+.badge-action-btn.confirm:hover {
+  background: rgba(66, 184, 131, 0.6);
+}
+.badge-action-btn.cancel {
+  background: rgba(255, 80, 80, 0.3);
+  color: #ff5050;
+}
+.badge-action-btn.cancel:hover {
+  background: rgba(255, 80, 80, 0.6);
+}
+
+/* Stat Edit Group */
+.stat-edit-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Location dropdown */
+.location-edit-wrapper {
+  position: relative;
+  width: 100%;
+}
+.location-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-dark, #1a1a2e);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  max-height: 160px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+.location-option {
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #aab);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.location-option:hover {
+  background: rgba(136,170,255,0.1);
+  color: var(--primary, #8af);
+}
+.location-edit-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.loc-confirm-btn, .loc-cancel-btn {
+  display: flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.7rem;
+  transition: all 0.2s;
+}
+.loc-confirm-btn {
+  background: var(--primary, #8af);
+  color: #000;
+}
+.loc-cancel-btn {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-secondary, #aab);
+}
+
+/* List tag add/delete */
+.editable-list {
+  flex-wrap: wrap;
+}
+.with-delete {
+  position: relative;
+  padding-right: 18px !important;
+}
+.tag-delete-btn {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 16px;
+  height: 16px;
+  font-size: 12px;
+  line-height: 14px;
+  text-align: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255,80,80,0.7);
+  color: #fff;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+  padding: 0;
+}
+.with-delete:hover .tag-delete-btn {
+  opacity: 1;
+}
+
+.add-tag {
+  cursor: pointer;
+  border-style: dashed !important;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.add-tag:hover {
+  opacity: 1;
+  border-color: var(--primary, #8af) !important;
+}
+.tag-add-input {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+  width: 60px;
+  outline: none;
+}
+
+/* Item delete button */
+.item-delete-btn {
+  margin-left: auto;
+  padding: 2px 4px;
+  border: none;
+  background: rgba(255,80,80,0.2);
+  color: #f55;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.npc-item-card:hover .item-delete-btn {
+  opacity: 1;
+}
+.item-delete-btn:hover {
+  background: rgba(255,80,80,0.4);
+}
+
+/* Section header with action button */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.add-item-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  border: 1px dashed rgba(255,255,255,0.15);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary, #aab);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.add-item-btn:hover {
+  border-color: var(--primary, #8af);
+  color: var(--primary, #8af);
+}
+
+/* Create blank NSFW profile button */
+.create-blank-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  border: 1px dashed rgba(255,255,255,0.15);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary, #aab);
+  cursor: pointer;
+}
+.create-blank-btn:hover {
+  border-color: var(--primary, #8af);
+  color: var(--primary, #8af);
+}
+
+/* AI Refine button */
+.refine-btn {
+  position: relative;
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+
+/* Add item modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.add-item-modal {
+  background: var(--bg-dark, #1a1a2e);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 420px;
+  max-width: 90vw;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Glassy Modal Styles */
+.glass-modal {
+  background: rgba(30, 30, 40, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-highlight, #fff);
+  letter-spacing: 0.02em;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #889);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  transition: all 0.2s;
+}
+.close-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--color-text);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.form-group-row {
+  display: flex;
+  gap: 1rem;
+}
+.form-group.half { flex: 1; }
+
+.form-group label {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #aab);
+  font-weight: 500;
+}
+
+.form-input {
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  color: var(--text-primary, #eee);
+  font-size: 0.9rem;
+  padding: 8px 12px;
+  outline: none;
+  transition: all 0.2s;
+}
+.glow-input:focus, .form-input:focus {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: var(--primary, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+
+.modal-btn {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.modal-btn.cancel {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary, #ccc);
+}
+.modal-btn.cancel:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.modal-btn.confirm {
+  background: var(--primary, #3b82f6);
+  color: #fff;
+}
+.glow-btn {
+  background: linear-gradient(135deg, var(--primary, #3b82f6), var(--secondary, #8b5cf6));
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+.glow-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+}
+
 </style>

@@ -660,6 +660,41 @@ export const useGameStateStore = defineStore('gameState', {
     },
 
     /**
+     * 执行心跳并同步回 Store (Common Logic)
+     * 封装了 runSingleHeartbeat + loadFromSaveData + saveCurrentGame
+     */
+    async performHeartbeat(options: {
+      triggerMode: '周期' | '事件' | '手动';
+      candidateNames?: string[];
+      event?: import('@/types/game').GameEvent;
+    }) {
+      if (!this.isGameLoaded) return { success: false, message: '游戏未加载' };
+
+      const saveData = this.toSaveData();
+      if (!saveData) return { success: false, message: '无法获取存档数据' };
+
+      try {
+        const { runSingleHeartbeat } = await import('@/services/worldHeartbeatService');
+        const { useCharacterStore } = await import('./characterStore');
+        const characterStore = useCharacterStore();
+
+        // 执行心跳
+        const { saveData: updatedSaveData, record } = await runSingleHeartbeat(saveData, options);
+
+        // 同步回 Store (全量加载，确保 WorldInfo 等所有变更都生效)
+        this.loadFromSaveData(updatedSaveData);
+
+        // 落盘保存
+        await characterStore.saveCurrentGame();
+
+        return { success: true, record };
+      } catch (error) {
+        console.error('[GameState] performHeartbeat failed:', error);
+        return { success: false, message: error instanceof Error ? error.message : '未知错误' };
+      }
+    },
+
+    /**
      * 在对话后保存（保存到当前激活存档 + "上次对话"存档）
      * 这是主要的保存机制，每次AI对话后自动调用
      */

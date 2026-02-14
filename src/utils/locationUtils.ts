@@ -199,11 +199,81 @@ export function removeNpcFromOtherLocations(
 }
 
 /**
+ * 确保指定地点在 地点信息 树中存在。
+ * 支持 `·` 分隔符表示层级：`A·B·C` → A 为 B 的上级，B 为 C 的上级。
+ * 若某层级已存在则复用，不存在则创建。
+ * 返回最末端地点条目。
+ */
+export function ensureLocationExists(
+  saveData: Record<string, unknown>,
+  locationDesc: string
+): LocationEntry | null {
+  if (!locationDesc || typeof locationDesc !== 'string') return null;
+
+  const 世界 = saveData?.世界 as Record<string, unknown> | undefined;
+  if (!世界) return null;
+  let 信息 = 世界.信息 as Record<string, unknown> | undefined;
+  if (!信息) {
+    信息 = { 地点信息: [] };
+    世界.信息 = 信息;
+  }
+  if (!Array.isArray(信息.地点信息)) {
+    信息.地点信息 = [];
+  }
+  const entries = 信息.地点信息 as (LocationEntry & { 地点NPC?: string[] })[];
+
+  // 按 · 分割层级
+  const parts = locationDesc.split('·').map(s => s.trim()).filter(Boolean);
+  if (parts.length === 0) return null;
+
+  let currentEntries = entries;
+  let parentName: string | undefined;
+  let lastLoc: LocationEntry | null = null;
+
+  for (const partName of parts) {
+    let found = findLocationInTree(currentEntries, partName);
+    if (!found) {
+      // 创建新地点
+      const newLoc: LocationEntry & { 地点NPC?: string[] } = {
+        名称: partName,
+        ...(parentName ? { 上级: parentName } : {}),
+        内部: [],
+        地点NPC: [],
+      };
+      currentEntries.push(newLoc);
+      found = newLoc;
+    }
+    if (!Array.isArray(found.内部)) {
+      found.内部 = [];
+    }
+    parentName = partName;
+    currentEntries = found.内部 as (LocationEntry & { 地点NPC?: string[] })[];
+    lastLoc = found;
+  }
+
+  return lastLoc;
+}
+
+/**
+ * 收集地点树中所有地点名称（用于 UI dropdown）。
+ */
+export function collectAllLocationNames(saveData: Record<string, unknown>): string[] {
+  const 地点信息 = (saveData?.世界 as Record<string, unknown>)?.信息 as Record<string, unknown> | undefined;
+  const entries = 地点信息?.地点信息 as (LocationEntry & { 地点NPC?: string[] })[] | undefined;
+  const names: string[] = [];
+  forEachLocationInTree(entries, (loc) => {
+    if (loc.名称) names.push(loc.名称);
+  });
+  return names;
+}
+
+/**
  * 校准「关系 NPC 的当前位置」与「世界.信息.地点信息[地点].地点NPC」双向一致。
  * API 不一定同时正确写入两项，因此在后端做一次同步与互补。
  * 绝大多数情况下只修改 地点NPC；仅当 关系[npc].当前位置 缺失或与地点不一致时才写 关系。
  *
  * 1. 关系 → 地点：有 当前位置.描述 的 NPC 从其它地点移除并加入该地点的 地点NPC（只改地点NPC）
+ *    若地点不在树中，自动创建（调用 ensureLocationExists）
  * 2. 地点去重：每个 NPC 有且只在一个地点的 地点NPC 中（仅对仍出现在多处的 NPC，首次出现地点保留）
  * 3. 地点 → 关系：各地点的 地点NPC 补全/修正 关系[npc].当前位置.描述
  */
@@ -218,10 +288,14 @@ export function calibrateNpcLocationSync(saveData: Record<string, unknown>): voi
   if (!关系 || typeof 关系 !== 'object') return;
   if (!Array.isArray(entries)) return;
 
-  // 1. 关系 → 地点：只改 地点NPC，不写 关系
+  // 1. 关系 → 地点：只改 地点NPC，不写 关系；若地点不存在则自动创建
   for (const [npcName, npc] of Object.entries(关系)) {
     const locDesc = npc?.当前位置?.描述;
     if (typeof locDesc !== 'string' || !locDesc.trim()) continue;
+    // 若地点不在树中，自动创建
+    if (!findLocationInTree(entries, locDesc)) {
+      ensureLocationExists(saveData, locDesc);
+    }
     removeNpcFromOtherLocations(saveData, npcName, locDesc);
     appendNpcsToLocation(saveData, locDesc, [npcName]);
   }
@@ -255,4 +329,4 @@ export function calibrateNpcLocationSync(saveData: Record<string, unknown>): voi
 }
 
 /** 导出供其他模块使用 */
-export { findLocationInTree };
+export { findLocationInTree, forEachLocationInTree };
