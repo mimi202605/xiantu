@@ -252,10 +252,21 @@
                         <span class="info-label">位置</span>
                         <template v-if="editField === '当前位置'">
                           <div class="location-edit-wrapper">
-                            <input v-model="locationSearchQuery" class="inline-edit-input" placeholder="输入或搜索地点，支持 A·B·C 格式" list="npc-location-list" @keyup.escape="cancelEdit" />
-                            <datalist id="npc-location-list">
-                              <option v-for="loc in allLocationNames" :key="loc" :value="loc" />
-                            </datalist>
+                            <div class="location-input-group">
+                              <select v-if="!isLocationCustomInput" v-model="locationSearchQuery" class="inline-edit-select location-select">
+                                <option value="" disabled>选择地点...</option>
+                                <option v-for="loc in allLocationNames" :key="loc" :value="loc">{{ loc }}</option>
+                              </select>
+                              <input v-else v-model="locationSearchQuery" class="inline-edit-input" placeholder="输入地点名称" list="npc-location-list" @keyup.escape="cancelEdit" />
+                              <datalist id="npc-location-list" v-if="isLocationCustomInput">
+                                <option v-for="loc in allLocationNames" :key="loc" :value="loc" />
+                              </datalist>
+
+                              <button class="toggle-input-mode-btn" @click="isLocationCustomInput = !isLocationCustomInput" :title="isLocationCustomInput ? '切换到选择列表' : '切换到手动输入'">
+                                <List v-if="isLocationCustomInput" :size="14" />
+                                <Type v-else :size="14" />
+                              </button>
+                            </div>
                             <div class="location-edit-actions">
                               <button class="loc-confirm-btn" @click="confirmEdit('当前位置')" title="确认"><Check :size="14" /> 确认</button>
                               <button class="loc-cancel-btn" @click="cancelEdit" title="取消"><X :size="14" /> 取消</button>
@@ -1163,7 +1174,7 @@ import type { NpcProfile, Item, BodyPartDevelopment, PrivacyProfile, SaveData } 
 import type { SpiritRoot } from '@/types';
 import {
   Users2, Search,
-  Loader2, ChevronRight, Package, ArrowRightLeft, Eye, EyeOff, Trash2, ArrowLeft, Download, BookOpen, Lock, Unlock, Edit, Plus, X, Check, Wand2
+  Loader2, ChevronRight, Package, ArrowRightLeft, Eye, EyeOff, Trash2, ArrowLeft, Download, BookOpen, Lock, Unlock, Edit, Plus, X, Check, Wand2, List, Type
 } from 'lucide-vue-next';
 import { collectAllLocationNames, ensureLocationExists, appendNpcsToLocation } from '@/utils/locationUtils';
 import { validateAndRepairNpcProfile } from '@/utils/dataValidation';
@@ -1337,6 +1348,7 @@ const isRefiningNpc = ref(false);
 const showAddItemModal = ref(false);
 const showLocationDropdown = ref(false);
 const locationSearchQuery = ref('');
+const isLocationCustomInput = ref(false);
 
 // 新增物品表单
 const newItemForm = ref({
@@ -1385,6 +1397,9 @@ const startEdit = (field: string, currentValue: any) => {
   if (field === '当前位置') {
     showLocationDropdown.value = true;
     locationSearchQuery.value = typeof currentValue === 'string' ? currentValue : (currentValue?.描述 || '');
+    // Auto-detect mode: if value is effectively empty or exists in list, use select; otherwise use input
+    const val = locationSearchQuery.value;
+    isLocationCustomInput.value = !!val && !allLocationNames.value.includes(val);
   }
 };
 
@@ -5882,4 +5897,64 @@ const confirmDeleteNpc = (person: NpcProfile) => {
   box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
 }
 
+</style>
+
+<style scoped>
+/* Location Edit Styles - Appended */
+.location-edit-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.location-input-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.location-select {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--color-text);
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  outline: none;
+}
+.location-select option {
+  background: #1e1e1e; /* Fallback dark bg */
+  color: #eee;
+}
+
+.location-select:focus {
+  border-color: var(--color-primary);
+}
+
+.toggle-input-mode-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-input-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text);
+}
+
+.location-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
 </style>
