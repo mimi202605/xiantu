@@ -65,31 +65,6 @@
 
 ---
 
-## [0.2.65] - 2026-02-13
-
-### 系统重构：AIBidirectionalSystem 模块化
-
-- **架构升级**：将原 `AIBidirectionalSystem.ts` ("上帝类") 拆分为多个单一职责组件，位于 `src/systems/ai/` 目录下。
-  - **AIRequestCoordinator**：请求协调器，负责编排 AI 请求流程。
-  - **PromptBuilder**：提示词构建器，负责组装系统提示词与注入。
-  - **ResponseParser**：响应解析器，负责解析与清洗 AI 返回的 JSON 数据。
-  - **StateUpdater**：状态更新器，负责执行 AI 指令并更新游戏状态。
-  - **WorldEventManager**：世界事件管理器，负责调度与生成世界事件。
-  - **NPCGenerator**：NPC 生成器，负责新地点 NPC 的动态生成。
-  - **MemoryManager**：记忆管理器，负责记忆摘要与管理。
-  - **TextProcessor**：文本处理器，负责文本清洗与格式化。
-
-- **兼容性**：保留 `src/utils/AIBidirectionalSystem.ts` 作为 **Facade (外观模式)**，对外接口保持不变，确保现有业务代码无需修改即可平滑过渡。
-
-- **验证**：通过 `npm run type-check` 静态类型检查与手动冒烟测试，确保功能完整且无回归。
-
-#### 涉及文件
-
-- `src/utils/AIBidirectionalSystem.ts`
-- `src/systems/ai/*` (New)
-
----
-
 ## [0.2.64] - 2026-02-13
 
 ### 开发框架：Agentic Framework & 私有仓库

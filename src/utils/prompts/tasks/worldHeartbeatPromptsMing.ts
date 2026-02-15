@@ -90,7 +90,7 @@ function npcFullBlock(npc: NpcProfile & Record<string, unknown>): string {
     const recent = memory.slice(-3).map((m) => (typeof m === 'string' ? m : (m as any)?.事件 ?? String(m))).join('；');
     lines.push(`- 近期记忆：${recent.slice(0, 200)}${recent.length > 200 ? '…' : ''}`);
   }
-  const 记忆总结Raw = npc.记忆总结;
+  const 记忆总结Raw = npc.记忆总结 as string | string[] | undefined;
   if (记忆总结Raw != null) {
     const 记忆总结Arr = Array.isArray(记忆总结Raw)
       ? 记忆总结Raw
