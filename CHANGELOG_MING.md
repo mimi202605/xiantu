@@ -4,6 +4,25 @@
 
 ---
 
+## [0.2.69] - 2026-02-14
+
+### 回退：AIBidirectionalSystem 重构
+
+- **Revert 说明**
+  - **原因**：commit d960de6 将 `AIBidirectionalSystem` 拆分为 `src/systems/ai/` 多模块后，出现角色创建时「位置信息在处理过程中丢失」、主回合后回合序号与状态不更新、提示词组装回退旧版等问题，影响面大。
+  - **操作**：完整回退 d960de6，恢复 `src/utils/AIBidirectionalSystem.ts` 单文件实现（含 processGmResponse、回合推进、提示词组装等完整逻辑），删除 `src/systems/ai/*` 共 8 个模块文件。
+  - **兼容**：0.2.66（Body Parts / Agent 工作流）、0.2.67（位置下拉）、0.2.68（地图去重）未依赖被回退模块，功能保持不变。
+  - **附带**：`worldHeartbeatPromptsMing.ts` 中 `npc.记忆总结` 类型断言修正，保证 type-check 通过。
+
+#### 涉及文件
+
+- `src/utils/AIBidirectionalSystem.ts`（恢复）
+- `src/systems/ai/*`（删除）
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+- `src/utils/prompts/tasks/worldHeartbeatPromptsMing.ts`（类型修正）
+
+---
+
 ## [0.2.68] - 2026-02-14
 
 ### 地图系统：修复地点重复显示

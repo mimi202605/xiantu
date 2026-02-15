@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.69 (2026-02-14)
+
+- **回退重构**：回退 commit d960de6（AIBidirectionalSystem 模块化），恢复为单一文件实现，以修复角色初始化位置丢失、主回合不更新、提示词组装异常等根本性问题。后续功能（0.2.66–0.2.68）不受影响。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.68 (2026-02-14)
 
 - **地图修复**：修复地图数据冗余导致节点重复显示的问题；增强 `collectFromTree` deduplication 逻辑。  
