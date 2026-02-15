@@ -60,75 +60,114 @@
       </div>
 
       <div class="settings-content">
-        <div class="setting-item">
-          <label class="setting-label">{{ t('短期记忆上限（条）：') }}</label>
-          <input
-            type="number"
-            v-model.number="memoryConfig.shortTermLimit"
-            min="3"
-            max="10"
-            class="setting-input"
-          />
-          <span class="setting-hint">{{ t('默认') }}: 3</span>
-        </div>
-
-        <div class="setting-item">
-          <label class="setting-label">{{ t('中期记忆转化阈值（条）：') }}</label>
-          <input
-            type="number"
-            v-model.number="memoryConfig.midTermTrigger"
-            min="10"
-            max="50"
-            class="setting-input"
-          />
-          <span class="setting-hint">{{ t('中期记忆达到此数量时，转化为长期记忆。默认：25') }}</span>
-        </div>
-
-        <div class="setting-item">
-          <label class="setting-label">{{ t('中期记忆保留数量（条）：') }}</label>
-          <input
-            type="number"
-            v-model.number="memoryConfig.midTermKeep"
-            min="5"
-            max="15"
-            class="setting-input"
-          />
-          <span class="setting-hint">{{ t('转化为长期记忆时，保留最新的这么多条中期记忆。默认：8') }}</span>
-        </div>
-
-        <div class="setting-item">
-          <label class="setting-label">
+        <!-- 短期记忆 -->
+        <section class="memory-config-section">
+          <h4 class="memory-config-section-title">{{ t('短期记忆') }}</h4>
+          <div class="setting-item">
+            <label class="setting-label">{{ t('短期记忆上限（条）：') }}</label>
             <input
-              type="checkbox"
-              v-model="memoryConfig.autoSummaryEnabled"
-              class="setting-checkbox"
+              type="number"
+              v-model.number="memoryConfig.shortTermLimit"
+              min="3"
+              max="10"
+              class="setting-input setting-input-num"
             />
-            {{ t('启用自动记忆转化') }}
-          </label>
-          <span class="setting-hint">{{ t('启用后，自动将中期记忆转化为长期记忆。禁用则不转化。') }}</span>
-        </div>
+            <span class="setting-hint">{{ t('默认') }}: 5</span>
+          </div>
+        </section>
 
-        <div class="setting-item">
-          <label class="setting-label">{{ t('自定义中期记忆格式：') }}</label>
-          <textarea
-            v-model="memoryConfig.midTermFormat"
-            class="setting-textarea"
-            :placeholder="t('留空使用默认格式。可自定义AI提示词来控制记忆的生成格式...')"
-            rows="4"
-          ></textarea>
-          <span class="setting-hint">{{ t('自定义中期记忆的AI提示词格式。留空使用系统默认。') }}</span>
-        </div>
+        <!-- 中期精炼 -->
+        <section class="memory-config-section">
+          <h4 class="memory-config-section-title">{{ t('中期精炼') }}</h4>
+          <div class="setting-item">
+            <label class="setting-label">{{ t('精炼触发阈值（条）：') }}</label>
+            <input
+              type="number"
+              v-model.number="memoryConfig.midTermRefineTrigger"
+              min="10"
+              max="100"
+              class="setting-input setting-input-num"
+            />
+            <span class="setting-hint">{{ t('达到此数量时自动精炼中期记忆（去重合并）。默认：25') }}</span>
+          </div>
+        </section>
 
-        <div class="setting-item">
-          <label class="setting-label">{{ t('自定义长期记忆格式：') }}</label>
-          <textarea
-            v-model="memoryConfig.longTermFormat"
-            class="setting-textarea"
-            :placeholder="t('留空使用默认格式。可自定义AI提示词来控制记忆的生成格式...')"
-            rows="4"
-          ></textarea>
-          <span class="setting-hint">{{ t('自定义长期记忆的AI提示词格式。留空使用系统默认。') }}</span>
-        </div>
+        <!-- 长期总结 -->
+        <section class="memory-config-section">
+          <h4 class="memory-config-section-title">{{ t('长期总结') }}</h4>
+          <div class="setting-item">
+            <label class="setting-label">{{ t('总结触发阈值（条）：') }}</label>
+            <input
+              type="number"
+              v-model.number="memoryConfig.longTermTrigger"
+              min="20"
+              max="100"
+              class="setting-input setting-input-num"
+            />
+            <span class="setting-hint">{{ t('达到此数量时自动将中期记忆转化为长期记忆。默认：50') }}</span>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">{{ t('总结后保留中期数量（条）：') }}</label>
+            <input
+              type="number"
+              v-model.number="memoryConfig.midTermKeep"
+              min="-1"
+              max="50"
+              class="setting-input setting-input-num"
+            />
+            <span class="setting-hint">{{ t('总结后保留的最新中期条数；-1 表示不删减。默认：-1') }}</span>
+          </div>
+          <div v-if="memoryConfig.midTermKeep === -1" class="setting-sub-panel">
+            <div class="setting-sub-panel-label">{{ t('当保留数量为 -1 时') }}</div>
+            <div class="setting-item">
+              <label class="setting-label">{{ t('不删减时参与总结的条数：') }}</label>
+              <input
+                type="number"
+                v-model.number="memoryConfig.longTermSummarizeCount"
+                min="5"
+                max="100"
+                class="setting-input setting-input-num"
+              />
+              <span class="setting-hint">{{ t('保留数量为 -1 时，取最旧 N 条生成 1 条长期。默认：50') }}</span>
+            </div>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label setting-label-checkbox">
+              <input
+                type="checkbox"
+                v-model="memoryConfig.autoSummaryEnabled"
+                class="setting-checkbox"
+              />
+              {{ t('启用自动记忆转化') }}
+            </label>
+            <span class="setting-hint">{{ t('启用后，达到阈值时自动精炼或长期总结。禁用则仅手动触发。') }}</span>
+          </div>
+        </section>
+
+        <!-- 自定义格式（高级） -->
+        <section class="memory-config-section">
+          <h4 class="memory-config-section-title">{{ t('自定义格式') }}</h4>
+          <div class="setting-item">
+            <label class="setting-label">{{ t('中期记忆格式（可选）：') }}</label>
+            <textarea
+              v-model="memoryConfig.midTermFormat"
+              class="setting-textarea"
+              :placeholder="t('留空使用默认格式。可自定义AI提示词来控制记忆的生成格式...')"
+              rows="3"
+            ></textarea>
+            <span class="setting-hint">{{ t('自定义中期记忆的AI提示词格式。留空使用系统默认。') }}</span>
+          </div>
+          <div class="setting-item">
+            <label class="setting-label">{{ t('长期记忆格式（可选）：') }}</label>
+            <textarea
+              v-model="memoryConfig.longTermFormat"
+              class="setting-textarea"
+              :placeholder="t('留空使用默认格式。可自定义AI提示词来控制记忆的生成格式...')"
+              rows="3"
+            ></textarea>
+            <span class="setting-hint">{{ t('自定义长期记忆的AI提示词格式。留空使用系统默认。') }}</span>
+          </div>
+        </section>
 
         <div class="settings-actions">
           <button
@@ -145,21 +184,33 @@
           </button>
         </div>
 
-        <!-- 手动总结触发 -->
-        <div class="manual-summary-section">
+        <!-- 手动操作 -->
+        <section class="memory-config-section manual-summary-section">
+          <h4 class="memory-config-section-title">{{ t('手动操作') }}</h4>
           <div class="summary-info">
-            <span class="info-text">{{ t('当前中期记忆：') }} {{ mediumTermMemories.length }} {{ t('条') }}</span>
-            <span class="info-hint">{{ t('达到{count}条时将自动触发总结', { count: memoryConfig.midTermTrigger }) }}</span>
+            <span class="info-text">{{ t('当前中期记忆：') }} <strong>{{ mediumTermMemories.length }}</strong> {{ t('条') }}</span>
+            <span class="info-hint">{{ t('精炼阈值：{count}条', { count: memoryConfig.midTermRefineTrigger }) }} · {{ t('长期总结阈值：{count}条', { count: memoryConfig.longTermTrigger }) }}</span>
+            <span class="info-hint info-hint-sub">{{ t('总结仅使用中期记忆转化为长期记忆，与主回合发送逻辑一致') }}</span>
           </div>
-          <button
-            class="action-btn warning"
-            @click="manualTriggerSummary"
-            :disabled="mediumTermMemories.length < memoryConfig.midTermKeep + 5"
-            :title="mediumTermMemories.length < memoryConfig.midTermKeep + 5 ? t('manualSummaryRequirement', { count: memoryConfig.midTermKeep + 5 }) : t('手动触发AI总结')"
-          >
-            📝 {{ t('手动总结中期记忆') }}
-          </button>
-        </div>
+          <div class="manual-summary-buttons">
+            <button
+              class="action-btn info"
+              @click="manualTriggerRefine"
+              :disabled="mediumTermMemories.length < memoryConfig.midTermRefineTrigger"
+              :title="mediumTermMemories.length < memoryConfig.midTermRefineTrigger ? t('manualRefineRequirement', { count: memoryConfig.midTermRefineTrigger }) : t('手动精炼中期记忆')"
+            >
+              🔄 {{ t('手动精炼中期记忆') }}
+            </button>
+            <button
+              class="action-btn warning"
+              @click="manualTriggerSummary"
+              :disabled="mediumTermMemories.length < memoryConfig.longTermTrigger"
+              :title="mediumTermMemories.length < memoryConfig.longTermTrigger ? t('manualLongTermRequirement', { count: memoryConfig.longTermTrigger }) : t('手动触发长期总结')"
+            >
+              📝 {{ t('手动触发长期总结') }}
+            </button>
+          </div>
+        </section>
       </div>
     </div>
 
@@ -442,15 +493,16 @@ const jumpToPage = ref('');
 
 // 记忆系统配置
 const memoryConfig = ref({
-  shortTermLimit: 5, // 与后端配置同步
-  midTermTrigger: 25, // 与后端配置同步
-  midTermKeep: 8,
+  shortTermLimit: 5,
+  midTermRefineTrigger: 25, // 中期精炼触发条数
+  longTermTrigger: 50, // 中期→长期总结触发条数
+  midTermKeep: -1, // 长期总结后保留中期条数，-1 表示不删减
+  longTermSummarizeCount: 50, // midTermKeep=-1 时，参与本次长期总结的条数
   autoSummaryEnabled: true,
   midTermFormat: '',
   longTermFormat: '',
-  // 总结模式配置
-  useRawMode: true, // 默认使用Raw模式（推荐，避免提示词污染）
-  useStreaming: true, // 默认使用流式传输（更快，实时反馈）
+  useRawMode: true,
+  useStreaming: true,
 });
 
 // 记忆转化配置
@@ -627,10 +679,13 @@ const saveMemoriesToStore = async () => {
       gameStateStore.memory = { 短期记忆: [], 中期记忆: [], 长期记忆: [], 隐式中期记忆: [] };
     }
 
-    // 将内存中的记忆数据转换为存档格式（字符串数组）
-    gameStateStore.memory.短期记忆 = shortTermMemories.value.map(m => m.content);
-    gameStateStore.memory.中期记忆 = mediumTermMemories.value.map(m => m.content);
-    gameStateStore.memory.长期记忆 = longTermMemories.value.map(m => m.content);
+    // 写入 store（新数组引用以触发响应式），格式与 loadMemoryData 读取一致
+    const shortArr = shortTermMemories.value.map(m => m.content);
+    const midArr = mediumTermMemories.value.map(m => m.content);
+    const longArr = longTermMemories.value.map(m => m.content);
+    gameStateStore.memory.短期记忆 = shortArr;
+    gameStateStore.memory.中期记忆 = [...midArr];
+    gameStateStore.memory.长期记忆 = longArr;
 
     // 触发存档保存
     await characterStore.saveCurrentGame();
@@ -646,8 +701,11 @@ const saveMemoriesToStore = async () => {
 const convertMemories = () => {
   let hasConversion = false;
 
-  // 检查短期记忆是否达到转化阈值
-  if (shortTermMemories.value.length >= MEMORY_CONFIG.SHORT_TERM_LIMIT) {
+  // 检查短期记忆是否达到转化阈值（使用配置的上限）
+  const shortLimit = typeof memoryConfig.value.shortTermLimit === 'number' && memoryConfig.value.shortTermLimit > 0
+    ? memoryConfig.value.shortTermLimit
+    : 5;
+  if (shortTermMemories.value.length >= shortLimit) {
     debug.log('记忆中心', '短期记忆达到上限，开始转化为中期记忆');
 
     // 取最早的短期记忆转化为中期记忆
@@ -664,34 +722,29 @@ const convertMemories = () => {
     }
   }
 
-  // 检查中期记忆是否达到转化阈值
-  if (mediumTermMemories.value.length >= MEMORY_CONFIG.MEDIUM_TERM_LIMIT) {
-    debug.log('记忆中心', '中期记忆达到上限，准备转化为长期记忆');
-
-    // 如果启用了自动总结，触发AI总结
-    if (memoryConfig.value.autoSummaryEnabled) {
-      debug.log('记忆中心', '自动总结已启用，将在后台触发AI总结');
-      // 🔥 [重构] 调用统一的总结入口，使用配置中的选项
-      AIBidirectionalSystem.triggerMemorySummary({
-        useRawMode: memoryConfig.value.useRawMode,
-        useStreaming: memoryConfig.value.useStreaming
-      }).catch(error => {
-        debug.error('记忆中心', '自动总结失败:', error);
-      });
-    } else {
-      // 未启用自动总结，直接转化（旧逻辑）
-      const oldestMedium = mediumTermMemories.value.shift();
-      if (oldestMedium) {
-        const convertedMemory: Memory = {
-          ...oldestMedium,
-          type: 'long',
-          time: t('archivedAt', { time: formatTime(Date.now()) }),
-          importance: Math.max(oldestMedium.importance || 5, 7),
-          isConverted: true
-        };
-        longTermMemories.value.push(convertedMemory);
-        hasConversion = true;
-      }
+  // 检查中期记忆是否达到长期总结阈值
+  const longTermTrigger = memoryConfig.value.longTermTrigger ?? 50;
+  if (mediumTermMemories.value.length >= longTermTrigger && memoryConfig.value.autoSummaryEnabled) {
+    debug.log('记忆中心', '中期记忆达到长期总结阈值，将在后台触发AI总结');
+    AIBidirectionalSystem.triggerMemorySummary({
+      useRawMode: memoryConfig.value.useRawMode,
+      useStreaming: memoryConfig.value.useStreaming
+    }).catch(error => {
+      debug.error('记忆中心', '自动总结失败:', error);
+    });
+  } else if (mediumTermMemories.value.length >= longTermTrigger && !memoryConfig.value.autoSummaryEnabled) {
+    // 未启用自动总结，直接转化（旧逻辑）
+    const oldestMedium = mediumTermMemories.value.shift();
+    if (oldestMedium) {
+      const convertedMemory: Memory = {
+        ...oldestMedium,
+        type: 'long',
+        time: t('archivedAt', { time: formatTime(Date.now()) }),
+        importance: Math.max(oldestMedium.importance || 5, 7),
+        isConverted: true
+      };
+      longTermMemories.value.push(convertedMemory);
+      hasConversion = true;
     }
   }
 
@@ -855,14 +908,15 @@ const loadMemoryData = async () => {
         });
       }
 
-      // 中期记忆 - 字符串数组
+      // 中期记忆 - 支持 string 或 { 记忆主体, 已精炼? } 格式
       if (Array.isArray(memoryData.中期记忆)) {
-        memoryData.中期记忆.forEach((content: string, index: number) => {
-          if (content && typeof content === 'string') {
+        memoryData.中期记忆.forEach((entry: any, index: number) => {
+          const content = typeof entry === 'string' ? entry : (entry?.记忆主体 ?? '');
+          if (content) {
             const memory: Memory = {
               type: 'medium',
               content,
-              time: formatTime(Date.now() - index * 3600000), // 1小时间隔
+              time: formatTime(Date.now() - index * 3600000),
               importance: 7
             };
             loadedMediumMemories.push(memory);
@@ -914,12 +968,20 @@ const loadMemoryData = async () => {
 // 记忆配置管理功能
 const loadMemoryConfig = async () => {
   try {
-    // 🔥 [新架构] 从 localStorage 读取配置
     const saved = localStorage.getItem('memory-settings');
     if (saved) {
       const settings = JSON.parse(saved);
       memoryConfig.value = { ...memoryConfig.value, ...settings };
-      debug.log('记忆中心', '已从localStorage加载配置', settings);
+      // 兼容旧配置：仅有 midTermTrigger 时视为精炼阈值，长期阈值用默认 50
+      if (typeof (settings as any).midTermTrigger === 'number' && (settings as any).longTermTrigger == null) {
+        memoryConfig.value.midTermRefineTrigger = (settings as any).midTermTrigger;
+        memoryConfig.value.longTermTrigger = 50;
+      }
+      if ((settings as any).midTermKeep == null && (settings as any).midTermTrigger != null) {
+        memoryConfig.value.midTermKeep = -1;
+        memoryConfig.value.longTermSummarizeCount = 50;
+      }
+      debug.log('记忆中心', '已从localStorage加载配置', memoryConfig.value);
       return;
     }
     debug.log('记忆中心', '未找到配置，使用默认值');
@@ -946,9 +1008,11 @@ const saveMemoryConfig = async () => {
 
 const resetMemoryConfig = () => {
   memoryConfig.value = {
-  shortTermLimit: 5,
-    midTermTrigger: 20,
-    midTermKeep: 8,
+    shortTermLimit: 5,
+    midTermRefineTrigger: 25,
+    longTermTrigger: 50,
+    midTermKeep: -1,
+    longTermSummarizeCount: 50,
     autoSummaryEnabled: true,
     midTermFormat: '',
     longTermFormat: '',
@@ -959,17 +1023,26 @@ const resetMemoryConfig = () => {
 };
 
 /**
- * 手动触发中期记忆到长期记忆的AI总结
+ * 手动触发中期记忆精炼
  */
-const manualTriggerSummary = async () => {
-  const minRequired = memoryConfig.value.midTermKeep + 5;
+const manualTriggerRefine = async () => {
+  const minRequired = memoryConfig.value.midTermRefineTrigger;
   if (mediumTermMemories.value.length < minRequired) {
-    toast.warning(t('insufficientMemoriesForSummary', { minRequired }));
+    toast.warning(t('manualRefineRequirement', { count: minRequired }));
     return;
   }
+  await AIBidirectionalSystem.triggerMidTermRefine();
+};
 
-  // 🔥 [重构] 直接调用 AIBidirectionalSystem 中的统一方法
-  // 这个方法自带 toast 通知和错误处理
+/**
+ * 手动触发中期记忆→长期记忆的AI总结
+ */
+const manualTriggerSummary = async () => {
+  const minRequired = memoryConfig.value.longTermTrigger;
+  if (mediumTermMemories.value.length < minRequired) {
+    toast.warning(t('manualLongTermRequirement', { count: minRequired }));
+    return;
+  }
   await AIBidirectionalSystem.triggerMemorySummary({
     useRawMode: memoryConfig.value.useRawMode,
     useStreaming: memoryConfig.value.useStreaming
@@ -1109,11 +1182,12 @@ onMounted(async () => {
   });
 });
 
-// 测试函数：添加一条中期记忆
+// 测试函数：添加一条中期记忆（仅写入中期列表并同步到 store，保存后从 store 重载以保持 tab 计数一致）
 const addTestMediumTermMemory = async () => {
   try {
+    const testContent = `测试中期记忆 ${Date.now()} - 这是一条用于测试的中期记忆记录。`;
     const testMemory: Memory = {
-      content: `测试中期记忆 ${Date.now()} - 这是一条用于测试的中期记忆记录。`,
+      content: testContent,
       time: formatTime(Date.now()),
       type: 'medium',
       isConverted: false,
@@ -1126,11 +1200,15 @@ const addTestMediumTermMemory = async () => {
 
     mediumTermMemories.value.push(testMemory);
 
-    // 保存到存档
+    // 保存到 store 并持久化
     await saveMemoriesToStore();
 
-    toast.success(t('testMemoryAdded', { count: mediumTermMemories.value.length }));
-    debug.log('记忆中心', '添加测试中期记忆成功', testMemory);
+    // 从 store 重新加载，确保「全部」与「中期」等 tab 计数与 store 一致
+    await loadMemoryData();
+
+    const midCount = mediumTermMemories.value.length;
+    toast.success(t('testMemoryAdded', { count: midCount }));
+    debug.log('记忆中心', '添加测试中期记忆成功', { midCount, content: testContent });
   } catch (error) {
     debug.error('记忆中心', '添加测试记忆失败', error);
     toast.error(t('添加测试记忆失败'));
@@ -1427,7 +1505,7 @@ const addTestMediumTermMemory = async () => {
   box-sizing: border-box;
   flex: 1;
   min-height: 0;
-  padding: 1rem;
+  padding: 1.25rem;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
@@ -1453,11 +1531,14 @@ const addTestMediumTermMemory = async () => {
 .setting-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
   max-width: 100%;
   overflow: visible;
   box-sizing: border-box;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+}
+.setting-item:last-child {
+  margin-bottom: 0;
 }
 
 .setting-label {
@@ -1534,30 +1615,90 @@ const addTestMediumTermMemory = async () => {
   word-wrap: break-word;
 }
 
+/* 记忆配置分组：仅用统一间距，无分割线 */
+.memory-config-section {
+  margin-top: 1.5rem;
+}
+.memory-config-section:first-child {
+  margin-top: 0;
+}
+.memory-config-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.memory-config-section-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin: 0 0 0.625rem 0;
+  padding: 0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.setting-input-num {
+  width: 5rem;
+  min-width: 5rem;
+  text-align: right;
+}
+
+/* 条件子区块：保留 -1 时的「参与总结条数」 */
+.setting-sub-panel {
+  margin-top: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  background: rgba(var(--color-primary-rgb), 0.06);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
+  border-radius: 6px;
+}
+.setting-sub-panel .setting-item {
+  margin-bottom: 0;
+}
+.setting-sub-panel-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.02em;
+}
+
+.setting-label-checkbox {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
 .settings-actions {
   display: flex;
   gap: 0.75rem;
-  margin-top: 2rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0;
   flex-wrap: wrap;
   max-width: 100%;
   overflow: visible;
   box-sizing: border-box;
 }
 
-/* 手动总结区域 */
+/* 手动操作区域：上下左右 padding 统一 */
 .manual-summary-section {
-  margin-top: 1.5rem;
-  padding: 1rem;
+  margin-top: 1.25rem;
+  padding: 1.25rem 1rem;
   background: var(--color-surface-light);
   border: 1px solid var(--color-border);
   border-radius: 8px;
+}
+.manual-summary-section .memory-config-section-title {
+  margin-bottom: 0.75rem;
+}
+.manual-summary-section .setting-item:last-child {
+  margin-bottom: 0;
 }
 
 .summary-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  margin-bottom: 0.75rem;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
 }
 
 .info-text {
@@ -1569,6 +1710,18 @@ const addTestMediumTermMemory = async () => {
 .info-hint {
   font-size: 0.75rem;
   color: var(--color-text-secondary);
+}
+
+.info-hint-sub {
+  margin-top: 0.25rem;
+  opacity: 0.85;
+}
+
+.manual-summary-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0;
 }
 
 /* 通用操作按钮基样式，确保有清晰边框 */
