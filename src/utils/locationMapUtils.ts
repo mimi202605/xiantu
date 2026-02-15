@@ -87,7 +87,20 @@ function collectFromTree(
     const childrenFrom上级 = byParent.get(e.名称) ?? [];
     const allChildren = [...childrenFrom内部];
     for (const c of childrenFrom上级) {
-      if (c?.名称 && !allChildren.some((x) => x?.名称 === c.名称)) {
+      if (!c?.名称) continue;
+
+      // 检查是否冗余：如果 c 是 "A·B·C" 形式，当前是 A，且 B 已经在子节点中（通常来自内部），
+      // 则 c 实际上是 B 的后代，不应直接挂在 A 下面。
+      let isRedundant = false;
+      if (c.名称.startsWith(e.名称 + '·')) {
+        const suffix = c.名称.slice(e.名称.length + 1);
+        const firstPart = suffix.split('·')[0];
+        if (allChildren.some((existing) => existing?.名称 === firstPart)) {
+          isRedundant = true;
+        }
+      }
+
+      if (!isRedundant && !allChildren.some((x) => x?.名称 === c.名称)) {
         allChildren.push(c);
       }
     }

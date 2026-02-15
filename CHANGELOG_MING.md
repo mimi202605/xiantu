@@ -4,6 +4,19 @@
 
 ---
 
+## [0.2.68] - 2026-02-14
+
+### 地图系统：修复地点重复显示
+
+- **Map Duplication Fix**
+  - **Issue**: 地图数据中存在冗余定义（既作为 nested child 又作为 flat entry），导致 `collectFromTree` 收集时重复添加同名节点。
+  - **Fix**: 在 `src/utils/locationMapUtils.ts` 中增强 deduplication 逻辑。当处理 flat entry（来自 `上级`）时，若检测到该节点路径 implies 它是已存在的 nested child 的后代，则自动跳过，防止重复。
+  - **Verification**: 通过 reproduction script 验证，确认 duplicate node 已被正确滤除。
+
+#### 涉及文件
+
+- `src/utils/locationMapUtils.ts`
+
 ## [0.2.67] - 2026-02-14
 
 ### UI 优化：位置选择控件
