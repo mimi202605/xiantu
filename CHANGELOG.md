@@ -1,5 +1,19 @@
 # 更新日志
 
+## [MING] 通用版 0.2.80 (2026-02-16)
+
+- **Engram 迁移 Phase 6（可观测性与适配增强）**：
+  - 在 `engram.debug` 下记录 hybrid 检索统计（含候选与向量命中）到 Prompt Assembly 数据模组，便于排查与调优。
+  - `embeddingService` 增强 provider 适配：`ollama` / `cohere` 使用对应 embedding 接口，其余保持 OpenAI 兼容路径；`ollama` 支持无 key。
+  - 所有失败路径继续回退 pseudo embedding，保持主流程非阻塞。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - `legacy` 默认行为保持不变。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`。
+
+---
+
 ## [MING] 通用版 0.2.79 (2026-02-16)
 
 - **Engram 迁移 Phase 5（关系图谱）**：

@@ -277,3 +277,40 @@
 ### Next
 
 - Phase 6: relation-aware formatting/debug visibility and provider adapter hardening for embedding/rerank endpoints.
+
+---
+
+## Phase 6 (Completed)
+
+### Objectives
+
+- Improve hybrid retrieval observability for debugging/tuning.
+- Harden embedding provider adapters without sacrificing fallback safety.
+
+### Delivered
+
+- Added debug observability in main loop:
+  - `AIBidirectionalSystem.ts`
+  - when `engram.debug` is enabled:
+    - logs unified retrieval stats
+    - writes `engramHybridStats` module to prompt assembly record
+- Hardened embedding provider adapters:
+  - `embeddingService.ts`
+  - provider-specific endpoints:
+    - `ollama` -> `/api/embeddings`
+    - `cohere` -> `/v1/embed`
+    - default -> `/v1/embeddings`
+  - allows no-apiKey mode for `ollama`
+  - maintains pseudo embedding fallback for all failures
+
+### Verification
+
+- `npm run type-check` passed.
+- IDE lint checks passed.
+- legacy-safe guarantees preserved:
+  - debug additions are opt-in
+  - fallback behavior remains non-blocking
+
+### Next
+
+- Phase 7: add retrieval debug UI panel and expand setting controls for rerank/trim introspection.

@@ -522,6 +522,7 @@ class AIBidirectionalSystemClass {
             }
           : undefined;
       let retrievalBlock = '';
+      let hybridRetrievalStats: Record<string, unknown> | null = null;
       try {
         if (retrievalMode === 'hybrid') {
           const unified = await unifiedRetrieve({
@@ -536,6 +537,10 @@ class AIBidirectionalSystemClass {
             vectorContext,
           });
           retrievalBlock = unified.block;
+          hybridRetrievalStats = unified.stats as unknown as Record<string, unknown>;
+          if (engramConfig.debug) {
+            console.log('[Engram][Hybrid][Stats]', unified.stats);
+          }
         } else {
           retrievalBlock = memoryRetrieve(stateForAI as Record<string, unknown>, {
             playerName: (stateForAI.角色?.身份 as any)?.名字,
@@ -856,6 +861,15 @@ ${stateJsonString}
           { key: 'semanticAndEntities', 构成: `统一记忆检索(${retrievalMode})`, 生成原因: '按关联NPC与重要程度', flow引用: '主回合', content: retrievalBlock || '(空)' },
           { key: 'stateJson', 构成: '游戏状态JSON（含中期记忆、长期记忆）', 生成原因: '完整存档', flow引用: '主回合', content: stateJsonString }
         ];
+        if (engramConfig.debug && hybridRetrievalStats) {
+          dataModules.push({
+            key: 'engramHybridStats',
+            构成: 'Engram Hybrid 检索统计',
+            生成原因: '调试',
+            flow引用: '主回合',
+            content: JSON.stringify(hybridRetrievalStats, null, 2),
+          });
+        }
         if (travelStatusPrompt) {
           dataModules.push({ key: 'travelStatus', 构成: '联机穿越状态', 生成原因: '穿越场景', flow引用: '主回合', content: travelStatusPrompt });
         }

@@ -4,6 +4,41 @@
 
 ---
 
+## [0.2.80] - 2026-02-16
+
+### Engram 迁移：Phase 6（调试可见性 + Provider 适配增强）
+
+- **Hybrid 检索调试可见性**
+  - `AIBidirectionalSystem.ts`：
+    - 在 `engram.debug=true` 时输出 `unifiedRetrieve.stats` 日志。
+    - Prompt Assembly 记录新增 `engramHybridStats` 数据模组，便于在面板里审计召回数量、向量命中、重排启用等信息。
+
+- **Embedding Provider 适配增强**
+  - `embeddingService.ts`：
+    - 从“统一 OpenAI 兼容”扩展为 provider 分支：
+      - `ollama` -> `/api/embeddings`
+      - `cohere` -> `/v1/embed`
+      - 其余 provider 继续使用 `/v1/embeddings`
+    - `ollama` 支持无 API Key 场景。
+    - 失败仍自动回退本地 pseudo embedding，保持链路稳定。
+
+- **兼容与稳定性**
+  - legacy 流程不受影响。
+  - 调试能力仅在 `engram.debug` 启用时增加可见内容，不改变主业务逻辑。
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+#### 涉及文件
+
+- `src/services/engram/embeddingService.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.79] - 2026-02-16
 
 ### Engram 迁移：Phase 5（关系边抽取 + 图谱关系检索）

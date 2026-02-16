@@ -92,7 +92,7 @@ export async function embedTexts(
       apiStore.loadFromStorage();
     }
     const apiConfig = apiStore.getAPIForType('embedding') || apiStore.getAPIForType('main');
-    if (!apiConfig || !apiConfig.url || !apiConfig.apiKey) {
+    if (!apiConfig || !apiConfig.url) {
       return {
         vectors: fallbackVectors,
         modelUsed: config.embedding.model,
@@ -101,29 +101,79 @@ export async function embedTexts(
       };
     }
 
-    // For now all providers are routed through OpenAI-compatible /v1/embeddings endpoint.
+    const modelName = config.embedding.model || apiConfig.model;
     const provider = config.embedding.provider;
-
+    if (provider !== 'ollama' && !apiConfig.apiKey) {
+      return {
+        vectors: fallbackVectors,
+        modelUsed: config.embedding.model,
+        providerUsed: config.embedding.provider,
+        usedFallback: true,
+      };
+    }
     const baseUrl = normalizeBaseUrl(apiConfig.url);
-    const endpoint = `${baseUrl}/v1/embeddings`;
-    const response = await axios.post(
-      endpoint,
-      {
-        model: config.embedding.model || apiConfig.model,
-        input,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiConfig.apiKey}`,
-        },
-        timeout: 120000,
-      },
-    );
+    const commonHeaders = {
+      'Content-Type': 'application/json',
+      ...(apiConfig.apiKey ? { Authorization: `Bearer ${apiConfig.apiKey}` } : {}),
+    };
 
-    const payload = response?.data;
-    const data = Array.isArray(payload?.data) ? payload.data : [];
-    const vectors = data.map((item: any) => (Array.isArray(item?.embedding) ? item.embedding : []));
+    let vectors: number[][] = [];
+    if (provider === 'ollama') {
+      const outputs: number[][] = [];
+      for (const item of input) {
+        const response = await axios.post(
+          `${baseUrl}/api/embeddings`,
+          {
+            model: modelName,
+            prompt: item,
+          },
+          {
+            headers: commonHeaders,
+            timeout: 120000,
+          },
+        );
+        const vector = Array.isArray(response?.data?.embedding) ? response.data.embedding : [];
+        outputs.push(vector);
+      }
+      vectors = outputs;
+    } else if (provider === 'cohere') {
+      const response = await axios.post(
+        `${baseUrl}/v1/embed`,
+        {
+          model: modelName,
+          texts: input,
+          input_type: 'search_document',
+        },
+        {
+          headers: commonHeaders,
+          timeout: 120000,
+        },
+      );
+      const embeddings = response?.data?.embeddings;
+      if (Array.isArray(embeddings)) {
+        vectors = embeddings;
+      } else if (Array.isArray(embeddings?.float)) {
+        vectors = embeddings.float;
+      } else {
+        vectors = [];
+      }
+    } else {
+      const response = await axios.post(
+        `${baseUrl}/v1/embeddings`,
+        {
+          model: modelName,
+          input,
+        },
+        {
+          headers: commonHeaders,
+          timeout: 120000,
+        },
+      );
+      const payload = response?.data;
+      const data = Array.isArray(payload?.data) ? payload.data : [];
+      vectors = data.map((item: any) => (Array.isArray(item?.embedding) ? item.embedding : []));
+    }
+
     const valid = vectors.length === input.length && vectors.every((vector: number[]) => vector.length > 0);
 
     if (!valid) {
@@ -137,7 +187,7 @@ export async function embedTexts(
 
     return {
       vectors: vectors.map((vector: number[]) => l2Normalize(vector)),
-      modelUsed: config.embedding.model || apiConfig.model,
+      modelUsed: modelName,
       providerUsed: provider,
       usedFallback: false,
     };
