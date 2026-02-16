@@ -4,6 +4,71 @@
 
 ---
 
+## [0.2.74] - 2026-02-16
+
+### Engram 迁移：Phase 0（基础设施落地）
+
+- **类型层（非破坏扩展）**
+  - `game.d.ts` 新增：
+    - `MingEngramConfig`（`retrievalMode: 'legacy' | 'hybrid'`）
+    - `MingEventNode` / `MingEntityNode` / `MingEngramMeta` / `MingEngramMemory`
+  - `SystemConfig` 新增可选字段：`engram?: MingEngramConfig`。
+  - `saveSchemaV3.ts` 新增 `系统.扩展.engramMemory?: MingEngramMemory` 类型声明（可选）。
+
+- **服务骨架（src/services/engram）**
+  - `types.ts`：导出 Engram 核心类型 + `EngramVectorStore`。
+  - `config.ts`：`DEFAULT_ENGRAM_CONFIG` 与 `normalizeEngramConfig()`（历史设置归一化）。
+  - `memoryRepository.ts`：`createEmptyEngramMemory`、`ensureEngramMemory`、读写/append/upsert/patch helpers。
+  - `vectorRepository.ts`：向量独立存储 key 规则与读写（`engram_vectors_{charId}_{slotId}`）。
+  - `index.ts`：统一导出。
+
+- **存档链路打通**
+  - `gameStateStore.ts`
+    - state 新增 `engramMemory`。
+    - `loadFromSaveData` 读取 `系统.扩展.engramMemory` 并归一化。
+    - `toSaveData` 回写 `系统.扩展.engramMemory`（缺失时写入空结构）。
+    - `resetState` 清空 `engramMemory`。
+  - `saveMigration.ts`
+    - V3 归一化路径补齐 `engramMemory` 默认结构。
+    - 旧档迁移路径保留并规范 `系统.扩展.engramMemory`。
+  - `dataRepair.ts`
+    - 修复流程确保 `系统.扩展.engramMemory` 存在且结构合法。
+    - 最小 V3 存档模板包含 `engramMemory`。
+  - `saveValidationV3.ts`
+    - `engramMemory` 若存在则校验结构（非法报错；弱结构给 warning）。
+
+- **设置 UI（SettingsPanel）**
+  - 新增组件：`src/components/engram/EngramSettingsSection.vue`。
+  - `SettingsPanel.vue` 集成该区块，支持配置：
+    - enable
+    - retrievalMode（legacy/hybrid）
+    - embedding enabled/provider/model/topK/minScore
+    - debug
+  - 配置落盘到 `dad_game_settings.engram`，并在加载/重置/验证时统一归一化。
+
+- **兼容与回归**
+  - legacy 保持默认：`enabled=false`、`retrievalMode='legacy'`。
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+#### 涉及文件
+
+- `src/types/game.d.ts`
+- `src/types/saveSchemaV3.ts`
+- `src/stores/gameStateStore.ts`
+- `src/utils/saveMigration.ts`
+- `src/utils/dataRepair.ts`
+- `src/utils/saveValidationV3.ts`
+- `src/components/dashboard/SettingsPanel.vue`
+- `src/components/engram/EngramSettingsSection.vue`（新增）
+- `src/services/engram/types.ts`（新增）
+- `src/services/engram/config.ts`（新增）
+- `src/services/engram/memoryRepository.ts`（新增）
+- `src/services/engram/vectorRepository.ts`（新增）
+- `src/services/engram/index.ts`（新增）
+
+---
+
 ## [0.2.73] - 2026-02-15
 
 ### API 超时与中期记忆消费格式

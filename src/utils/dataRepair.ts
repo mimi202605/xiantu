@@ -17,6 +17,7 @@ import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { DEFAULT_CURRENCY, normalizeCurrency } from '@/utils/currencyDefaults';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
 import { calibrateNpcLocationSync } from '@/utils/locationUtils';
+import { createEmptyEngramMemory, ensureEngramMemory } from '@/services/engram/memoryRepository';
 
 /**
  * 修复并清洗存档数据，确保所有必需字段存在且格式正确
@@ -168,6 +169,10 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
 
     // --- 系统.历史 ---
     if (!repaired.系统 || typeof repaired.系统 !== 'object') repaired.系统 = createMinimalSaveDataV3().系统;
+    if (!repaired.系统.扩展 || typeof repaired.系统.扩展 !== 'object') repaired.系统.扩展 = {};
+    repaired.系统.扩展.engramMemory = ensureEngramMemory(
+      repaired.系统.扩展.engramMemory ?? createEmptyEngramMemory(),
+    );
     if (!repaired.系统.历史 || typeof repaired.系统.历史 !== 'object') repaired.系统.历史 = { 叙事: [] };
     if (!Array.isArray(repaired.系统.历史.叙事)) repaired.系统.历史.叙事 = [];
 
@@ -639,7 +644,7 @@ function createMinimalSaveDataV3(): SaveData {
       缓存: { 掌握技能: [], 临时统计: {} },
       行动队列: { actions: [] },
       历史: { 叙事: [] },
-      扩展: {},
+      扩展: { engramMemory: createEmptyEngramMemory() },
       联机: { 模式: '单机', 房间ID: null, 玩家ID: null, 只读路径: ['世界'], 世界曝光: false, 冲突策略: '服务器' },
     },
   } as any;

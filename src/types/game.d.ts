@@ -37,6 +37,90 @@ export interface SystemConfig extends AIMetadata {
   nsfwGenderFilter?: 'all' | 'male' | 'female'; // NSFW gender filter
   npcDemotionThreshold?: number; // Turns of inactivity before demotion (default 5)
   importantNpcGenerationRange?: { min: number; max: number }; // Range of important NPCs to generate at new locations (default 0-1)
+  /**
+   * Engram 记忆增强配置（可选）
+   * - legacy: 保持原检索链路
+   * - hybrid: 由统一检索器替代原 memoryRetrieve
+   */
+  engram?: MingEngramConfig;
+}
+
+export interface MingEngramEmbeddingConfig {
+  enabled: boolean;
+  provider: 'openai' | 'ollama' | 'custom' | 'vllm' | 'cohere' | 'jina' | 'voyage';
+  model: string;
+  topK: number;
+  minScore: number;
+}
+
+export interface MingEngramRerankConfig {
+  enabled: boolean;
+  providerUrl?: string;
+  model?: string;
+  topN: number;
+}
+
+export interface MingEngramTrimConfig {
+  enabled: boolean;
+  trigger: 'token' | 'count';
+  tokenLimit: number;
+  countLimit: number;
+  keepRecent: number;
+}
+
+export interface MingEngramConfig {
+  enabled: boolean;
+  retrievalMode: 'legacy' | 'hybrid';
+  embedding: MingEngramEmbeddingConfig;
+  rerank: MingEngramRerankConfig;
+  trim: MingEngramTrimConfig;
+  debug?: boolean;
+}
+
+export interface MingEventNode {
+  id: string;
+  summary: string;
+  structured_kv: {
+    time_anchor: string;
+    role: string[];
+    location: string[];
+    event: string;
+    logic: string[];
+    causality: string;
+  };
+  is_embedded: boolean;
+  is_archived: boolean;
+  significance_score: number;
+  level: number;
+  parent_id?: string;
+  source_range: { start_index: number; end_index: number };
+  timestamp: number;
+}
+
+export interface MingEntityNode {
+  id: string;
+  name: string;
+  type: 'char' | 'loc' | 'item' | 'concept' | 'unknown';
+  aliases: string[];
+  description: string;
+  profile: Record<string, unknown>;
+  is_embedded?: boolean;
+  last_updated_at: number;
+}
+
+export interface MingEngramMeta {
+  last_summarized_floor: number;
+  last_extracted_floor: number;
+  last_trimmed_at?: number;
+  embedding_model?: string;
+  vector_dim?: number;
+  schema_version: number;
+}
+
+export interface MingEngramMemory {
+  events: MingEventNode[];
+  entities: MingEntityNode[];
+  meta: MingEngramMeta;
 }
 
 // --- 状态变更日志接口 ---

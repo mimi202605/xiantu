@@ -84,5 +84,23 @@ export function validateSaveDataV3(saveData: SaveData): SaveValidationResult {
   const roPaths = anySave.系统?.联机?.只读路径;
   if (!Array.isArray(roPaths)) errors.push('系统.联机.只读路径 必填且必须是数组');
 
+  // 系统.扩展.engramMemory（可选）：若存在则进行结构校验
+  const engramMemory = anySave.系统?.扩展?.engramMemory;
+  if (engramMemory !== undefined) {
+    if (!isPlainObject(engramMemory)) {
+      errors.push('系统.扩展.engramMemory 必须是对象');
+    } else {
+      if (!Array.isArray((engramMemory as any).events)) {
+        warnings.push('系统.扩展.engramMemory.events 不是数组，运行时将回退为空数组');
+      }
+      if (!Array.isArray((engramMemory as any).entities)) {
+        warnings.push('系统.扩展.engramMemory.entities 不是数组，运行时将回退为空数组');
+      }
+      if (!isPlainObject((engramMemory as any).meta)) {
+        warnings.push('系统.扩展.engramMemory.meta 不是对象，运行时将回退默认 meta');
+      }
+    }
+  }
+
   return { isValid: errors.length === 0, errors, warnings };
 }

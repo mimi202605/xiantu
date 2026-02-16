@@ -15,6 +15,8 @@ import type {
   EventSystem,
   StatusEffect,
   WorldHeartbeatConfig,
+  MingEngramMemory,
+  ImplicitMidTermEntry,
 } from '@/types/game';
 // [MING] Removed attribute calculation - simplified attributes
 // import { calculateFinalAttributes } from '@/utils/attributeCalculation';
@@ -23,6 +25,7 @@ import { ensureSystemConfigHasNsfw } from '@/utils/nsfw';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { normalizeImplicitMidTermForConsumption } from '@/utils/memoryHelpers';
 import type { MidTermEntry } from '@/types/game';
+import { createEmptyEngramMemory, ensureEngramMemory } from '@/services/engram/memoryRepository';
 
 // 定义各个模块的接口
 interface GameState {
@@ -76,6 +79,8 @@ interface GameState {
 
   // [MING] 语义记忆（来自 系统.扩展.语义记忆）；实体与关系由 社交.关系+角色 派生
   semanticMemory: import('@/types/gameStateIndex').SemanticMemoryStore | null;
+  // [MING] Engram 事件/实体记忆（来自 系统.扩展.engramMemory）
+  engramMemory: MingEngramMemory | null;
   // [MING] 探索记录（世界.状态.探索记录）；用于地图 UI 迷雾显示
   explorationRecord: string[] | null;
   // [MING] 回合序号（元数据.回合序号）；主回合结束时 +1，用于世界心跳周期与遗忘判定
@@ -134,6 +139,7 @@ export const useGameStateStore = defineStore('gameState', {
     conversationAutoSaveEnabled: true,
 
     semanticMemory: null,
+    engramMemory: null,
     explorationRecord: null,
     roundNumber: 0,
     worldHeartbeat: {
@@ -381,6 +387,9 @@ export const useGameStateStore = defineStore('gameState', {
       this.semanticMemory = 扩展 && typeof 扩展 === 'object' && 扩展.语义记忆
         ? deepCopy(扩展.语义记忆)
         : null;
+      this.engramMemory = 扩展 && typeof 扩展 === 'object' && (扩展 as any).engramMemory
+        ? ensureEngramMemory(deepCopy((扩展 as any).engramMemory))
+        : null;
       // 已发送信息（仅供玩家查阅，不参与 prompt）
       const rawSent = 扩展 && typeof 扩展 === 'object' && (扩展 as any).已发送信息;
       this.sentToApiMessages = Array.isArray(rawSent)
@@ -524,6 +533,7 @@ export const useGameStateStore = defineStore('gameState', {
           历史: { 叙事: this.narrativeHistory || [] },
           扩展: {
             语义记忆: this.semanticMemory ?? { triples: [] },
+            engramMemory: this.engramMemory ?? createEmptyEngramMemory(),
             已发送信息: Array.isArray(this.sentToApiMessages) ? this.sentToApiMessages : [],
           },
           联机: online,
@@ -655,6 +665,7 @@ export const useGameStateStore = defineStore('gameState', {
       this.body = null;
       this.bodyPartDevelopment = null;
       this.semanticMemory = null;
+      this.engramMemory = null;
       this.explorationRecord = null;
       this.roundNumber = 0;
       this.worldHeartbeat = {
@@ -890,7 +901,8 @@ export const useGameStateStore = defineStore('gameState', {
 
       this.memory.短期记忆.unshift(finalContent); // 最新的在前
       const timeStr = gameTime ? `${gameTime.年}-${String(gameTime.月).padStart(2, '0')}-${String(gameTime.日).padStart(2, '0')}-${String(gameTime.小时).padStart(2, '0')}-${String(gameTime?.分钟 ?? 0).padStart(2, '0')}` : '';
-      this.memory.隐式中期记忆.unshift({ 相关角色: [], 事件时间: timeStr, 记忆主体: finalContent }); // 隐性格式
+      const implicitMidTerm = this.memory.隐式中期记忆 as ImplicitMidTermEntry[];
+      implicitMidTerm.unshift({ 相关角色: [], 事件时间: timeStr, 记忆主体: finalContent }); // 隐性格式
 
       // 检查溢出，从localStorage读取配置
       const maxShortTerm = (() => {
@@ -907,7 +919,7 @@ export const useGameStateStore = defineStore('gameState', {
 
       while (this.memory.短期记忆.length > maxShortTerm) {
         this.memory.短期记忆.pop(); // 移除最旧的
-        const implicit = this.memory.隐式中期记忆.pop();
+        const implicit = implicitMidTerm.pop();
         if (implicit && typeof implicit === 'object' && implicit.记忆主体) {
           this.memory.中期记忆.push({ ...implicit, 已精炼: false });
           console.log('[gameStateStore] ✅ 短期记忆溢出，已转移到中期记忆');

@@ -15,7 +15,8 @@ import type {
   PlayerLocation,
   WorldInfo,
   EventSystem,
-  BodyStats
+  BodyStats,
+  MingEngramMemory,
 } from '@/types/game';
 
 /**
@@ -121,7 +122,11 @@ export interface SaveDataV3 {
     缓存?: Record<string, unknown>;
     行动队列?: ActionQueue;
     历史?: { 叙事?: GameMessage[] };
-    扩展?: Record<string, unknown>;
+    扩展?: Record<string, unknown> & {
+      语义记忆?: Record<string, unknown>;
+      engramMemory?: MingEngramMemory;
+      已发送信息?: Array<{ text: string; timestamp: number }>;
+    };
     联机: OnlineStateV3;
   };
 }

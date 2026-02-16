@@ -175,6 +175,8 @@
         </div>
       </div>
 
+      <EngramSettingsSection v-model="settings.engram" @change="onSettingChange" />
+
       <!-- 世界心跳 -->
       <div class="settings-section">
         <div class="section-header">
@@ -464,6 +466,8 @@ import { useCharacterStore } from '@/stores/characterStore';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { useUIStore } from '@/stores/uiStore';
 import { unwrapDadBundle } from '@/utils/dadBundle';
+import EngramSettingsSection from '@/components/engram/EngramSettingsSection.vue';
+import { DEFAULT_ENGRAM_CONFIG, normalizeEngramConfig } from '@/services/engram/config';
 
 const { t, setLanguage, currentLanguage } = useI18n();
 const characterStore = useCharacterStore();
@@ -610,6 +614,7 @@ const settings = reactive({
   performanceMonitor: false,
   aiApiLogging: false,
   replaceRules: [] as TextReplaceRule[],
+  engram: normalizeEngramConfig(DEFAULT_ENGRAM_CONFIG),
 });
 
 const loading = ref(false);
@@ -684,9 +689,11 @@ const loadSettings = async () => {
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
       Object.assign(settings, parsed);
+      settings.engram = normalizeEngramConfig((parsed as any).engram);
       uiStore.syncDebugModeFromStorage();
       debug.log('设置面板', '设置加载成功', parsed);
     } else {
+      settings.engram = normalizeEngramConfig(DEFAULT_ENGRAM_CONFIG);
       debug.log('设置面板', '使用默认设置');
     }
 
@@ -747,6 +754,9 @@ const validateSettings = () => {
     // 正则替换规则：确保结构正确并限制大小，避免卡顿/存储膨胀
     const rawReplaceRules = (settings as any).replaceRules;
     (settings as any).replaceRules = normalizeReplaceRules(rawReplaceRules);
+
+    // Engram 配置：统一归一化，避免历史设置导致字段缺失
+    (settings as any).engram = normalizeEngramConfig((settings as any).engram);
 
     debug.log('设置面板', '设置验证完成');
   } catch (error) {
@@ -843,6 +853,7 @@ const resetSettings = () => {
         consoleDebug: false,
         performanceMonitor: false,
         aiApiLogging: false,
+        engram: normalizeEngramConfig(DEFAULT_ENGRAM_CONFIG),
       });
       saveSettings();
       toast.info('设置已重置为默认值');

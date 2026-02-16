@@ -1,6 +1,7 @@
 import type { SaveData, GameTime, EventSystem, ImplicitMidTermEntry, MidTermEntry } from '@/types/game';
 import type { SaveDataV3 } from '@/types/saveSchemaV3';
 import { DEFAULT_CURRENCY, normalizeCurrency } from '@/utils/currencyDefaults';
+import { createEmptyEngramMemory, ensureEngramMemory } from '@/services/engram/memoryRepository';
 
 export type SaveMigrationIssue =
   | 'legacy-root-keys'
@@ -320,6 +321,11 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
         if (npc && typeof npc === 'object') normalizeSixDimensions(npc);
       }
     }
+    if (!isPlainObject(normalized.系统)) normalized.系统 = {};
+    if (!isPlainObject(normalized.系统.扩展)) normalized.系统.扩展 = {};
+    (normalized.系统.扩展 as any).engramMemory = ensureEngramMemory(
+      (normalized.系统.扩展 as any).engramMemory ?? createEmptyEngramMemory(),
+    );
     // 货币：统一为 金钱 + 现金/铜/银/金
     if (normalized.角色?.背包) {
       const cur = normalized.角色.背包.金钱 ?? normalized.角色.背包.灵石;
@@ -435,6 +441,11 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
   delete worldInfo.continents;
 
   const systemConfig = source.系统?.配置 ?? source.系统 ?? source.系统配置 ?? undefined;
+  const rawSystemExtension = source.系统?.扩展 ?? source.扩展;
+  const systemExtension = isPlainObject(rawSystemExtension) ? deepClone(rawSystemExtension) : {};
+  (systemExtension as any).engramMemory = ensureEngramMemory(
+    (systemExtension as any).engramMemory ?? createEmptyEngramMemory(),
+  );
 
   const narrative =
     source.系统?.历史?.叙事 ??
@@ -519,7 +530,7 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       缓存: source.系统?.缓存 ?? source.缓存 ?? undefined,
       行动队列: source.系统?.行动队列 ?? source.行动队列 ?? undefined,
       历史: { 叙事: Array.isArray(narrative) ? narrative : [] },
-      扩展: source.系统?.扩展 ?? source.扩展 ?? {},
+      扩展: systemExtension,
       联机: isPlainObject(online) ? { ...buildDefaultOnline(), ...(online as any) } : buildDefaultOnline(),
     },
   };

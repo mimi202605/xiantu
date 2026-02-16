@@ -1,5 +1,22 @@
 # 更新日志
 
+## [MING] 通用版 0.2.74 (2026-02-16)
+
+- **Engram 迁移 Phase 0（基础设施）**：
+  - 新增 `engramMemory` 类型与配置模型（`MingEngramConfig/MingEngramMemory/MingEventNode/MingEntityNode/MingEngramMeta`），并接入 `SystemConfig.engram`（可选、非破坏）。
+  - 新增 `src/services/engram/` 骨架：`types.ts`、`config.ts`、`memoryRepository.ts`、`vectorRepository.ts`、`index.ts`。
+  - `gameStateStore` 打通 `系统.扩展.engramMemory` 的加载/保存：`loadFromSaveData()` 读取并归一化；`toSaveData()` 持久化默认空结构；`resetState()` 清理运行态。
+  - `dataRepair/saveMigration/saveValidationV3` 全链路兼容 `engramMemory`：修复、迁移、校验时不再丢失该字段。
+  - 设置面板新增 `Engram` 区块（启用开关、legacy/hybrid、embedding provider/model/topK/minScore、debug），持久化到 `dad_game_settings.engram`。
+  - 向量独立存储基础能力落地：`vectorRepository` 统一 `engram_vectors_{charId}_{slotId}` key 的读写。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - legacy 默认值保持：`enabled=false` + `retrievalMode='legacy'`，不影响现有主流程。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `docs/engram-migration-implementation-log.md`。
+
+---
+
 ## [MING] 通用版 0.2.73 (2026-02-15)
 
 - **API 超时**：流式请求 5 分钟超时、504 用户提示与调大代理建议；导出 API_TIMEOUT_MS。
