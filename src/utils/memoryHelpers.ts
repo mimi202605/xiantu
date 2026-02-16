@@ -3,10 +3,30 @@
  */
 import type { ImplicitMidTermEntry, MidTermEntry } from '@/types/game'
 
-/** 从中期记忆条目标题或对象中取出用于显示/发送的字符串 */
+/** 从中期记忆条目标题或对象中取出用于显示/发送的字符串（仅记忆主体，兼容旧逻辑） */
 export function getMidTermContent(entry: MidTermEntry): string {
   if (typeof entry === 'string') return entry
   return (entry as { 记忆主体: string }).记忆主体 ?? ''
+}
+
+/**
+ * 将中期记忆条目格式化为供 prompt/API 使用的单行字符串，保留 相关角色、事件时间、记忆主体，
+ * 使主流程、精炼、长期总结等消费处都能利用这些属性。
+ */
+export function formatMidTermEntryForPrompt(entry: MidTermEntry): string {
+  if (typeof entry === 'string') return entry
+  const o = entry as { 相关角色?: string[]; 事件时间?: string; 记忆主体?: string }
+  const body = o.记忆主体 ?? ''
+  const roles =
+    Array.isArray(o.相关角色) && o.相关角色.length > 0
+      ? o.相关角色.filter((r): r is string => typeof r === 'string').join('、')
+      : ''
+  const time = typeof o.事件时间 === 'string' && o.事件时间.trim() ? o.事件时间.trim() : ''
+  const parts: string[] = []
+  if (roles) parts.push(`【相关角色: ${roles}】`)
+  if (time) parts.push(`【事件时间: ${time}】`)
+  parts.push(body)
+  return parts.join('')
 }
 
 /** 判断中期记忆条目是否已精炼 */

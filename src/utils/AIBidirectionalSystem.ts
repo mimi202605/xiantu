@@ -31,7 +31,7 @@ import { mergeInto扩展 } from '@/services/gameStateIndexer';
 import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
 import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync } from '@/utils/locationUtils';
 import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/locationNpcGenerationPromptsMing';
-import { getMidTermContent } from '@/utils/memoryHelpers';
+import { getMidTermContent, formatMidTermEntryForPrompt } from '@/utils/memoryHelpers';
 import type { LocationEntry, NpcProfile, ImplicitMidTermEntry } from '@/types/game';
 
 type PlainObject = Record<string, unknown>;
@@ -689,7 +689,7 @@ class AIBidirectionalSystemClass {
             任务: stateForAI.社交?.任务,
             事件: stateForAI.社交?.事件,
             记忆: {
-              中期记忆: (stateForAI.社交?.记忆?.中期记忆 || []).map(getMidTermContent),
+              中期记忆: (stateForAI.社交?.记忆?.中期记忆 || []).map(formatMidTermEntryForPrompt),
               长期记忆: stateForAI.社交?.记忆?.长期记忆,
             },
           },
@@ -2301,7 +2301,7 @@ ${step1Text}
 
       const memoriesToSummarize = midTermMemories.slice(0, numToSummarize);
       const memoriesText = memoriesToSummarize
-        .map((m: any, i: number) => `${i + 1}. ${getMidTermContent(m)}`)
+        .map((m: any, i: number) => `${i + 1}. ${formatMidTermEntryForPrompt(m)}`)
         .join('\n');
 
       console.log(`[AI双向系统] 准备长期总结：从${midTermMemories.length}条中期记忆中，用最旧${numToSummarize}条生成1条长期；保留中期条数=${midTermKeep < 0 ? '不删减' : memoriesToKeep.length}`);
@@ -2514,7 +2514,7 @@ ${saveDataJson}`;
         return;
       }
       const memoriesText = midTermMemories
-        .map((m: any, i: number) => `${i + 1}. ${getMidTermContent(m)}`)
+        .map((m: any, i: number) => `${i + 1}. ${formatMidTermEntryForPrompt(m)}`)
         .join('\n');
       const refinePrompt = await getPrompt('midTermRefine');
       const userPrompt = refinePrompt.replace('{{记忆内容}}', memoriesText);

@@ -14,8 +14,8 @@ import axios from 'axios';
 import type { APIUsageType, APIConfig as StoreAPIConfig } from '@/stores/apiManagementStore';
 
 // ============ 常量配置 ============
-/** API请求超时时间（毫秒），默认5分钟 */
-const API_TIMEOUT_MS = 300000;
+/** API 请求超时时间（毫秒），主回合及所有自定义 API 调用统一使用，默认 5 分钟。504 约 1 分钟多为服务端/反向代理（如 nginx）超时，需在服务端调大 proxy_read_timeout 等。 */
+export const API_TIMEOUT_MS = 300000;
 
 // ============ API提供商类型 ============
 export type APIProvider = 'openai' | 'claude' | 'gemini' | 'deepseek' | 'custom';
@@ -184,6 +184,22 @@ class AIService {
 
   private getAbortSignal(): AbortSignal | undefined {
     return this.abortController?.signal;
+  }
+
+  /**
+   * 返回在「用户取消」或「API_TIMEOUT_MS 超时」时触发的 AbortSignal，用于流式 fetch，避免仅依赖服务端超时（如 504）。
+   */
+  private getAbortSignalWithTimeout(): AbortSignal {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+    const userSignal = this.getAbortSignal();
+    if (userSignal) {
+      userSignal.addEventListener('abort', () => {
+        clearTimeout(timeoutId);
+        controller.abort();
+      });
+    }
+    return controller.signal;
   }
 
   private syncModeWithEnvironment() {
@@ -717,6 +733,14 @@ class AIService {
       return e;
     }
 
+    if (status === 504 || /\b504\b/.test(message)) {
+      const e = new Error(
+        '网关超时（504）。约 1 分钟出现多为反向代理/服务端超时（如 nginx 默认 60s），本端超时为 5 分钟。请调大代理的 proxy_read_timeout 或检查上游服务。'
+      );
+      (e as any).cause = error;
+      return e;
+    }
+
     // 保留原始信息，但避免直接把对象打印到 toast 里
     const e = new Error(message || 'AI 调用失败');
     (e as any).cause = error;
@@ -1232,7 +1256,7 @@ class AIService {
         max_tokens: maxTokens,
         stream: true
       }),
-      signal: this.getAbortSignal()
+      signal: this.getAbortSignalWithTimeout()
     });
 
     if (!response.ok) {
@@ -1286,7 +1310,7 @@ class AIService {
         temperature,
         stream: true
       }),
-      signal: this.getAbortSignal()
+      signal: this.getAbortSignalWithTimeout()
     });
 
     if (!response.ok) {
@@ -1332,7 +1356,7 @@ class AIService {
           maxOutputTokens: maxTokens
         }
       }),
-      signal: this.getAbortSignal()
+      signal: this.getAbortSignalWithTimeout()
     });
 
     if (!response.ok) {

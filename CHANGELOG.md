@@ -1,5 +1,13 @@
 # 更新日志
 
+## [MING] 通用版 0.2.73 (2026-02-15)
+
+- **API 超时**：流式请求 5 分钟超时、504 用户提示与调大代理建议；导出 API_TIMEOUT_MS。
+- **中期记忆**：消费处（主流程 state、精炼、长期总结）统一使用 formatMidTermEntryForPrompt，保留相关角色与事件时间。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.72 (2026-02-15)
 
 - **语义记忆**：按关联 NPC（key+名字）与重要程度发送；`relatedOnly` 默认仅发相关 triple；文档记录 consumer 与发送时机。

@@ -4,6 +4,28 @@
 
 ---
 
+## [0.2.73] - 2026-02-15
+
+### API 超时与中期记忆消费格式
+
+- **API 超时**
+  - 导出 `API_TIMEOUT_MS`（默认 5 分钟），主回合及自定义 API 统一使用。
+  - 流式请求使用 `getAbortSignalWithTimeout()`，超时后中止 fetch，避免仅依赖服务端/反向代理超时。
+  - 504 错误时向用户提示：约 1 分钟多为代理/服务端超时，本端 5 分钟；建议调大 proxy_read_timeout 等。
+
+- **中期记忆消费保留相关角色与事件时间**
+  - `memoryHelpers` 新增 `formatMidTermEntryForPrompt(entry)`：对象条目输出「【相关角色: …】【事件时间: …】记忆主体」单行，字符串条目原样返回。
+  - 主流程 state JSON（buildNarrativeState）、中期精炼（triggerMidTermRefine）、长期总结（triggerMemorySummary）均改为使用该格式，使相关角色与事件时间参与所有 API 调用。
+
+#### 涉及文件
+
+- `src/services/aiService.ts`
+- `src/utils/memoryHelpers.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.70] - 2026-02-15
 
 ### 记忆中心：配置 UI 与测试按钮
