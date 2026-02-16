@@ -28,6 +28,43 @@
 
 ---
 
+## [0.2.71] - 2026-02-15
+
+### 中期记忆逻辑修订（设计实现）
+
+- **数据模型与迁移**
+  - **类型**（`game.d.ts`）：`ImplicitMidTermEntry`（相关角色、事件时间、记忆主体）、`MidTermEntry`（string | 带 记忆主体/已精炼 的对象）、`Memory` 中 `隐式中期记忆` 为对象数组。
+  - **迁移**（`saveMigration.ts`）：`normalizeMemory` 使用 `coerceImplicitMidTermArray`、`coerceMidTermArray`，旧存档的 string[] 隐式中期/中期自动转为新结构。
+
+- **主回合发给 AI 的内容**
+  - 仅发送 **短期记忆** + **中期记忆**（经 `getMidTermContent` 取字符串）+ **长期记忆**；**隐式中期记忆**不再单独成块送入，避免与短期重复。
+
+- **中期存储与精炼**
+  - Step2 / init step2 的 prompt 要求 `mid_term_memory` 为对象 `{ 相关角色, 事件时间, 记忆主体 }`；`processGmResponse` 将该对象写入隐式中期记忆，短期溢出时一条转入中期（`已精炼: false`）。
+  - **精炼**：中期条数 ≥ `midTermRefineTrigger`（默认 25）时调用 `triggerMidTermRefine()`，用精炼 API 结果整体替换中期记忆并标 `已精炼: true`。
+  - **长期总结**：中期条数 ≥ `longTermTrigger`（默认 50）时调用 `triggerMemorySummary()`；`midTermKeep === -1` 时不删减，取最旧 `longTermSummarizeCount` 条生成 1 条长期；主回合内精炼与长期总结二选一触发。
+
+- **辅助与消费**
+  - **memoryHelpers.ts**：`getMidTermContent`、`normalizeImplicitMidTermForConsumption` 等，供主回合与总结使用。
+  - **gameStateStore**：`addToShortTermMemory` 写入隐式中期格式，溢出时推入中期；加载存档时对中期/隐式中期做 coerce。
+  - **worldHeartbeatService**：当前会话从隐式中期记忆读取，支持对象格式。
+  - **MainGamePanel**：记忆设置与记忆中心配置同步（短期上限、阈值等）。
+
+#### 涉及文件
+
+- `src/types/game.d.ts`、`src/types/AIGameMaster.d.ts`
+- `src/utils/saveMigration.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/utils/memoryHelpers.ts`（新增）
+- `src/utils/prompts/definitions/ming/inlinePromptsMing.ts`
+- `src/stores/gameStateStore.ts`
+- `src/services/worldHeartbeatService.ts`
+- `src/components/dashboard/MainGamePanel.vue`
+- `src/services/defaultPrompts.ts`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.69] - 2026-02-14
 
 ### 回退：AIBidirectionalSystem 重构

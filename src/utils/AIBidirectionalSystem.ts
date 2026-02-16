@@ -31,7 +31,8 @@ import { mergeInto扩展 } from '@/services/gameStateIndexer';
 import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
 import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync } from '@/utils/locationUtils';
 import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/locationNpcGenerationPromptsMing';
-import type { LocationEntry, NpcProfile } from '@/types/game';
+import { getMidTermContent } from '@/utils/memoryHelpers';
+import type { LocationEntry, NpcProfile, ImplicitMidTermEntry } from '@/types/game';
 
 type PlainObject = Record<string, unknown>;
 
@@ -110,7 +111,8 @@ export interface MemorySummaryOptions {
 class AIBidirectionalSystemClass {
   private static instance: AIBidirectionalSystemClass | null = null;
   private stateHistory: StateChangeLog[] = [];
-  private isSummarizing = false; // 添加一个锁，防止并发总结
+  private isSummarizing = false; // 防止并发长期总结
+  private isRefining = false; // 防止并发中期精炼
 
   private compareGameTime(a: GameTime, b: GameTime): number {
     const fields: Array<keyof GameTime> = ['年', '月', '日', '小时', '分钟'];
@@ -496,6 +498,8 @@ class AIBidirectionalSystemClass {
         console.warn('[AI双向系统] 语义记忆检索失败:', e);
       }
 
+      // 不注入隐式中期记忆：与短期记忆重叠，AI 仅接收 短期记忆(5条) + 中期记忆 + 长期记忆，避免重复
+
       if (npcsAtLocation.length > 0) {
         const npcSummaries = npcsAtLocation
           .map((name) => {
@@ -680,7 +684,7 @@ class AIBidirectionalSystemClass {
             任务: stateForAI.社交?.任务,
             事件: stateForAI.社交?.事件,
             记忆: {
-              中期记忆: stateForAI.社交?.记忆?.中期记忆,
+              中期记忆: (stateForAI.社交?.记忆?.中期记忆 || []).map(getMidTermContent),
               长期记忆: stateForAI.社交?.记忆?.长期记忆,
             },
           },
@@ -1914,14 +1918,28 @@ ${step1Text}
       (saveData as any).社交.记忆.短期记忆.push(`${timePrefix}${textContent}`);
     }
 
-    // 处理mid_term_memory：添加到隐式中期记忆
-    const memoryContent = sanitizeAITextForDisplay(response.mid_term_memory || '').trim();
-    if (memoryContent) {
+    // 处理 mid_term_memory：规范为隐性格式并添加到隐式中期记忆
+    const rawMem = response.mid_term_memory;
+    const hasContent = rawMem !== undefined && rawMem !== null &&
+      (typeof rawMem === 'string' ? (rawMem as string).trim() : (rawMem as ImplicitMidTermEntry).记忆主体);
+    if (hasContent) {
       if (!(saveData as any).社交) (saveData as any).社交 = {};
       if (!(saveData as any).社交.记忆) (saveData as any).社交.记忆 = { 短期记忆: [], 中期记忆: [], 长期记忆: [], 隐式中期记忆: [] };
       if (!Array.isArray((saveData as any).社交.记忆.隐式中期记忆)) (saveData as any).社交.记忆.隐式中期记忆 = [];
       const timePrefix = this._formatGameTime((saveData as any).元数据?.时间);
-      (saveData as any).社交.记忆.隐式中期记忆.push(`${timePrefix}${memoryContent}`);
+      let entry: ImplicitMidTermEntry;
+      if (typeof rawMem === 'object' && rawMem !== null && typeof (rawMem as ImplicitMidTermEntry).记忆主体 === 'string') {
+        const o = rawMem as ImplicitMidTermEntry;
+        entry = {
+          相关角色: Array.isArray(o.相关角色) ? o.相关角色 : [],
+          事件时间: typeof o.事件时间 === 'string' ? o.事件时间 : timePrefix,
+          记忆主体: sanitizeAITextForDisplay(o.记忆主体).trim()
+        };
+      } else {
+        const text = sanitizeAITextForDisplay(String(rawMem)).trim();
+        entry = { 相关角色: [], 事件时间: timePrefix, 记忆主体: text };
+      }
+      if (entry.记忆主体) (saveData as any).社交.记忆.隐式中期记忆.push(entry);
     }
 
     // 🔥 检查短期记忆是否超限，超限则删除最旧的短期记忆，并将对应的隐式中期记忆转化为正式中期记忆
@@ -1959,17 +1977,23 @@ ${step1Text}
     // 🔥 叙事历史存储在IndexedDB中，不限制条数
     // 叙事历史只用于UI显示和导出小说，不需要发送给AI（已在第122行移除）
 
-    // 检查是否达到自动总结阈值，如果达到则“异步”触发，不阻塞当前游戏循环
+    // 检查是否达到精炼/长期总结阈值（二选一，不重复触发）
     try {
       const memorySettings = JSON.parse(localStorage.getItem('memory-settings') || '{}');
-      const midTermTrigger = memorySettings.midTermTrigger ?? 25; // 默认25
-      if ((saveData as any).社交?.记忆?.中期记忆 && (saveData as any).社交.记忆.中期记忆.length >= midTermTrigger) {
+      const midTermRefineTrigger = memorySettings.midTermRefineTrigger ?? 25;
+      const longTermTrigger = memorySettings.longTermTrigger ?? 50;
+      const midTermCount = (saveData as any).社交?.记忆?.中期记忆?.length ?? 0;
+      if (midTermCount >= longTermTrigger) {
         this.triggerMemorySummary().catch(error => {
-          console.error('[AI双向系统] 自动记忆总结在后台失败:', error);
+          console.error('[AI双向系统] 自动长期总结在后台失败:', error);
+        });
+      } else if (midTermCount >= midTermRefineTrigger) {
+        this.triggerMidTermRefine().catch(error => {
+          console.error('[AI双向系统] 自动中期精炼在后台失败:', error);
         });
       }
     } catch (error) {
-      console.warn('[AI双向系统] 检查自动总结阈值时出错:', error);
+      console.warn('[AI双向系统] 检查记忆阈值时出错:', error);
     }
 
     // [MING] 合并 semantic_memory 到 系统.扩展（game_entities 已移除，关系图由 社交.关系 派生）
@@ -2226,50 +2250,50 @@ ${step1Text}
         throw new Error('无法获取存档数据或记忆模块');
       }
 
-      // 1. 从 localStorage 读取最新配置
+      // 1. 从 localStorage 读取最新配置（长期总结专用）
       const settings = JSON.parse(localStorage.getItem('memory-settings') || '{}');
-      const midTermTrigger = settings.midTermTrigger ?? 25;
-      const midTermKeep = settings.midTermKeep ?? 8;
+      const longTermTrigger = settings.longTermTrigger ?? 50;
+      const midTermKeep = typeof settings.midTermKeep === 'number' ? settings.midTermKeep : -1;
+      const longTermSummarizeCount = typeof settings.longTermSummarizeCount === 'number' && settings.longTermSummarizeCount > 0 ? settings.longTermSummarizeCount : 50;
       const longTermFormat = settings.longTermFormat || '';
 
       // 2. 再次检查是否需要总结
       const midTermMemories = (saveData as any).社交.记忆.中期记忆 || [];
 
-      // 检查中期记忆数量是否达到触发阈值
-      if (midTermMemories.length < midTermTrigger) {
-        console.log(`[AI双向系统] 中期记忆数量(${midTermMemories.length})未达到触发阈值(${midTermTrigger})，取消总结。`);
-        toast.info(`中期记忆未达到触发阈值(${midTermTrigger}条)，已取消总结`, { id: 'memory-summary' });
+      if (midTermMemories.length < longTermTrigger) {
+        console.log(`[AI双向系统] 中期记忆数量(${midTermMemories.length})未达到长期总结阈值(${longTermTrigger})，取消总结。`);
+        toast.info(`中期记忆未达到长期总结阈值(${longTermTrigger}条)，已取消总结`, { id: 'memory-summary' });
         return;
       }
 
-      // 3. 确定要总结和保留的记忆
-      // 需要总结的数量 = 触发阈值 - 保留数量（例如：25 - 8 = 17条）
-      const numToSummarize = midTermTrigger - midTermKeep;
-
-      if (numToSummarize <= 0) {
-        console.log('[AI双向系统] 计算出的总结数量 <= 0，配置错误，取消操作。');
-        toast.error('记忆配置错误：触发阈值必须大于保留数量', { id: 'memory-summary' });
-        return;
+      // 3. 确定要总结的数量与保留的中期记忆
+      // midTermKeep === -1：不删减，只取最旧 longTermSummarizeCount 条生成 1 条长期，中期记忆整体保留
+      // midTermKeep >= 0：取最旧 (length - midTermKeep) 条总结，保留最新 midTermKeep 条
+      let numToSummarize: number;
+      let memoriesToKeep: any[];
+      if (midTermKeep < 0) {
+        numToSummarize = Math.min(midTermMemories.length, longTermSummarizeCount);
+        memoriesToKeep = midTermMemories; // 不删减，原样保留
+      } else {
+        numToSummarize = midTermMemories.length - midTermKeep;
+        if (numToSummarize <= 0) {
+          toast.error('记忆配置错误：长期总结时保留数量不能大于等于当前中期条数', { id: 'memory-summary' });
+          return;
+        }
+        memoriesToKeep = midTermMemories.slice(numToSummarize);
       }
 
-      if (midTermMemories.length < numToSummarize) {
-        console.log(`[AI双向系统] 中期记忆数量(${midTermMemories.length})不足以总结${numToSummarize}条，取消总结。`);
-        toast.info(`中期记忆不足${numToSummarize}条，已取消总结`, { id: 'memory-summary' });
-        return;
-      }
-
-      // 从最旧的记忆开始（数组前面），取出需要总结的数量
       const memoriesToSummarize = midTermMemories.slice(0, numToSummarize);
-      // 保留剩余的记忆（从 numToSummarize 位置开始到末尾）
-      const memoriesToKeep = midTermMemories.slice(numToSummarize);
-      const memoriesText = memoriesToSummarize.map((m: string, i: number) => `${i + 1}. ${m}`).join('\n');
+      const memoriesText = memoriesToSummarize
+        .map((m: any, i: number) => `${i + 1}. ${getMidTermContent(m)}`)
+        .join('\n');
 
-      console.log(`[AI双向系统] 准备总结：从${midTermMemories.length}条中期记忆中，总结最旧的${numToSummarize}条，保留最新的${memoriesToKeep.length}条`);
-      console.log(`[AI双向系统] 配置：触发阈值=${midTermTrigger}, 保留数量=${midTermKeep}, 总结数量=${numToSummarize}`);
+      console.log(`[AI双向系统] 准备长期总结：从${midTermMemories.length}条中期记忆中，用最旧${numToSummarize}条生成1条长期；保留中期条数=${midTermKeep < 0 ? '不删减' : memoriesToKeep.length}`);
+      console.log(`[AI双向系统] 配置：长期触发=${longTermTrigger}, 保留数量=${midTermKeep}, 本次参与总结=${numToSummarize}`);
 
-      // 4. 使用用户自定义的记忆总结提示词
-      const memorySummaryPrompt = await getPrompt('memorySummary');
-      const userPrompt = memorySummaryPrompt.replace('{{记忆内容}}', memoriesText);
+      // 4. 使用世界观进化提示词（中期→长期）
+      const worldviewPrompt = await getPrompt('worldviewEvolution');
+      const userPrompt = worldviewPrompt.replace('{{记忆内容}}', memoriesText);
 
       // 5. 调用 AI
       const tavernHelper = getTavernHelper();
@@ -2303,7 +2327,7 @@ ${step1Text}
       const simplifiedSaveData = this._extractEssentialDataForSummary(saveData);
       const saveDataJson = JSON.stringify(simplifiedSaveData, null, 2);
 
-      console.log(`[AI双向系统] 记忆总结模式: ${useRawMode ? 'Raw模式（纯净总结）' : '标准模式（带预设）'}, 传输方式: ${useStreaming ? '流式' : '非流式'}`);
+      console.log(`[AI双向系统] 世界观进化: ${useRawMode ? 'Raw' : '标准'}, 传输方式: ${useStreaming ? '流式' : '非流式'}`);
 
       let response: string;
 
@@ -2324,7 +2348,7 @@ ${step1Text}
           response = String(rawResponse);
         } else {
           // 标准模式：使用自定义提示词
-          const systemPromptCombined = `${memorySummaryPrompt}
+          const systemPromptCombined = `${worldviewPrompt}
 
 【游戏存档数据】（供参考）：
 ${saveDataJson}`;
@@ -2367,7 +2391,7 @@ ${saveDataJson}`;
           });
         } else {
           console.log('[AI双向系统] 自定义API模式 - 标准模式记忆总结');
-          const systemPromptCombined = `${memorySummaryPrompt}
+          const systemPromptCombined = `${worldviewPrompt}
 
 【游戏存档数据】（供参考）：
 ${saveDataJson}`;
@@ -2424,14 +2448,15 @@ ${saveDataJson}`;
       }
 
       gameStateStore.memory.长期记忆.push(newLongTermMemory);
-      gameStateStore.memory.中期记忆 = memoriesToKeep;
-
-      // [MING] 向量记忆已移除 - Vector memory service removed
+      if (midTermKeep >= 0) {
+        gameStateStore.memory.中期记忆 = memoriesToKeep;
+      }
+      // midTermKeep < 0 时不修改中期记忆（不删减）
 
       // 7. 保存到存档
       await characterStore.saveCurrentGame();
 
-      console.log(`[AI双向系统] ✅ 总结完成：${numToSummarize}条中期记忆 -> 1条长期记忆。保留 ${memoriesToKeep.length} 条。`);
+      console.log(`[AI双向系统] ✅ 长期总结完成：${numToSummarize}条参与总结 -> 1条长期记忆。中期${midTermKeep < 0 ? '未删减' : `保留${memoriesToKeep.length}条`}`);
       toast.success(`成功总结 ${numToSummarize} 条记忆！`, { id: 'memory-summary' });
 
     } catch (error) {
@@ -2441,6 +2466,103 @@ ${saveDataJson}`;
     } finally {
       this.isSummarizing = false;
       console.log('[AI双向系统] 记忆总结流程结束，已释放锁。');
+    }
+  }
+
+  /**
+   * 触发中期记忆精炼：条数达阈值时去重合并，精炼结果整体替代中期记忆
+   */
+  public async triggerMidTermRefine(): Promise<void> {
+    if (this.isRefining) {
+      toast.warning('已有精炼任务在进行中，请稍候...');
+      return;
+    }
+    if (this.isSummarizing) {
+      console.log('[AI双向系统] 长期总结进行中，跳过本次精炼');
+      return;
+    }
+    this.isRefining = true;
+    toast.loading('正在精炼中期记忆...', { id: 'memory-refine' });
+    try {
+      const gameStateStore = useGameStateStore();
+      const characterStore = useCharacterStore();
+      const saveData = gameStateStore.toSaveData();
+      if (!saveData || !(saveData as any).社交?.记忆) {
+        throw new Error('无法获取存档或记忆模块');
+      }
+      const settings = JSON.parse(localStorage.getItem('memory-settings') || '{}');
+      const midTermRefineTrigger = settings.midTermRefineTrigger ?? 25;
+      const midTermMemories = (saveData as any).社交.记忆.中期记忆 || [];
+      if (midTermMemories.length < midTermRefineTrigger) {
+        toast.info(`中期记忆未达到精炼阈值(${midTermRefineTrigger}条)`, { id: 'memory-refine' });
+        return;
+      }
+      const memoriesText = midTermMemories
+        .map((m: any, i: number) => `${i + 1}. ${getMidTermContent(m)}`)
+        .join('\n');
+      const refinePrompt = await getPrompt('midTermRefine');
+      const userPrompt = refinePrompt.replace('{{记忆内容}}', memoriesText);
+      const { aiService } = await import('@/services/aiService');
+      const aiConfig = aiService.getConfig();
+      let useRawMode = true;
+      try {
+        const { useAPIManagementStore } = require('@/stores/apiManagementStore');
+        useRawMode = useAPIManagementStore().getFunctionMode('memory_summary') === 'raw';
+      } catch {
+        useRawMode = aiConfig.memorySummaryMode === 'raw';
+      }
+      const tavernHelper = getTavernHelper();
+      let response: string;
+      if (tavernHelper) {
+        response = String(await tavernHelper.generateRaw({
+          ordered_prompts: [
+            { role: 'user', content: userPrompt },
+            { role: 'assistant', content: '</input>' }
+          ],
+          should_stream: false,
+          usageType: 'memory_summary'
+        }));
+      } else {
+        response = await aiService.generateRaw({
+          ordered_prompts: [{ role: 'user', content: userPrompt }],
+          should_stream: false,
+          usageType: 'memory_summary'
+        });
+      }
+      const text = String(response).trim();
+      const jsonMatch = text.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
+      const raw = jsonMatch ? jsonMatch[1].trim() : text;
+      let parsed: { refined?: Array<{ 相关角色?: string[]; 事件时间?: string; 记忆主体?: string }> };
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        throw new Error('精炼 API 返回的不是有效 JSON');
+      }
+      const refined = Array.isArray(parsed.refined) ? parsed.refined : [];
+      const newMidTerm: any[] = refined
+        .filter((e: any) => e && typeof e.记忆主体 === 'string')
+        .map((e: any) => ({
+          相关角色: Array.isArray(e.相关角色) ? e.相关角色 : [],
+          事件时间: typeof e.事件时间 === 'string' ? e.事件时间 : '',
+          记忆主体: String(e.记忆主体).trim(),
+          已精炼: true
+        }));
+      if (newMidTerm.length === 0) {
+        throw new Error('精炼结果为空或格式无效');
+      }
+      if (!gameStateStore.memory) {
+        gameStateStore.memory = { 短期记忆: [], 中期记忆: [], 长期记忆: [], 隐式中期记忆: [] };
+      }
+      gameStateStore.memory.中期记忆 = newMidTerm;
+      await characterStore.saveCurrentGame();
+      console.log(`[AI双向系统] ✅ 中期精炼完成：${midTermMemories.length}条 -> ${newMidTerm.length}条`);
+      toast.success(`中期记忆已精炼：${midTermMemories.length}条 → ${newMidTerm.length}条`, { id: 'memory-refine' });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : '未知错误';
+      console.error('[AI双向系统] 中期精炼失败:', error);
+      toast.error(`精炼失败: ${msg}`, { id: 'memory-refine' });
+    } finally {
+      this.isRefining = false;
     }
   }
 
@@ -2918,14 +3040,14 @@ ${saveDataJson}`;
     const simplified = cloneDeep(saveData);
 
     // 移除叙事历史（避免与短期记忆重复）
-    if (simplified.历史?.叙事) {
-      delete simplified.历史.叙事;
-    }
+    const hist = (simplified as any).系统?.历史;
+    if (hist?.叙事) delete hist.叙事;
 
     // 移除短期和隐式中期记忆（以优化AI上下文）
-    if (simplified.记忆) {
-      delete simplified.记忆.短期记忆;
-      delete simplified.记忆.隐式中期记忆;
+    const mem = (simplified as any).社交?.记忆;
+    if (mem) {
+      delete mem.短期记忆;
+      delete mem.隐式中期记忆;
     }
 
     return simplified;
@@ -3104,9 +3226,15 @@ ${saveDataJson}`;
         ];
       }
 
+      const rawMid = obj.mid_term_memory ?? obj.中期记忆 ?? obj.memory;
+      const mid_term_memory: string | ImplicitMidTermEntry =
+        rawMid != null && typeof rawMid === 'object' && typeof (rawMid as ImplicitMidTermEntry).记忆主体 === 'string'
+          ? (rawMid as ImplicitMidTermEntry)
+          : String(rawMid || '');
+
       const gm: GM_Response = {
         text: String(obj.text || obj.叙事文本 || obj.narrative || ''),
-        mid_term_memory: String(obj.mid_term_memory || obj.中期记忆 || obj.memory || ''),
+        mid_term_memory,
         tavern_commands: tavernCommands,
         action_options: this.sanitizeActionOptionsForDisplay(actionOptions)
       };

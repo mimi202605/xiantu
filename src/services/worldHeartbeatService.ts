@@ -123,7 +123,11 @@ export async function runSingleHeartbeat(
     : undefined;
 
   const implicitMidTerm = anySave?.社交?.记忆?.隐式中期记忆;
-  const currentConversation = Array.isArray(implicitMidTerm) ? implicitMidTerm.slice(-5) : undefined;
+  const currentConversation = Array.isArray(implicitMidTerm)
+    ? implicitMidTerm.slice(-5).map((e: any) =>
+        typeof e === 'string' ? e : (e.事件时间 ? `[${e.事件时间}] ` : '') + (e.记忆主体 || '')
+      )
+    : undefined;
 
   const prompt = buildWorldHeartbeatPrompt({
     candidateNpcNames: candidates,

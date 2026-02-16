@@ -21,6 +21,8 @@ import type {
 import { isTavernEnv } from '@/utils/tavern';
 import { ensureSystemConfigHasNsfw } from '@/utils/nsfw';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
+import { normalizeImplicitMidTermForConsumption } from '@/utils/memoryHelpers';
+import type { MidTermEntry } from '@/types/game';
 
 // 定义各个模块的接口
 interface GameState {
@@ -284,12 +286,19 @@ export const useGameStateStore = defineStore('gameState', {
         if (typeof value === 'string' && value.trim().length > 0) return [value.trim()];
         return [];
       };
+      const coerceMidTermArray = (value: unknown): MidTermEntry[] => {
+        if (!Array.isArray(value)) return [];
+        return value.filter((v): v is MidTermEntry =>
+          (typeof v === 'string' && v.trim().length > 0) ||
+          (v != null && typeof v === 'object' && typeof (v as any).记忆主体 === 'string')
+        ) as MidTermEntry[];
+      };
       const memoryCandidate: any = v3?.社交?.记忆 ? deepCopy(v3.社交.记忆) : {};
       const memory: Memory = {
         短期记忆: coerceMemoryArray(memoryCandidate?.短期记忆),
-        中期记忆: coerceMemoryArray(memoryCandidate?.中期记忆),
+        中期记忆: coerceMidTermArray(memoryCandidate?.中期记忆),
         长期记忆: coerceMemoryArray(memoryCandidate?.长期记忆),
-        隐式中期记忆: coerceMemoryArray(memoryCandidate?.隐式中期记忆),
+        隐式中期记忆: normalizeImplicitMidTermForConsumption(memoryCandidate?.隐式中期记忆),
       };
       const gameTime: GameTime | null = v3?.元数据?.时间 ? deepCopy(v3.元数据.时间) : null;
 
@@ -880,7 +889,8 @@ export const useGameStateStore = defineStore('gameState', {
       const finalContent = hasTimePrefix ? content : `${timePrefix}${content}`;
 
       this.memory.短期记忆.unshift(finalContent); // 最新的在前
-      this.memory.隐式中期记忆.unshift(finalContent); // 同步添加到隐式中期记忆
+      const timeStr = gameTime ? `${gameTime.年}-${String(gameTime.月).padStart(2, '0')}-${String(gameTime.日).padStart(2, '0')}-${String(gameTime.小时).padStart(2, '0')}-${String(gameTime?.分钟 ?? 0).padStart(2, '0')}` : '';
+      this.memory.隐式中期记忆.unshift({ 相关角色: [], 事件时间: timeStr, 记忆主体: finalContent }); // 隐性格式
 
       // 检查溢出，从localStorage读取配置
       const maxShortTerm = (() => {
@@ -898,8 +908,8 @@ export const useGameStateStore = defineStore('gameState', {
       while (this.memory.短期记忆.length > maxShortTerm) {
         this.memory.短期记忆.pop(); // 移除最旧的
         const implicit = this.memory.隐式中期记忆.pop();
-        if (implicit && !this.memory.中期记忆.includes(implicit)) {
-          this.memory.中期记忆.push(implicit);
+        if (implicit && typeof implicit === 'object' && implicit.记忆主体) {
+          this.memory.中期记忆.push({ ...implicit, 已精炼: false });
           console.log('[gameStateStore] ✅ 短期记忆溢出，已转移到中期记忆');
         }
       }

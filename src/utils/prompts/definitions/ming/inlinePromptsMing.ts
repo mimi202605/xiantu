@@ -43,7 +43,13 @@ export const SPLIT_GENERATION_STEP1_MING = `# 分步生成 1/2：仅正文
 export const SPLIT_GENERATION_STEP2_MING = `# 分步生成 2/2：仅指令
 
 ## 输出格式（必须严格遵守）
-{"mid_term_memory":"50-100字摘要","tavern_commands":[{"action":"add","key":"元数据.时间.分钟","value":30}],"action_options":["选项1","选项2","选项3","选项4","选项5"],"semantic_memory":{...}}
+{"mid_term_memory":{"相关角色":["张三"],"事件时间":"1050-01-15-08-30","记忆主体":"50-100字：剧情总结+事件影响+（重要性权重）"},"tavern_commands":[{"action":"add","key":"元数据.时间.分钟","value":30}],"action_options":["选项1","选项2","选项3","选项4","选项5"],"semantic_memory":{...}}
+
+## mid_term_memory 结构（隐性中期格式，必填）
+\`mid_term_memory\` 必须是对象，用于后续按相关角色检索：
+- **相关角色**：本回合剧情中涉及的角色名数组（含玩家可写"玩家"），如 \`["玩家","张三"]\`
+- **事件时间**：与当前 元数据.时间 同形可排序串，如 \`"1050-01-15-08-30"\`（年-月-日-时-分）
+- **记忆主体**：50–100 字，格式为「剧情总结 + 事件影响 +（事件重要性，权重 1–10 写在括号内）」
 
 ## JSON 与 key 规则（重要）
 - 只输出一个 JSON 对象，禁止任何前后缀文字、禁止 \`\`\` 代码块
@@ -58,7 +64,7 @@ export const SPLIT_GENERATION_STEP2_MING = `# 分步生成 2/2：仅指令
 - ❌ 任何叙事/正文内容
 
 ## 本步骤需要
-- mid_term_memory：摘要
+- mid_term_memory：隐性格式对象（相关角色、事件时间、记忆主体）
 - tavern_commands：数据更新指令
 - action_options：行动选项（如启用）
 - **semantic_memory**（可选但推荐）：本回合的**重要事实**三元组，用于语义检索
@@ -87,7 +93,7 @@ export const SPLIT_GENERATION_STEP2_MING = `# 分步生成 2/2：仅指令
 若有 NPC 的 \`实时关注\` 为 true，即使不在玩家身边，也要根据第 1 步正文推演其动态并更新其位置/当前外貌状态/当前内心想法/在做事项（set 对应路径，在做事项简短一句）。
 
 ## 再次强调输出格式
-只输出：\`{"mid_term_memory":"...","tavern_commands":[...],"action_options":[...],"semantic_memory":{...}}\`
+只输出：\`{"mid_term_memory":{"相关角色":[],"事件时间":"","记忆主体":"50-100字"},"tavern_commands":[...],"action_options":[...],"semantic_memory":{...}}\`
 禁止输出 text 字段！semantic_memory 可给空对象 \`{"triples":[]}\` 若本回合无重要事实。`.trim();
 
 export const SPLIT_INIT_STEP1_MING = `# 开局生成 1/2：仅开局叙事
@@ -129,7 +135,7 @@ export const SPLIT_INIT_STEP1_MING = `# 开局生成 1/2：仅开局叙事
 export const SPLIT_INIT_STEP2_MING = `# 开局生成 2/2：初始化数据
 
 ## 输出格式（必须严格遵守）
-{"mid_term_memory":"50-100字摘要","tavern_commands":[...],"action_options":["选项1","选项2","选项3","选项4","选项5"],"semantic_memory":{...}}
+{"mid_term_memory":{"相关角色":[],"事件时间":"1050-01-15-08-30","记忆主体":"50-100字开局摘要"},"tavern_commands":[...],"action_options":["选项1","选项2","选项3","选项4","选项5"],"semantic_memory":{...}}
 
 ## JSON 与 key 规则（重要）
 - 只输出一个 JSON 对象，禁止任何前后缀文字、禁止 \`\`\` 代码块
@@ -154,11 +160,26 @@ export const SPLIT_INIT_STEP2_MING = `# 开局生成 2/2：初始化数据
 - ❌ 任何叙事/正文内容
 
 ## 再次强调输出格式
-只输出：\`{"mid_term_memory":"...","tavern_commands":[...],"action_options":[...],"semantic_memory":{...}}\`
-禁止输出 text 字段！`.trim();
+只输出：\`{"mid_term_memory":{"相关角色":[],"事件时间":"","记忆主体":"50-100字"},"tavern_commands":[...],"action_options":[...],"semantic_memory":{...}}\`
+禁止输出 text 字段！mid_term_memory 格式与主回合一致（开局可 相关角色:[]）。`.trim();
 
 export const MEMORY_SUMMARY_MING = `记忆总结助手。第一人称"我"，250-400 字，保留人名/地名/事件/物品，忽略对话/情绪/细节。
 输出：{"text": "总结内容"}`;
+
+/** 世界观进化：根据中期记忆生成长期记忆（世界大背景、主角经历、故事导向） */
+export const WORLDVIEW_EVOLUTION_MING = `你是世界观进化助手。根据下方「中期记忆」与当前世界/角色信息，分析对世界（或局部）的宏观影响、对人物成长的改变，按事件顺序与重要性，生成一条长期记忆。
+内容需涵盖：目前世界的大背景、主角的经历、整个故事的导向。第一人称或客观叙述均可，300-500 字。
+输出仅一个 JSON：{"text": "长期记忆内容"}
+
+## 中期记忆
+{{记忆内容}}`;
+
+/** 中期记忆精炼：去重合并、减字数，格式保持隐性（相关角色、事件时间、记忆主体 50-100 字） */
+export const MID_TERM_REFINE_MING = `你是中期记忆精炼助手。输入为多条中期记忆，请在不删减记忆点的前提下：去重、合并相同或相近事件，减少总字数。每条输出格式必须为隐性格式：相关角色（数组）、事件时间（字符串）、记忆主体（50-100 字：剧情总结+事件影响+重要性权重）。
+输出仅一个 JSON：{"refined":[{"相关角色":["名字"],"事件时间":"年-月-日-时-分","记忆主体":"50-100字"},...]}
+
+## 当前中期记忆
+{{记忆内容}}`;
 
 export const NPC_MEMORY_SUMMARY_MING = `NPC 记忆总结。第三人称，100-200 字，保留关键事件和情感变化。
 输出：{"text": "总结内容"}`;

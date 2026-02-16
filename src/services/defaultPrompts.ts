@@ -423,6 +423,22 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
       order: 1,
       weight: 6
     },
+    worldviewEvolution: {
+      name: '世界观进化',
+      content: InlineMing.WORLDVIEW_EVOLUTION_MING,
+      category: 'summary',
+      description: '中期记忆→长期记忆（世界大背景、主角经历、故事导向）',
+      order: 2,
+      weight: 6
+    },
+    midTermRefine: {
+      name: '中期记忆精炼',
+      content: InlineMing.MID_TERM_REFINE_MING,
+      category: 'summary',
+      description: '去重合并中期记忆，输出隐性格式，已精炼',
+      order: 3,
+      weight: 5
+    },
     npcMemorySummary: {
       name: 'NPC记忆总结',
       content: InlineMing.NPC_MEMORY_SUMMARY_MING,

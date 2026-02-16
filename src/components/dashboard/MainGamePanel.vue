@@ -1010,11 +1010,16 @@ const validateAIResponse = (response: unknown): { isValid: boolean; errors: stri
     errors.push('缺少有效的text字段');
   }
 
-  // 检查mid_term_memory字段（必须）
-  if (!resp.mid_term_memory || typeof resp.mid_term_memory !== 'string') {
+  // 检查mid_term_memory字段（必须）：可为字符串或隐性格式对象 { 相关角色, 事件时间, 记忆主体 }
+  const mid = resp.mid_term_memory;
+  if (mid == null) {
     errors.push('缺少必要的mid_term_memory字段（中期记忆总结）');
-  } else if (resp.mid_term_memory.trim().length === 0) {
-    errors.push('mid_term_memory字段不能为空');
+  } else if (typeof mid === 'string') {
+    if (mid.trim().length === 0) errors.push('mid_term_memory字段不能为空');
+  } else if (typeof mid === 'object' && typeof (mid as any).记忆主体 === 'string') {
+    if ((mid as any).记忆主体.trim().length === 0) errors.push('mid_term_memory.记忆主体不能为空');
+  } else {
+    errors.push('mid_term_memory须为字符串或隐性格式对象');
   }
 
   // 检查tavern_commands字段（可选）

@@ -194,8 +194,8 @@ export interface GM_Response {
    * 前端需要解析并执行这些指令。
    */
   tavern_commands?: TavernCommand[];
-  /** 新增：用于承载关键记忆的烙印，将被注入到中期记忆中。 */
-  mid_term_memory?: string;
+  /** 用于承载关键记忆，注入隐式中期记忆。可为字符串（旧版）或隐性格式对象。 */
+  mid_term_memory?: string | import('@/types/game').ImplicitMidTermEntry;
   /** 短期记忆（别名，指向text字段） */
   short_term_memory?: string;
   /** 新增：用于承载AI返回的结构化数据，例如生成的物品、角色等。 */

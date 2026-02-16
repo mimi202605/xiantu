@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.71 (2026-02-15)
+
+- **中期记忆逻辑修订**：数据模型（ImplicitMidTermEntry、MidTermEntry、隐式中期对象数组）与迁移；主回合仅发短期+中期+长期、隐式中期不重复送入；step2 对象格式、精炼/长期总结双阈值与 triggerMidTermRefine/triggerMemorySummary；memoryHelpers、gameStateStore 溢出与 coerce、worldHeartbeatService 与 MainGamePanel 同步。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.70 (2026-02-15)
 
 - **记忆中心**：配置界面分组与排版优化（短期/中期精炼/长期总结/自定义格式/手动操作）、「不删减时参与总结的条数」改为子区块展示、手动操作区 padding 统一；修复「测试」按钮添加中期记忆后「中期」tab 计数不同步问题（保存后从 store 重载）；短期转化使用配置上限。  

@@ -791,11 +791,28 @@ export interface NpcProfile {
 
 // --- 记忆模块 ---
 
+/** 隐性中期记忆单条：消费时按 相关角色 过滤注入 */
+export interface ImplicitMidTermEntry {
+  相关角色: string[];
+  事件时间: string;
+  记忆主体: string;
+}
+
+/** 中期记忆单条：可为纯字符串（旧格式/未精炼）或带已精炼标记的结构 */
+export interface MidTermEntryObject {
+  相关角色?: string[];
+  事件时间?: string;
+  记忆主体: string;
+  已精炼?: boolean;
+}
+
+export type MidTermEntry = string | MidTermEntryObject;
+
 export interface Memory extends AIMetadata {
   短期记忆?: string[]; // 最近的对话、事件的完整记录
-  中期记忆: string[]; // 对短期记忆的总结，关键信息点
-  长期记忆: string[]; // 核心人设、世界观、重大事件的固化记忆
-  隐式中期记忆?: string[]; // 隐式中期记忆数组，与短期记忆同步增长，溢出时转入真正的中期记忆
+  中期记忆: MidTermEntry[]; // 对短期记忆的总结；达阈值后经记忆总结 API 精炼，已精炼条目不重复精炼
+  长期记忆: string[]; // 世界观进化结果，由中期记忆经世界观进化 API 生成
+  隐式中期记忆?: ImplicitMidTermEntry[] | string[]; // 新格式为对象数组；旧存档可为 string[]，迁移时转为 ImplicitMidTermEntry[]
 }
 
 // --- 游戏时间 ---

@@ -1,4 +1,4 @@
-import type { SaveData, GameTime, EventSystem } from '@/types/game';
+import type { SaveData, GameTime, EventSystem, ImplicitMidTermEntry, MidTermEntry } from '@/types/game';
 import type { SaveDataV3 } from '@/types/saveSchemaV3';
 import { DEFAULT_CURRENCY, normalizeCurrency } from '@/utils/currencyDefaults';
 
@@ -143,6 +143,49 @@ const coerceStringArray = (value: unknown): string[] => {
   return [];
 };
 
+/** 从旧版隐式中期字符串中解析时间前缀（如【仙道1000年1月1日 08:00】），无则返回空串 */
+function extractTimePrefixFromMemoryString(s: string): string {
+  const m = s.match(/^【(仙道|仙历|未知时间)[^】]*】/);
+  return m ? m[0].replace(/^【|】$/g, '') : '';
+}
+
+/** 将旧版 string[] 隐式中期记忆迁移为 ImplicitMidTermEntry[] */
+function coerceImplicitMidTermArray(mem: any): ImplicitMidTermEntry[] {
+  const raw = mem?.隐式中期记忆 ?? mem?.implicit_mid_term ?? mem?.implicitMidTerm;
+  if (!Array.isArray(raw)) return [];
+  const out: ImplicitMidTermEntry[] = [];
+  for (const v of raw) {
+    if (typeof v === 'string' && v.trim()) {
+      const timePart = extractTimePrefixFromMemoryString(v);
+      const body = timePart ? v.replace(/^【[^】]*】/, '').trim() : v.trim();
+      out.push({ 相关角色: [], 事件时间: timePart, 记忆主体: body || v.trim() });
+    } else if (v && typeof v === 'object' && typeof (v as any).记忆主体 === 'string') {
+      const o = v as any;
+      out.push({
+        相关角色: Array.isArray(o.相关角色) ? o.相关角色 : [],
+        事件时间: typeof o.事件时间 === 'string' ? o.事件时间 : '',
+        记忆主体: String(o.记忆主体),
+      });
+    }
+  }
+  return out;
+}
+
+/** 将中期记忆规范为 MidTermEntry[]（保留字符串或对象） */
+function coerceMidTermArray(mem: any): MidTermEntry[] {
+  const raw = mem?.中期记忆 ?? mem?.mid_term ?? mem?.midTerm;
+  if (!Array.isArray(raw)) return [];
+  const out: MidTermEntry[] = [];
+  for (const v of raw) {
+    if (typeof v === 'string' && v.trim()) {
+      out.push(v.trim());
+    } else if (v && typeof v === 'object' && typeof (v as any).记忆主体 === 'string') {
+      out.push(v as MidTermEntry);
+    }
+  }
+  return out;
+}
+
 const normalizeMemory = (value: unknown): SaveDataV3['社交']['记忆'] => {
   const base = buildDefaultMemory();
   if (!isPlainObject(value)) return base;
@@ -150,9 +193,9 @@ const normalizeMemory = (value: unknown): SaveDataV3['社交']['记忆'] => {
   const anyValue = value as any;
   return {
     短期记忆: coerceStringArray(anyValue.短期记忆 ?? anyValue.short_term ?? anyValue.shortTerm),
-    中期记忆: coerceStringArray(anyValue.中期记忆 ?? anyValue.mid_term ?? anyValue.midTerm),
+    中期记忆: coerceMidTermArray(anyValue),
     长期记忆: coerceStringArray(anyValue.长期记忆 ?? anyValue.long_term ?? anyValue.longTerm),
-    隐式中期记忆: coerceStringArray(anyValue.隐式中期记忆 ?? anyValue.implicit_mid_term ?? anyValue.implicitMidTerm),
+    隐式中期记忆: coerceImplicitMidTermArray(anyValue),
   };
 };
 
