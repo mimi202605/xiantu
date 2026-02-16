@@ -4,6 +4,53 @@
 
 ---
 
+## [0.2.76] - 2026-02-16
+
+### Engram 迁移：Phase 2（向量索引 + 分数融合 + 可选 rerank）
+
+- **Embedding 与向量索引（读写打通）**
+  - 新增 `src/services/engram/embeddingService.ts`：
+    - 统一 embedding 调用入口（OpenAI 兼容 `/v1/embeddings`）。
+    - 支持从 API 管理读取 `embedding` 专用 API 分配，失败时回退本地 deterministic pseudo embedding，避免主流程中断。
+  - `AIBidirectionalSystem.processGmResponse()`：
+    - 事件写入 `engramMemory.events` 后，在 hybrid + embedding 启用时为新事件生成向量并写入独立向量仓储。
+  - `vectorRepository.ts` 新增 `mergeEventVectors()`，用于增量合并事件向量并保持 `model/dim` 元数据。
+
+- **Hybrid 检索升级（score fusion）**
+  - `unifiedRetriever.ts` 增加向量读路径：
+    - 读取 `engram_vectors_{characterId}_{slotId}`。
+    - 对 `EventNode` 执行 query-vector 相似度召回，应用 `topK/minScore`，与关键词/时效/上下文分进行融合排序。
+  - 支持可选 rerank：
+    - 新增 `src/services/engram/rerankService.ts`，可调用外部 rerank endpoint。
+    - rerank 可用时对候选分做二次融合；失败自动回退基础融合分。
+
+- **接口与设置联动（API 管理）**
+  - `apiManagementStore.ts` 新增 `APIUsageType='embedding'`，并加入默认 API 分配与模式配置。
+  - `APIManagementPanel.vue` 新增 `Embedding向量化` 功能项，可单独分配 API；该项不显示 Raw/标准模式切换（固定向量用途）。
+
+- **主流程兼容性**
+  - `legacy` 模式不变，`hybrid` 才启用向量检索增强。
+  - 所有向量/重排异常均为非阻塞告警，不影响回合推进。
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+#### 涉及文件
+
+- `src/services/engram/embeddingService.ts`（新增）
+- `src/services/engram/rerankService.ts`（新增）
+- `src/services/engram/vectorRepository.ts`
+- `src/services/engram/unifiedRetriever.ts`
+- `src/services/engram/index.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/stores/apiManagementStore.ts`
+- `src/components/dashboard/APIManagementPanel.vue`
+- `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.75] - 2026-02-16
 
 ### Engram 迁移：Phase 1（可运行读写链路）

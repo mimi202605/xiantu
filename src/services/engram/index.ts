@@ -5,3 +5,5 @@ export * from './vectorRepository';
 export * from './eventBuilder';
 export * from './injectionFormatter';
 export * from './unifiedRetriever';
+export * from './embeddingService';
+export * from './rerankService';

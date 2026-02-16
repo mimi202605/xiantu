@@ -304,7 +304,7 @@
             </div>
           </div>
 
-          <!-- ========== 辅助功能（6个） ========== -->
+          <!-- ========== 辅助功能（7个） ========== -->
           <div class="function-group-header">
             <h5 class="group-title">🛠️ 辅助功能</h5>
             <span class="group-desc">可选的辅助生成功能，支持Raw/标准模式切换</span>
@@ -312,7 +312,7 @@
 
           <!-- 辅助功能列表 -->
           <div
-            v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'world_heartbeat', 'location_npc_generation']"
+            v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'world_heartbeat', 'location_npc_generation', 'embedding']"
             :key="funcType"
             class="setting-item"
           >
@@ -385,7 +385,7 @@
 
                 <!-- Raw/标准模式选择（仅非embedding功能且为酒馆模式时显示） -->
                 <select
-                  v-if="isTavernEnvFlag"
+                  v-if="isTavernEnvFlag && funcType !== 'embedding'"
                   :value="apiStore.getFunctionMode(funcType as APIUsageType)"
                   @change="updateFunctionMode(funcType as APIUsageType, ($event.target as HTMLSelectElement).value as any)"
                   class="setting-select mode-select"
@@ -782,6 +782,7 @@ const getFunctionName = (type: APIUsageType): string => {
     event_generation: t('世界事件'),
     world_heartbeat: t('世界心跳'),
     location_npc_generation: t('新地点NPC生成'),
+    embedding: t('Embedding向量化'),
   };
   return map[type] || type;
 };
@@ -799,7 +800,8 @@ const getFunctionDesc = (type: APIUsageType): string => {
       world_generation: '生成世界、地点等（可配置Raw/标准模式）',
       event_generation: '生成世界事件（可配置Raw/标准模式）',
       world_heartbeat: '周期性世界模拟与演变（可配置Raw/标准模式）',
-      location_npc_generation: '玩家到达新地点时生成路人NPC（可配置Raw/标准模式）'
+      location_npc_generation: '玩家到达新地点时生成路人NPC（可配置Raw/标准模式）',
+      embedding: 'Engram 向量检索与向量写入专用API（OpenAI兼容 /v1/embeddings）'
     };
     return descs[type] || '';
   } else {
@@ -813,7 +815,8 @@ const getFunctionDesc = (type: APIUsageType): string => {
       world_generation: '生成世界、地点等内容（开局时使用）',
       event_generation: '生成世界事件（可用快速模型）',
       world_heartbeat: '周期性世界模拟与演变（建议使用快速模型）',
-      location_npc_generation: '玩家到达新地点时生成路人NPC（建议使用快速模型）'
+      location_npc_generation: '玩家到达新地点时生成路人NPC（建议使用快速模型）',
+      embedding: 'Engram 向量检索与向量写入专用API（OpenAI兼容 /v1/embeddings）'
     };
     return descs[type] || '';
   }

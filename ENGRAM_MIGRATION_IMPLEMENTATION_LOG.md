@@ -92,3 +92,57 @@
 ### Next
 
 - Phase 2: embedding service + vector index write/read + score fusion + optional rerank.
+
+---
+
+## Phase 2 (Completed)
+
+### Objectives
+
+- Add embedding generation service and connect vector write/read path.
+- Add hybrid score fusion with vector similarity.
+- Add optional rerank stage with safe fallback.
+- Keep legacy behavior unchanged and non-blocking.
+
+### Delivered
+
+- Added embedding service:
+  - `src/services/engram/embeddingService.ts`
+  - reads API assignment from API management (`embedding` -> fallback `main`)
+  - calls OpenAI-compatible `/v1/embeddings`
+  - falls back to deterministic local pseudo embedding on any failure
+- Added optional rerank service:
+  - `src/services/engram/rerankService.ts`
+  - configurable external rerank endpoint (`config.rerank.providerUrl`)
+  - graceful fallback when unavailable
+- Upgraded vector repository:
+  - `vectorRepository.ts` adds `mergeEventVectors()` for incremental event-vector upsert.
+- Wired write path in main loop:
+  - `AIBidirectionalSystem.processGmResponse()`
+  - after EventNode append, generate vectors for new events and persist to vector store
+  - vector store key remains `engram_vectors_{characterId}_{slotId}`
+- Upgraded hybrid read path:
+  - `unifiedRetriever.ts` now loads vector store by active save context
+  - computes query embedding, applies `topK/minScore`, fuses vector score with baseline score
+  - optional rerank fusion stage added
+- Updated API surface/UI:
+  - `apiManagementStore.ts`: add `APIUsageType='embedding'` and default assignment/mode
+  - `APIManagementPanel.vue`: expose `Embedding向量化` as a dedicated API assignment item
+  - mode selector hidden for embedding-only function (not applicable)
+
+### Verification
+
+- `npm run type-check` passed.
+- IDE lint checks passed.
+- legacy-safe guarantees preserved:
+  - `engram.enabled=false` keeps old path
+  - vector/rerank failures only warn and fall back, no main-loop interruption
+
+### Notes
+
+- Embedding API path is currently OpenAI-compatible (`/v1/embeddings`) to maximize provider compatibility.
+- Rerank endpoint format is kept flexible (accepts common `results[index, score]` response shape).
+
+### Next
+
+- Phase 3: entity extraction/upsert + graph enrichment from event stream + memory trim policy execution.

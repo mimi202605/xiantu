@@ -34,3 +34,27 @@ export async function saveEngramVectorStore(
   const key = buildEngramVectorStoreKey(context);
   await saveData(key, store);
 }
+
+export function mergeEventVectors(
+  baseStore: EngramVectorStore,
+  vectors: Array<{ id: string; vector: number[] }>,
+  model: string,
+): EngramVectorStore {
+  const nextEventVectors: Record<string, number[]> = {
+    ...(baseStore?.eventVectors || {}),
+  };
+
+  let dim = typeof baseStore?.dim === 'number' ? baseStore.dim : 0;
+  for (const item of vectors) {
+    if (!item?.id || !Array.isArray(item.vector) || item.vector.length === 0) continue;
+    nextEventVectors[item.id] = item.vector;
+    dim = Math.max(dim, item.vector.length);
+  }
+
+  return {
+    eventVectors: nextEventVectors,
+    entityVectors: baseStore?.entityVectors || {},
+    model: model || baseStore?.model || '',
+    dim,
+  };
+}

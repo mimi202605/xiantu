@@ -35,8 +35,12 @@ import { getMidTermContent, formatMidTermEntryForPrompt } from '@/utils/memoryHe
 import {
   appendEngramEvents,
   buildEventsFromResponse,
+  embedTexts,
   loadEngramConfigFromStorage,
+  loadEngramVectorStore,
+  mergeEventVectors,
   readEngramMemoryFromSaveData,
+  saveEngramVectorStore,
   unifiedRetrieve,
   writeEngramMemoryToSaveData,
 } from '@/services/engram';
@@ -424,6 +428,7 @@ class AIBidirectionalSystemClass {
       splitResponseGeneration: options?.splitResponseGeneration
     });
     const gameStateStore = useGameStateStore();
+    const characterStore = useCharacterStore();
     const tavernHelper = getTavernHelper();
     const uiStore = useUIStore();
     const shouldAbort = () => options?.shouldAbort?.() ?? false;
@@ -502,6 +507,14 @@ class AIBidirectionalSystemClass {
       const engramConfig = loadEngramConfigFromStorage();
       const retrievalMode: 'legacy' | 'hybrid' =
         engramConfig.enabled && engramConfig.retrievalMode === 'hybrid' ? 'hybrid' : 'legacy';
+      const activeSave = characterStore.rootState?.当前激活存档;
+      const vectorContext =
+        activeSave?.角色ID && activeSave?.存档槽位
+          ? {
+              characterId: activeSave.角色ID,
+              slotId: activeSave.存档槽位,
+            }
+          : undefined;
       let retrievalBlock = '';
       try {
         if (retrievalMode === 'hybrid') {
@@ -513,6 +526,8 @@ class AIBidirectionalSystemClass {
             recentNpcNames,
             maxTokens: 550,
             maxLines: 35,
+            engramConfig,
+            vectorContext,
           });
           retrievalBlock = unified.block;
         } else {
@@ -1999,6 +2014,42 @@ ${step1Text}
           oldValue: currentEngram.events.length,
           newValue: nextEngram.events.length,
         });
+
+        // [Engram] phase-2: 事件向量写入（失败不影响主流程）
+        const engramConfig = loadEngramConfigFromStorage();
+        if (engramConfig.enabled && engramConfig.retrievalMode === 'hybrid' && engramConfig.embedding.enabled) {
+          const characterStore = useCharacterStore();
+          const activeSave = characterStore.rootState?.当前激活存档;
+          if (activeSave?.角色ID && activeSave?.存档槽位) {
+            const vectorContext = {
+              characterId: activeSave.角色ID,
+              slotId: activeSave.存档槽位,
+            };
+            const embedInput = newEvents.map((event) => {
+              const summary = typeof (event as any).summary === 'string' ? (event as any).summary : '';
+              return summary.trim() || JSON.stringify((event as any).structured_kv || {});
+            });
+            const embedded = await embedTexts(embedInput, engramConfig);
+            const vectorPairs = newEvents
+              .map((event, index) => ({
+                id: (event as any).id as string,
+                vector: embedded.vectors[index] || [],
+              }))
+              .filter((item) => item.id && Array.isArray(item.vector) && item.vector.length > 0);
+
+            if (vectorPairs.length > 0) {
+              const currentVectorStore = await loadEngramVectorStore(vectorContext);
+              const nextVectorStore = mergeEventVectors(currentVectorStore, vectorPairs, embedded.modelUsed);
+              await saveEngramVectorStore(vectorContext, nextVectorStore);
+              changes.push({
+                key: '系统.扩展.engramMemory.meta.vectorizedEvents',
+                action: 'replace',
+                oldValue: currentVectorStore.eventVectors ? Object.keys(currentVectorStore.eventVectors).length : 0,
+                newValue: Object.keys(nextVectorStore.eventVectors || {}).length,
+              });
+            }
+          }
+        }
       }
     } catch (error) {
       console.warn('[AI双向系统] 写入 Engram EventNode 失败（已忽略，不影响主流程）:', error);

@@ -1,5 +1,20 @@
 # 更新日志
 
+## [MING] 通用版 0.2.76 (2026-02-16)
+
+- **Engram 迁移 Phase 2（向量化检索）**：
+  - 新增 `embeddingService` 与 `rerankService`，完成 hybrid 模式的向量召回、分数融合与可选 rerank。
+  - 主流程写路径新增事件向量落盘：`processGmResponse()` 在写入 `EventNode` 后增量写入独立向量索引（按角色+存档槽位隔离）。
+  - `unifiedRetriever` 接入向量读取与融合排序，应用 `topK/minScore` 配置；异常自动降级，不阻塞主流程。
+  - API 管理新增 `embedding` 功能分配项，可为向量化流程单独配置 API。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - `legacy` 默认行为保持不变。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`。
+
+---
+
 ## [MING] 通用版 0.2.75 (2026-02-16)
 
 - **Engram 迁移 Phase 1（可运行读写链路）**：
