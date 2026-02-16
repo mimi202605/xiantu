@@ -108,6 +108,16 @@ export interface MingEntityNode {
   last_updated_at: number;
 }
 
+export interface MingEntityRelation {
+  id: string;
+  from_id: string;
+  to_id: string;
+  relation: string;
+  confidence: number;
+  source_event_id?: string;
+  last_updated_at: number;
+}
+
 export interface MingEngramMeta {
   last_summarized_floor: number;
   last_extracted_floor: number;
@@ -120,6 +130,7 @@ export interface MingEngramMeta {
 export interface MingEngramMemory {
   events: MingEventNode[];
   entities: MingEntityNode[];
+  relations: MingEntityRelation[];
   meta: MingEngramMeta;
 }
 

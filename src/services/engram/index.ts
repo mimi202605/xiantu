@@ -4,6 +4,7 @@ export * from './memoryRepository';
 export * from './vectorRepository';
 export * from './eventBuilder';
 export * from './entityBuilder';
+export * from './relationBuilder';
 export * from './injectionFormatter';
 export * from './unifiedRetriever';
 export * from './embeddingService';

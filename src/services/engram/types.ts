@@ -2,6 +2,7 @@ import type {
   MingEngramConfig,
   MingEngramMemory,
   MingEngramMeta,
+  MingEntityRelation,
   MingEntityNode,
   MingEventNode,
 } from '@/types/game';
@@ -10,6 +11,7 @@ export type {
   MingEngramConfig,
   MingEngramMemory,
   MingEngramMeta,
+  MingEntityRelation,
   MingEntityNode,
   MingEventNode,
 };

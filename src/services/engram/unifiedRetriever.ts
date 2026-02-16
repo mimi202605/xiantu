@@ -185,6 +185,32 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
     };
   });
 
+  const entityById = new Map(
+    (engramMemory.entities || []).map((entity) => [String((entity as any).id || ''), entity] as const),
+  );
+  const relationCandidates: ScoredCandidate[] = (engramMemory.relations || []).map((relation, index) => {
+    const fromEntity = entityById.get(String((relation as any).from_id || ''));
+    const toEntity = entityById.get(String((relation as any).to_id || ''));
+    const fromName = normalizeText((fromEntity as any)?.name || (relation as any).from_id);
+    const toName = normalizeText((toEntity as any)?.name || (relation as any).to_id);
+    const relationName = normalizeText((relation as any).relation);
+    const text = `${fromName} ${relationName} ${toName}`.trim();
+    const related = contextSet.has(fromName) || contextSet.has(toName);
+    const confidence = typeof (relation as any).confidence === 'number' ? (relation as any).confidence : 0.5;
+    const score =
+      keywordScore(text, terms) * 0.5 +
+      (related ? 0.25 : 0) +
+      Math.max(0, Math.min(1, confidence)) * 0.25;
+    return {
+      key: `relation:${(relation as any).id || index}`,
+      section: 'graph',
+      text: `- ${fromName || '未知'} --${relationName || '相关'}--> ${toName || '未知'}`,
+      score,
+      baseScore: score,
+      vectorScore: 0,
+    };
+  });
+
   const npcsAtLocation = getNpcsAtLocation(saveData as Record<string, unknown>, locationDesc);
   const ruleCandidates: ScoredCandidate[] = npcsAtLocation.map((npcName, index) => {
     const npc = saveData?.社交?.关系?.[npcName];
@@ -278,6 +304,7 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
     ...tripleCandidates,
     ...graphCandidates,
     ...entityCandidates,
+    ...relationCandidates,
     ...ruleCandidates,
   ].sort((a, b) => b.score - a.score);
 
@@ -317,7 +344,7 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
     stats: {
       latencyMs: Date.now() - startedAt,
       vectorCandidates,
-      graphCandidates: graphCandidates.length + entityCandidates.length,
+      graphCandidates: graphCandidates.length + entityCandidates.length + relationCandidates.length,
       tripleCandidates: tripleCandidates.length,
       ruleCandidates: ruleCandidates.length,
       finalCount: formatted.selected.length,

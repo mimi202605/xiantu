@@ -1,5 +1,19 @@
 # 更新日志
 
+## [MING] 通用版 0.2.79 (2026-02-16)
+
+- **Engram 迁移 Phase 5（关系图谱）**：
+  - 新增 `MingEntityRelation` 与 `engramMemory.relations`，把实体间关系边纳入存储模型。
+  - 写路径新增 `relationBuilder`：从事件和社交关系自动抽取并 upsert 关系边。
+  - `unifiedRetriever` 接入关系边候选，hybrid 检索可直接使用图谱关系语境。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - `legacy` 默认行为保持不变。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`。
+
+---
+
 ## [MING] 通用版 0.2.78 (2026-02-16)
 
 - **Engram 迁移 Phase 4（实体向量化）**：

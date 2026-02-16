@@ -4,6 +4,52 @@
 
 ---
 
+## [0.2.79] - 2026-02-16
+
+### Engram 迁移：Phase 5（关系边抽取 + 图谱关系检索）
+
+- **关系边数据结构**
+  - `game.d.ts` 新增 `MingEntityRelation`。
+  - `MingEngramMemory` 扩展 `relations: MingEntityRelation[]`，补齐实体间关系边存储。
+  - `memoryRepository.ts` 扩展归一化与读写：
+    - `createEmptyEngramMemory` 默认包含 `relations`。
+    - 新增 `upsertEngramRelations()`。
+
+- **关系边写路径**
+  - 新增 `src/services/engram/relationBuilder.ts`：
+    - 从事件 `role/location/event` 抽取关系边（如 `co_occurs_with`、`appears_at`、`involved_in`）。
+    - 融合 `社交.关系` 的玩家关系为补充边。
+  - `AIBidirectionalSystem.processGmResponse()`：
+    - 在事件/实体写入后执行关系抽取并 upsert 到 `engramMemory.relations`。
+
+- **关系边读路径**
+  - `unifiedRetriever.ts` 新增 relation candidates：
+    - 消费 `engramMemory.relations` 生成图谱关系检索行并参与统一打分排序。
+    - 与实体候选、派生图谱候选一起形成更完整的 graph 语境块。
+
+- **兼容校验**
+  - `saveValidationV3.ts` 增加 `engramMemory.relations` 结构 warning 检查。
+  - legacy/hybrid 门控保持不变。
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+#### 涉及文件
+
+- `src/types/game.d.ts`
+- `src/services/engram/types.ts`
+- `src/services/engram/memoryRepository.ts`
+- `src/services/engram/relationBuilder.ts`（新增）
+- `src/services/engram/unifiedRetriever.ts`
+- `src/services/engram/index.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/utils/saveValidationV3.ts`
+- `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.78] - 2026-02-16
 
 ### Engram 迁移：Phase 4（实体向量化 + 图谱语义召回）

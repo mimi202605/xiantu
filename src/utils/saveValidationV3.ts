@@ -96,6 +96,9 @@ export function validateSaveDataV3(saveData: SaveData): SaveValidationResult {
       if (!Array.isArray((engramMemory as any).entities)) {
         warnings.push('系统.扩展.engramMemory.entities 不是数组，运行时将回退为空数组');
       }
+      if (!Array.isArray((engramMemory as any).relations)) {
+        warnings.push('系统.扩展.engramMemory.relations 不是数组，运行时将回退为空数组');
+      }
       if (!isPlainObject((engramMemory as any).meta)) {
         warnings.push('系统.扩展.engramMemory.meta 不是对象，运行时将回退默认 meta');
       }

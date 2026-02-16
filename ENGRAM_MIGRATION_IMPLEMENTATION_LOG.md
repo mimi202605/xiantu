@@ -229,3 +229,51 @@
 ### Next
 
 - Phase 5: extract explicit entity relations/edges and expose graph-centric retrieval section formatting.
+
+---
+
+## Phase 5 (Completed)
+
+### Objectives
+
+- Add explicit entity relation edges to engram memory.
+- Extract/update relations during write path.
+- Feed relation edges into unified retrieval graph context.
+
+### Delivered
+
+- Added relation data model:
+  - `MingEntityRelation` in `src/types/game.d.ts`
+  - `MingEngramMemory.relations` array
+- Extended repository layer:
+  - `memoryRepository.ts`
+  - normalize/read/write now include `relations`
+  - added `upsertEngramRelations()`
+- Added relation extraction service:
+  - `src/services/engram/relationBuilder.ts`
+  - event-driven relation extraction:
+    - `co_occurs_with`
+    - `appears_at`
+    - `involved_in`
+  - includes social relation edges from `社交.关系`
+- Wired write path:
+  - `AIBidirectionalSystem.processGmResponse()` now:
+    - builds relations after entities are upserted
+    - upserts to `engramMemory.relations`
+- Wired read path:
+  - `unifiedRetriever.ts` consumes `engramMemory.relations`
+  - relation candidates now contribute to graph section scoring/sorting
+- Updated validation:
+  - `saveValidationV3.ts` adds warning for malformed `engramMemory.relations`
+
+### Verification
+
+- `npm run type-check` passed.
+- IDE lint checks passed.
+- legacy-safe guarantees preserved:
+  - enhancement stays behind engram/hybrid config
+  - fallback behavior remains non-blocking
+
+### Next
+
+- Phase 6: relation-aware formatting/debug visibility and provider adapter hardening for embedding/rerank endpoints.

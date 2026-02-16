@@ -36,6 +36,7 @@ import {
   appendEngramEvents,
   buildEntitiesFromEvents,
   buildEventsFromResponse,
+  buildRelationsFromEvents,
   embedTexts,
   loadEngramConfigFromStorage,
   mergeEntityVectors,
@@ -46,6 +47,7 @@ import {
   trimEngramMemory,
   unifiedRetrieve,
   upsertEngramEntities,
+  upsertEngramRelations,
   writeEngramMemoryToSaveData,
 } from '@/services/engram';
 import type { LocationEntry, NpcProfile, ImplicitMidTermEntry } from '@/types/game';
@@ -2021,6 +2023,14 @@ ${step1Text}
         if (extractedEntities.length > 0) {
           nextEngram = upsertEngramEntities(nextEngram, extractedEntities);
         }
+        const extractedRelations = buildRelationsFromEvents({
+          events: newEvents,
+          entities: nextEngram.entities,
+          saveData: saveData as SaveData,
+        });
+        if (extractedRelations.length > 0) {
+          nextEngram = upsertEngramRelations(nextEngram, extractedRelations);
+        }
 
         // [Engram] trim policy（仅在启用时生效）
         nextEngram = trimEngramMemory(nextEngram, engramConfig.trim);
@@ -2037,6 +2047,14 @@ ${step1Text}
             action: 'upsert',
             oldValue: currentEngram.entities.length,
             newValue: nextEngram.entities.length,
+          });
+        }
+        if (extractedRelations.length > 0) {
+          changes.push({
+            key: '系统.扩展.engramMemory.relations',
+            action: 'upsert',
+            oldValue: currentEngram.relations.length,
+            newValue: nextEngram.relations.length,
           });
         }
 

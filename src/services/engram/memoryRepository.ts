@@ -1,6 +1,7 @@
 import type {
   MingEngramMemory,
   MingEngramMeta,
+  MingEntityRelation,
   MingEntityNode,
   MingEventNode,
   MingEngramTrimConfig,
@@ -18,6 +19,7 @@ export const createDefaultEngramMeta = (): MingEngramMeta => ({
 export const createEmptyEngramMemory = (): MingEngramMemory => ({
   events: [],
   entities: [],
+  relations: [],
   meta: createDefaultEngramMeta(),
 });
 
@@ -28,11 +30,13 @@ export const ensureEngramMemory = (raw: unknown): MingEngramMemory => {
   const value = raw as Partial<MingEngramMemory>;
   const events = Array.isArray(value.events) ? value.events : [];
   const entities = Array.isArray(value.entities) ? value.entities : [];
+  const relations = Array.isArray(value.relations) ? value.relations : [];
   const metaRaw = value.meta && typeof value.meta === 'object' ? value.meta : {};
 
   return {
     events: events as MingEventNode[],
     entities: entities as MingEntityNode[],
+    relations: relations as MingEntityRelation[],
     meta: {
       ...fallback.meta,
       ...(metaRaw as Partial<MingEngramMeta>),
@@ -85,6 +89,24 @@ export const upsertEngramEntities = (
   return {
     ...memory,
     entities: Array.from(byId.values()),
+  };
+};
+
+export const upsertEngramRelations = (
+  memory: MingEngramMemory,
+  relations: MingEntityRelation[],
+): MingEngramMemory => {
+  if (!Array.isArray(relations) || relations.length === 0) return memory;
+
+  const byId = new Map(memory.relations.map((relation) => [relation.id, relation]));
+  for (const relation of relations) {
+    if (!relation || typeof relation !== 'object' || !relation.id) continue;
+    byId.set(relation.id, relation);
+  }
+
+  return {
+    ...memory,
+    relations: Array.from(byId.values()),
   };
 };
 
