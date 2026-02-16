@@ -1,5 +1,19 @@
 # 更新日志
 
+## [MING] 通用版 0.2.77 (2026-02-16)
+
+- **Engram 迁移 Phase 3（实体与裁剪）**：
+  - 新增 `entityBuilder`，在事件落盘后自动抽取/更新 `engramMemory.entities`（角色、地点、概念）。
+  - 新增 `trimEngramMemory` 并接入主写路径，按 `engram.trim` 配置裁剪历史事件，防止无界增长。
+  - `unifiedRetriever` 接入 `engramMemory.entities` 候选，使 hybrid 检索可直接利用 Engram 实体图谱。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - `legacy` 默认行为保持不变。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`。
+
+---
+
 ## [MING] 通用版 0.2.76 (2026-02-16)
 
 - **Engram 迁移 Phase 2（向量化检索）**：

@@ -4,6 +4,48 @@
 
 ---
 
+## [0.2.77] - 2026-02-16
+
+### Engram 迁移：Phase 3（实体图谱回填 + Trim 策略）
+
+- **写路径补齐实体回填**
+  - 新增 `src/services/engram/entityBuilder.ts`：
+    - 基于新写入事件（`structured_kv.role/location/event`）与当前存档关系网，构建 `MingEntityNode`。
+    - 输出 `char/loc/concept` 实体并携带基础 profile（来源、关系、位置等）。
+  - `AIBidirectionalSystem.processGmResponse()`：
+    - 在追加 `EventNode` 后执行实体提取并 `upsert` 到 `engramMemory.entities`。
+
+- **Trim 策略执行**
+  - `memoryRepository.ts` 新增 `trimEngramMemory()`：
+    - 按 `engram.trim` 执行事件裁剪（`trigger=count|token`）。
+    - 始终保留 `keepRecent` 最新事件，再在预算内保留较新的历史事件。
+    - 裁剪发生时更新 `meta.last_trimmed_at`。
+  - 主写路径接入该策略，避免 `engramMemory.events` 无界增长。
+
+- **读路径图谱增强**
+  - `unifiedRetriever.ts` 新增 `engramMemory.entities` 候选构建，并并入图谱候选排序。
+  - 在 hybrid 模式下，检索上下文可直接消费 Engram 实体节点，而不仅依赖社交关系派生图。
+
+- **兼容与稳定性**
+  - 所有新增逻辑仍受 `engram` 配置控制，失败路径保留非阻塞回退。
+  - `legacy` 流程保持不变。
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+#### 涉及文件
+
+- `src/services/engram/entityBuilder.ts`（新增）
+- `src/services/engram/memoryRepository.ts`
+- `src/services/engram/unifiedRetriever.ts`
+- `src/services/engram/index.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.76] - 2026-02-16
 
 ### Engram 迁移：Phase 2（向量索引 + 分数融合 + 可选 rerank）

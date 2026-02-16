@@ -34,6 +34,7 @@ import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/location
 import { getMidTermContent, formatMidTermEntryForPrompt } from '@/utils/memoryHelpers';
 import {
   appendEngramEvents,
+  buildEntitiesFromEvents,
   buildEventsFromResponse,
   embedTexts,
   loadEngramConfigFromStorage,
@@ -41,7 +42,9 @@ import {
   mergeEventVectors,
   readEngramMemoryFromSaveData,
   saveEngramVectorStore,
+  trimEngramMemory,
   unifiedRetrieve,
+  upsertEngramEntities,
   writeEngramMemoryToSaveData,
 } from '@/services/engram';
 import type { LocationEntry, NpcProfile, ImplicitMidTermEntry } from '@/types/game';
@@ -1998,7 +2001,7 @@ ${step1Text}
       if (entry.记忆主体) (saveData as any).社交.记忆.隐式中期记忆.push(entry);
     }
 
-    // [Engram] 写入事件记忆（phase-1：仅写 EventNode，EntityNode 后续补齐）
+    // [Engram] 写入事件/实体记忆，并按配置执行向量化与trim
     try {
       const newEvents = buildEventsFromResponse({
         response,
@@ -2006,17 +2009,37 @@ ${step1Text}
       });
       if (newEvents.length > 0) {
         const currentEngram = readEngramMemoryFromSaveData(saveData as Record<string, unknown>);
-        const nextEngram = appendEngramEvents(currentEngram, newEvents);
-        writeEngramMemoryToSaveData(saveData as Record<string, unknown>, nextEngram);
+        const engramConfig = loadEngramConfigFromStorage();
+        let nextEngram = appendEngramEvents(currentEngram, newEvents);
+
+        // [Engram] phase-3: 基于事件与当前上下文提取实体，持续补全实体图谱
+        const extractedEntities = buildEntitiesFromEvents({
+          events: newEvents,
+          saveData: saveData as SaveData,
+        });
+        if (extractedEntities.length > 0) {
+          nextEngram = upsertEngramEntities(nextEngram, extractedEntities);
+        }
+
+        // [Engram] trim policy（仅在启用时生效）
+        nextEngram = trimEngramMemory(nextEngram, engramConfig.trim);
+
         changes.push({
           key: '系统.扩展.engramMemory.events',
           action: 'append',
           oldValue: currentEngram.events.length,
           newValue: nextEngram.events.length,
         });
+        if (extractedEntities.length > 0) {
+          changes.push({
+            key: '系统.扩展.engramMemory.entities',
+            action: 'upsert',
+            oldValue: currentEngram.entities.length,
+            newValue: nextEngram.entities.length,
+          });
+        }
 
         // [Engram] phase-2: 事件向量写入（失败不影响主流程）
-        const engramConfig = loadEngramConfigFromStorage();
         if (engramConfig.enabled && engramConfig.retrievalMode === 'hybrid' && engramConfig.embedding.enabled) {
           const characterStore = useCharacterStore();
           const activeSave = characterStore.rootState?.当前激活存档;
@@ -2038,6 +2061,24 @@ ${step1Text}
               .filter((item) => item.id && Array.isArray(item.vector) && item.vector.length > 0);
 
             if (vectorPairs.length > 0) {
+              const vectorizedIds = new Set(vectorPairs.map((item) => item.id));
+              nextEngram = {
+                ...nextEngram,
+                events: nextEngram.events.map((event) =>
+                  vectorizedIds.has((event as any).id)
+                    ? {
+                        ...event,
+                        is_embedded: true,
+                      }
+                    : event,
+                ),
+                meta: {
+                  ...nextEngram.meta,
+                  embedding_model: embedded.modelUsed || nextEngram.meta.embedding_model,
+                  vector_dim: vectorPairs[0]?.vector?.length || nextEngram.meta.vector_dim,
+                },
+              };
+
               const currentVectorStore = await loadEngramVectorStore(vectorContext);
               const nextVectorStore = mergeEventVectors(currentVectorStore, vectorPairs, embedded.modelUsed);
               await saveEngramVectorStore(vectorContext, nextVectorStore);
@@ -2050,6 +2091,8 @@ ${step1Text}
             }
           }
         }
+
+        writeEngramMemoryToSaveData(saveData as Record<string, unknown>, nextEngram);
       }
     } catch (error) {
       console.warn('[AI双向系统] 写入 Engram EventNode 失败（已忽略，不影响主流程）:', error);

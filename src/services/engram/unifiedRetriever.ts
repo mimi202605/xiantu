@@ -165,6 +165,26 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
     };
   });
 
+  const entityCandidates: ScoredCandidate[] = (engramMemory.entities || []).map((entity, index) => {
+    const name = normalizeText((entity as any).name);
+    const description = normalizeText((entity as any).description);
+    const text = `${name} ${description}`.trim();
+    const related = contextSet.has(name);
+    const score =
+      keywordScore(text, terms) * 0.55 +
+      (related ? 0.25 : 0) +
+      recencyScoreFromTimestamp((entity as any).last_updated_at) * 0.2;
+    return {
+      key: `entity:${(entity as any).id || index}`,
+      section: 'graph',
+      text: `- ${name || '未知实体'}：${description || '无描述'}`,
+      score,
+      baseScore: score,
+      vectorScore: 0,
+      nodeId: (entity as any).id,
+    };
+  });
+
   const npcsAtLocation = getNpcsAtLocation(saveData as Record<string, unknown>, locationDesc);
   const ruleCandidates: ScoredCandidate[] = npcsAtLocation.map((npcName, index) => {
     const npc = saveData?.社交?.关系?.[npcName];
@@ -234,6 +254,7 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
     ...eventCandidates,
     ...tripleCandidates,
     ...graphCandidates,
+    ...entityCandidates,
     ...ruleCandidates,
   ].sort((a, b) => b.score - a.score);
 
@@ -273,7 +294,7 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
     stats: {
       latencyMs: Date.now() - startedAt,
       vectorCandidates,
-      graphCandidates: graphCandidates.length,
+      graphCandidates: graphCandidates.length + entityCandidates.length,
       tripleCandidates: tripleCandidates.length,
       ruleCandidates: ruleCandidates.length,
       finalCount: formatted.selected.length,

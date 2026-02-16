@@ -146,3 +146,46 @@
 ### Next
 
 - Phase 3: entity extraction/upsert + graph enrichment from event stream + memory trim policy execution.
+
+---
+
+## Phase 3 (Completed)
+
+### Objectives
+
+- Extract entity nodes from event stream and upsert into engram memory.
+- Execute configurable trim policy to control long-run memory growth.
+- Feed engram entity graph back into unified retrieval.
+
+### Delivered
+
+- Added entity extraction builder:
+  - `src/services/engram/entityBuilder.ts`
+  - builds `MingEntityNode` from:
+    - event fields (`role`, `location`, `event`)
+    - current save context (`角色名字`, `社交.关系`)
+- Wired entity upsert in write path:
+  - `AIBidirectionalSystem.processGmResponse()`
+  - after event append, calls `buildEntitiesFromEvents()` + `upsertEngramEntities()`
+- Added trim execution:
+  - `memoryRepository.ts` adds `trimEngramMemory(memory, trimConfig)`
+  - supports `trigger='count' | 'token'`
+  - preserves `keepRecent` newest events first, then keeps most recent old events within budget
+  - updates `meta.last_trimmed_at` when trim occurs
+- Upgraded unified retrieval graph input:
+  - `unifiedRetriever.ts` now adds candidates from `engramMemory.entities`
+  - these candidates are merged into graph-related context scoring/sorting
+- Updated engram service exports:
+  - `index.ts` exports `entityBuilder` entry points
+
+### Verification
+
+- `npm run type-check` passed.
+- IDE lint checks passed.
+- legacy-safe guarantees preserved:
+  - no behavior change unless engram/hybrid is enabled
+  - failures remain non-blocking with graceful fallback
+
+### Next
+
+- Phase 4: entity-level vectorization, relation extraction edges, and graph-oriented retrieval formatting.

@@ -3,6 +3,7 @@ export * from './config';
 export * from './memoryRepository';
 export * from './vectorRepository';
 export * from './eventBuilder';
+export * from './entityBuilder';
 export * from './injectionFormatter';
 export * from './unifiedRetriever';
 export * from './embeddingService';
