@@ -38,6 +38,7 @@ import {
   buildEventsFromResponse,
   embedTexts,
   loadEngramConfigFromStorage,
+  mergeEntityVectors,
   loadEngramVectorStore,
   mergeEventVectors,
   readEngramMemoryFromSaveData,
@@ -2048,20 +2049,32 @@ ${step1Text}
               characterId: activeSave.角色ID,
               slotId: activeSave.存档槽位,
             };
-            const embedInput = newEvents.map((event) => {
+            const eventEmbedInput = newEvents.map((event) => {
               const summary = typeof (event as any).summary === 'string' ? (event as any).summary : '';
               return summary.trim() || JSON.stringify((event as any).structured_kv || {});
             });
-            const embedded = await embedTexts(embedInput, engramConfig);
-            const vectorPairs = newEvents
+            const entityEmbedInput = extractedEntities.map((entity) => {
+              const name = typeof (entity as any).name === 'string' ? (entity as any).name.trim() : '';
+              const description = typeof (entity as any).description === 'string' ? (entity as any).description.trim() : '';
+              return `${name} ${description}`.trim() || JSON.stringify((entity as any).profile || {});
+            });
+            const embedded = await embedTexts([...eventEmbedInput, ...entityEmbedInput], engramConfig);
+            const eventVectorPairs = newEvents
               .map((event, index) => ({
                 id: (event as any).id as string,
                 vector: embedded.vectors[index] || [],
               }))
               .filter((item) => item.id && Array.isArray(item.vector) && item.vector.length > 0);
+            const entityVectorPairs = extractedEntities
+              .map((entity, index) => ({
+                id: (entity as any).id as string,
+                vector: embedded.vectors[eventEmbedInput.length + index] || [],
+              }))
+              .filter((item) => item.id && Array.isArray(item.vector) && item.vector.length > 0);
 
-            if (vectorPairs.length > 0) {
-              const vectorizedIds = new Set(vectorPairs.map((item) => item.id));
+            if (eventVectorPairs.length > 0 || entityVectorPairs.length > 0) {
+              const vectorizedIds = new Set(eventVectorPairs.map((item) => item.id));
+              const vectorizedEntityIds = new Set(entityVectorPairs.map((item) => item.id));
               nextEngram = {
                 ...nextEngram,
                 events: nextEngram.events.map((event) =>
@@ -2072,21 +2085,39 @@ ${step1Text}
                       }
                     : event,
                 ),
+                entities: nextEngram.entities.map((entity) =>
+                  vectorizedEntityIds.has((entity as any).id)
+                    ? {
+                        ...entity,
+                        is_embedded: true,
+                      }
+                    : entity,
+                ),
                 meta: {
                   ...nextEngram.meta,
                   embedding_model: embedded.modelUsed || nextEngram.meta.embedding_model,
-                  vector_dim: vectorPairs[0]?.vector?.length || nextEngram.meta.vector_dim,
+                  vector_dim:
+                    eventVectorPairs[0]?.vector?.length ||
+                    entityVectorPairs[0]?.vector?.length ||
+                    nextEngram.meta.vector_dim,
                 },
               };
 
               const currentVectorStore = await loadEngramVectorStore(vectorContext);
-              const nextVectorStore = mergeEventVectors(currentVectorStore, vectorPairs, embedded.modelUsed);
+              const withEventVectors = mergeEventVectors(currentVectorStore, eventVectorPairs, embedded.modelUsed);
+              const nextVectorStore = mergeEntityVectors(withEventVectors, entityVectorPairs, embedded.modelUsed);
               await saveEngramVectorStore(vectorContext, nextVectorStore);
               changes.push({
                 key: '系统.扩展.engramMemory.meta.vectorizedEvents',
                 action: 'replace',
                 oldValue: currentVectorStore.eventVectors ? Object.keys(currentVectorStore.eventVectors).length : 0,
                 newValue: Object.keys(nextVectorStore.eventVectors || {}).length,
+              });
+              changes.push({
+                key: '系统.扩展.engramMemory.meta.vectorizedEntities',
+                action: 'replace',
+                oldValue: currentVectorStore.entityVectors ? Object.keys(currentVectorStore.entityVectors).length : 0,
+                newValue: Object.keys(nextVectorStore.entityVectors || {}).length,
               });
             }
           }

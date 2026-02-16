@@ -4,6 +4,41 @@
 
 ---
 
+## [0.2.78] - 2026-02-16
+
+### Engram 迁移：Phase 4（实体向量化 + 图谱语义召回）
+
+- **实体向量写入**
+  - `vectorRepository.ts` 新增 `mergeEntityVectors()`，支持 `entityVectors` 增量写入。
+  - `AIBidirectionalSystem.processGmResponse()`：
+    - 向量化阶段由“仅事件”升级为“事件 + 实体”联合写入。
+    - 写入后回填 `engramMemory.entities[].is_embedded`。
+    - 同步记录 `vectorizedEntities` 统计变更。
+
+- **检索阶段升级**
+  - `unifiedRetriever.ts`：
+    - 向量召回不再仅针对 `EventNode`，新增 `EntityNode` 向量语义匹配。
+    - `topK/minScore` 在实体侧同样生效（实体侧使用缩放窗口）。
+    - 最终排序支持“事件分 + 实体分”各自融合，提升语义命中稳定性。
+
+- **兼容与稳定性**
+  - 仍为 hybrid 有效、legacy 不变。
+  - 向量服务不可用时保持 graceful fallback。
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+#### 涉及文件
+
+- `src/services/engram/vectorRepository.ts`
+- `src/services/engram/unifiedRetriever.ts`
+- `src/utils/AIBidirectionalSystem.ts`
+- `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.77] - 2026-02-16
 
 ### Engram 迁移：Phase 3（实体图谱回填 + Trim 策略）

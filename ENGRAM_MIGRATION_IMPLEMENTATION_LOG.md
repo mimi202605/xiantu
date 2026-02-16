@@ -189,3 +189,43 @@
 ### Next
 
 - Phase 4: entity-level vectorization, relation extraction edges, and graph-oriented retrieval formatting.
+
+---
+
+## Phase 4 (Completed)
+
+### Objectives
+
+- Extend vector path from events to entities.
+- Use entity vectors during hybrid retrieval.
+- Keep all behavior backward-compatible and non-blocking.
+
+### Delivered
+
+- Upgraded vector repository:
+  - `vectorRepository.ts` adds `mergeEntityVectors()` for `entityVectors` incremental upsert.
+- Upgraded write path:
+  - `AIBidirectionalSystem.processGmResponse()` now embeds and writes:
+    - new events
+    - newly extracted entities
+  - updates engram runtime flags:
+    - `events[].is_embedded`
+    - `entities[].is_embedded`
+  - records vectorized entity count delta in change logs.
+- Upgraded hybrid retrieval:
+  - `unifiedRetriever.ts` now computes vector similarity for:
+    - event candidates
+    - entity candidates
+  - applies `minScore/topK` and section-specific score fusion.
+
+### Verification
+
+- `npm run type-check` passed.
+- IDE lint checks passed.
+- legacy-safe guarantees preserved:
+  - hybrid-only enhancement
+  - failures still degrade gracefully
+
+### Next
+
+- Phase 5: extract explicit entity relations/edges and expose graph-centric retrieval section formatting.

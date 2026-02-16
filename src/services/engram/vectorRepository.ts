@@ -58,3 +58,27 @@ export function mergeEventVectors(
     dim,
   };
 }
+
+export function mergeEntityVectors(
+  baseStore: EngramVectorStore,
+  vectors: Array<{ id: string; vector: number[] }>,
+  model: string,
+): EngramVectorStore {
+  const nextEntityVectors: Record<string, number[]> = {
+    ...(baseStore?.entityVectors || {}),
+  };
+
+  let dim = typeof baseStore?.dim === 'number' ? baseStore.dim : 0;
+  for (const item of vectors) {
+    if (!item?.id || !Array.isArray(item.vector) || item.vector.length === 0) continue;
+    nextEntityVectors[item.id] = item.vector;
+    dim = Math.max(dim, item.vector.length);
+  }
+
+  return {
+    eventVectors: baseStore?.eventVectors || {},
+    entityVectors: nextEntityVectors,
+    model: model || baseStore?.model || '',
+    dim,
+  };
+}

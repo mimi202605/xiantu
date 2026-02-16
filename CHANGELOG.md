@@ -1,5 +1,19 @@
 # 更新日志
 
+## [MING] 通用版 0.2.78 (2026-02-16)
+
+- **Engram 迁移 Phase 4（实体向量化）**：
+  - 主写路径向量化从“仅事件”升级为“事件 + 实体”，并持久化 `entityVectors`。
+  - `unifiedRetriever` 新增实体向量召回与融合评分，hybrid 检索同时利用事件语义与实体语义。
+  - 向量写入后同步回填实体 `is_embedded`，并记录实体向量统计变更。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - `legacy` 默认行为保持不变。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`。
+
+---
+
 ## [MING] 通用版 0.2.77 (2026-02-16)
 
 - **Engram 迁移 Phase 3（实体与裁剪）**：

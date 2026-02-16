@@ -217,7 +217,7 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
       embeddingUsed = !embedded.usedFallback;
 
       const minScore = engramConfig.embedding.minScore;
-      const vectorScored = eventCandidates
+      const vectorScoredEvents = eventCandidates
         .map((candidate) => {
           const nodeId = candidate.nodeId || '';
           const eventVector = vectorStore.eventVectors[nodeId];
@@ -230,14 +230,34 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
         .filter((item) => item.sim >= minScore)
         .sort((a, b) => b.sim - a.sim)
         .slice(0, engramConfig.embedding.topK);
+      const vectorScoredEntities = entityCandidates
+        .map((candidate) => {
+          const nodeId = candidate.nodeId || '';
+          const entityVector = vectorStore.entityVectors[nodeId];
+          if (!Array.isArray(entityVector) || entityVector.length === 0 || queryVector.length === 0) {
+            return { candidate, sim: -1 };
+          }
+          const sim = cosineSimilarity(queryVector, entityVector);
+          return { candidate, sim };
+        })
+        .filter((item) => item.sim >= minScore)
+        .sort((a, b) => b.sim - a.sim)
+        .slice(0, Math.max(5, Math.floor(engramConfig.embedding.topK / 2)));
 
       const selectedByVector = new Map<string, number>();
-      for (const item of vectorScored) {
+      for (const item of vectorScoredEvents) {
+        selectedByVector.set(item.candidate.key, item.sim);
+      }
+      for (const item of vectorScoredEntities) {
         selectedByVector.set(item.candidate.key, item.sim);
       }
 
-      vectorCandidates = vectorScored.length;
+      vectorCandidates = vectorScoredEvents.length + vectorScoredEntities.length;
       for (const candidate of eventCandidates) {
+        const vectorScore = selectedByVector.get(candidate.key) ?? 0;
+        candidate.vectorScore = vectorScore;
+      }
+      for (const candidate of entityCandidates) {
         const vectorScore = selectedByVector.get(candidate.key) ?? 0;
         candidate.vectorScore = vectorScore;
       }
@@ -248,6 +268,9 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
 
   for (const candidate of eventCandidates) {
     candidate.score = candidate.baseScore * 0.72 + candidate.vectorScore * 0.55;
+  }
+  for (const candidate of entityCandidates) {
+    candidate.score = candidate.baseScore * 0.75 + candidate.vectorScore * 0.45;
   }
 
   let allCandidates: ScoredCandidate[] = [
