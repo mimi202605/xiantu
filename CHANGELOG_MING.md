@@ -28,6 +28,30 @@
 
 ---
 
+## [0.2.72] - 2026-02-15
+
+### 语义记忆与提示词组装
+
+- **语义记忆：按关联 NPC 与重要程度发送**
+  - **关联 NPC**：主回合构造 `recentNpcNames` 时，对每个重点 NPC 同时加入 `社交.关系` 的 **key** 与 **名字**，保证与 triple 的 subject/object 匹配；`querySemanticTriples` 新增 `relatedOnly`（默认 true），仅保留 subject/object 在玩家或关联 NPC 中的 triple，再按 importance × recency 排序取 top N。
+  - **文档**：`docs/semantic-memory-retrieval-check.md` 记录 consumer（主回合 GM 的 system 消息）、发送时机、分步模式下当前不注入语义的说明。
+
+- **提示词组装：数据模组与短期记忆可见**
+  - **Store**：`AssemblySnapshot` 新增可选 `dataModules`，用于记录注入的「数据模组」。
+  - **主回合记录**：调试模式下记录 `coreStatusSummary`、`semanticAndEntities`（语义记忆与实体索引）、`stateJson`（游戏状态 JSON，含中期/长期记忆）、联机时的 `travelStatus`；并设置 `memoryContent` 为本次发送的短期记忆（assistant）内容。
+  - **面板**：提示词组装页展示「本步骤注入的数据模组」列表（key、构成、生成原因、content），步骤摘要显示「X 个提示词模组 + Y 个数据模组」，便于核对是否发送了游戏记忆与语义数据。
+
+#### 涉及文件
+
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/services/memoryRetrievalService.ts`
+- `src/stores/promptAssemblyStore.ts`
+- `src/components/dashboard/PromptAssemblyPanel.vue`
+- `docs/semantic-memory-retrieval-check.md`（新增）
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.71] - 2026-02-15
 
 ### 中期记忆逻辑修订（设计实现）

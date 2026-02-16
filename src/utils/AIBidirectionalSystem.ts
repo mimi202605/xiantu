@@ -478,13 +478,18 @@ class AIBidirectionalSystemClass {
       let vectorMemorySection = '';
       // Vector memory service removed in Ming version - using standard memory only
 
-      // [MING] 语义记忆与实体索引检索（按相关度/关系/时间·重要性 合并后注入）
+      // [MING] 语义记忆按关联 NPC 与重要程度发送：收集关联 NPC 的 key 与名字，便于与 triple 的 subject/object 匹配
       const playerLocDesc = (stateForAI.角色?.位置 as any)?.描述;
-      const importantNpcNames = Object.entries(stateForAI.社交?.关系 || {})
-        .filter(([, npc]) => (npc as any)?.类型 !== '普通')
-        .map(([k]) => k);
+      const 关系 = stateForAI.社交?.关系 || {};
+      const importantNpcIdentifiers: string[] = [];
+      for (const [k, npc] of Object.entries(关系)) {
+        if ((npc as any)?.类型 === '普通') continue;
+        importantNpcIdentifiers.push(k);
+        const 名字 = (npc as any)?.名字;
+        if (名字 && typeof 名字 === 'string' && 名字.trim() && 名字 !== k) importantNpcIdentifiers.push(名字.trim());
+      }
       const npcsAtLocation = getNpcsAtLocation(stateForAI as Record<string, unknown>, playerLocDesc);
-      const recentNpcNames = [...new Set([...importantNpcNames, ...npcsAtLocation])].slice(0, 10);
+      const recentNpcNames = [...new Set([...importantNpcIdentifiers, ...npcsAtLocation])].slice(0, 20);
 
       let retrievalBlock = '';
       try {
@@ -798,17 +803,28 @@ ${retrievalBlock ? `\n# 语义记忆与实体索引\n${retrievalBlock}\n` : ''}
 ${stateJsonString}
 `.trim();
 
-      // 调试可视化：仅复制已构建的 systemPrompt 到 store，不修改发送内容
+      // 调试可视化：记录完整 system 提示词、提示词模组、数据模组（含游戏状态/语义记忆等）、以及 assistant 短期记忆
       if (shouldRecordAssembly && assemblyModules.length > 0) {
         const promptAssemblyStore = usePromptAssemblyStore();
+        const dataModules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [
+          { key: 'coreStatusSummary', 构成: '角色核心状态速览', 生成原因: '上下文', flow引用: '主回合', content: coreStatusSummary },
+          { key: 'semanticAndEntities', 构成: '语义记忆与实体索引', 生成原因: '按关联NPC与重要程度', flow引用: '主回合', content: retrievalBlock || '(空)' },
+          { key: 'stateJson', 构成: '游戏状态JSON（含中期记忆、长期记忆）', 生成原因: '完整存档', flow引用: '主回合', content: stateJsonString }
+        ];
+        if (travelStatusPrompt) {
+          dataModules.push({ key: 'travelStatus', 构成: '联机穿越状态', 生成原因: '穿越场景', flow引用: '主回合', content: travelStatusPrompt });
+        }
+        const memoryToSendForRecord = (typeof shortTermMemoryForPrompt !== 'undefined' ? shortTermMemoryForPrompt : shortTermMemory) as string[];
+        const memoryContentRecord = memoryToSendForRecord.length > 0
+          ? `# 【最近事件】\n${memoryToSendForRecord.join('\n')}。根据这刚刚发生的文本事件，合理生成下一次文本信息，要保证衔接流畅、不断层，符合上文的文本信息`
+          : undefined;
         promptAssemblyStore.record({
           fullPrompt: systemPrompt,
-          modules: assemblyModules.map((m) => ({
-            ...m,
-            flow引用: '主回合'
-          })),
+          modules: assemblyModules.map((m) => ({ ...m, flow引用: '主回合' })),
+          dataModules,
           flowName: '主回合',
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          memoryContent: memoryContentRecord
         });
       }
 

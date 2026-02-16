@@ -236,11 +236,15 @@ export interface QuerySemanticTriplesOpts {
   limit?: number;
   saveData?: Record<string, unknown>;
   halflifeTurns?: number;
+  /** 为 true 时仅返回与 ctx 中玩家/关联 NPC 相关的 triple（subject 或 object 在 ctxIds 中），再按重要程度与时间排序；默认 true，符合「按关联npc和语义重要程度发送」 */
+  relatedOnly?: boolean;
 }
 
 /**
- * Query semantic triples by contextBoost × importance × recency; recency uses real time decay from timestamp.
- * now = 元数据.时间 from saveData or new Date(). Game-time ts with GameTime now uses game minutes; ISO with Date uses real minutes; mixed → recency 0.5.
+ * Query semantic triples: 按关联 NPC（及玩家）与语义重要程度发送。
+ * relatedOnly 为 true（默认）时只保留 subject/object 在 ctxIds 中的 triple，再按 importance × recency 排序取 top N；
+ * 否则按 contextBoost × importance × recency 排序取 top N（可能包含无关 triple）。
+ * now = 元数据.时间 from saveData or new Date()；recency 使用时间衰减。
  */
 function querySemanticTriples(
   store: SemanticMemoryStore,
@@ -249,6 +253,7 @@ function querySemanticTriples(
 ): SemanticTriple[] {
   const limit = opts.limit ?? 15;
   const halflife = opts.halflifeTurns ?? DEFAULT_HALFLIFE_TURNS;
+  const relatedOnly = opts.relatedOnly !== false;
   const saveData = opts.saveData;
   const 元数据时间 = saveData && (saveData as any)?.元数据?.时间;
   const isGameTime = (x: unknown): x is GameTime =>
@@ -263,7 +268,8 @@ function querySemanticTriples(
 
   const withScore = (t: SemanticTriple) => {
     const imp = typeof t.importance === 'number' ? t.importance : DEFAULT_IMPORTANCE;
-    const contextBoost = (ctxIds.has(t.subject) || ctxIds.has(t.object)) ? CONTEXT_BOOST : 1;
+    const related = ctxIds.has(t.subject) || ctxIds.has(t.object);
+    const contextBoost = related ? CONTEXT_BOOST : 1;
 
     let recency: number;
     const ts = t.timestamp;
@@ -283,11 +289,14 @@ function querySemanticTriples(
       }
     }
 
-    return { t, score: contextBoost * imp * recency };
+    return { t, score: contextBoost * imp * recency, related };
   };
 
-  return store.triples
-    .map(withScore)
+  let candidates = store.triples.map(withScore);
+  if (relatedOnly) {
+    candidates = candidates.filter(x => x.related);
+  }
+  return candidates
     .sort((a, b) => b.score - a.score)
     .slice(0, limit)
     .map(x => x.t);

@@ -1,5 +1,13 @@
 # 更新日志
 
+## [MING] 通用版 0.2.72 (2026-02-15)
+
+- **语义记忆**：按关联 NPC（key+名字）与重要程度发送；`relatedOnly` 默认仅发相关 triple；文档记录 consumer 与发送时机。
+- **提示词组装**：主回合记录数据模组（核心状态、语义与实体、游戏状态 JSON、联机穿越）及短期记忆内容；面板展示提示词模组 + 数据模组列表。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.71 (2026-02-15)
 
 - **中期记忆逻辑修订**：数据模型（ImplicitMidTermEntry、MidTermEntry、隐式中期对象数组）与迁移；主回合仅发短期+中期+长期、隐式中期不重复送入；step2 对象格式、精炼/长期总结双阈值与 triggerMidTermRefine/triggerMemorySummary；memoryHelpers、gameStateStore 溢出与 coerce、worldHeartbeatService 与 MainGamePanel 同步。  

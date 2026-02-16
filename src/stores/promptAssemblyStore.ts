@@ -26,8 +26,10 @@ export interface PromptModule {
 export interface AssemblySnapshot {
   /** 完整系统提示词（发送给 API 的全文） */
   fullPrompt: string;
-  /** 本步骤使用的提示词模组 */
+  /** 本步骤使用的提示词模组（来自 assembleSystemPrompt 等） */
   modules: PromptModule[];
+  /** 本步骤注入的数据模组（游戏状态、语义记忆、核心状态速览等，用于调试核对是否发送） */
+  dataModules?: PromptModule[];
   /** 流程名称（如 主回合 / 分步第1步 / 分步第2步 / 记忆总结） */
   flowName: string;
   /** 记录时间 */

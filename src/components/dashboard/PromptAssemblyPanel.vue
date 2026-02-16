@@ -39,14 +39,14 @@
         >
           <span class="step-tab-name">{{ snap.flowName }}</span>
           <span class="step-tab-time">{{ formatTime(snap.timestamp) }}</span>
-          <span class="step-tab-modules">共 {{ snap.modules.length }} 个模组 · 约 {{ tokensForSnapshot(snap) }} tokens</span>
+          <span class="step-tab-modules">{{ snap.modules.length }} 个提示词模组{{ (snap.dataModules?.length ?? 0) > 0 ? ` + ${snap.dataModules!.length} 个数据模组` : '' }} · 约 {{ tokensForSnapshot(snap) }} tokens</span>
         </button>
       </div>
 
       <div class="assembly-meta" v-if="selectedSnapshot">
         <span class="flow-badge">{{ selectedSnapshot.flowName }}</span>
         <span class="time-text">{{ formatTime(selectedSnapshot.timestamp) }}</span>
-        <span class="modules-summary">本步骤使用的提示词模组：{{ selectedSnapshot.modules.map(m => m.key).join('、') }}</span>
+        <span class="modules-summary">提示词模组：{{ selectedSnapshot.modules.map(m => m.key).join('、') }}{{ (selectedSnapshot.dataModules?.length ?? 0) > 0 ? '；数据模组：' + (selectedSnapshot.dataModules?.map(m => m.key).join('、') ?? '') : '' }}</span>
         <span class="api-call-desc" v-if="selectedSnapshot.apiCallDescription" :title="selectedSnapshot.apiCallDescription">
           本步骤对应：{{ selectedSnapshot.apiCallDescription }}
         </span>
@@ -70,7 +70,7 @@
         </section>
 
         <h3 class="section-title modules-heading">本步骤使用的提示词模组（共 {{ selectedSnapshot.modules.length }} 个）</h3>
-        <section v-for="(mod, index) in selectedSnapshot.modules" :key="mod.key + index" class="section-module">
+        <section v-for="(mod, index) in selectedSnapshot.modules" :key="'prompt-' + mod.key + index" class="section-module">
           <h3 class="section-title">
             提示词模组{{ index + 1 }}：{{ mod.key }}
             <span class="token-badge">约 {{ getModuleTokens(mod) }} tokens</span>
@@ -85,6 +85,25 @@
           </dl>
           <pre class="block-content module-content">{{ mod.content }}</pre>
         </section>
+
+        <template v-if="selectedSnapshot.dataModules && selectedSnapshot.dataModules.length > 0">
+          <h3 class="section-title modules-heading data-modules-heading">本步骤注入的数据模组（共 {{ selectedSnapshot.dataModules.length }} 个）</h3>
+          <section v-for="(mod, index) in selectedSnapshot.dataModules" :key="'data-' + mod.key + index" class="section-module section-data-module">
+            <h3 class="section-title">
+              数据模组{{ index + 1 }}：{{ mod.key }}
+              <span class="token-badge">约 {{ getModuleTokens(mod) }} tokens</span>
+            </h3>
+            <dl class="module-meta">
+              <dt>数据构成：</dt>
+              <dd>{{ mod.构成 }}</dd>
+              <dt>生成原因：</dt>
+              <dd>{{ mod.生成原因 }}</dd>
+              <dt>在那个 flow 引用：</dt>
+              <dd>{{ mod.flow引用 }}</dd>
+            </dl>
+            <pre class="block-content module-content">{{ mod.content }}</pre>
+          </section>
+        </template>
       </div>
     </template>
   </div>
@@ -278,6 +297,14 @@ function exportSnapshot() {
 .step-tab-modules {
   font-size: 0.7rem;
   color: var(--color-text-secondary);
+}
+
+.data-modules-heading {
+  margin-top: 1.25rem;
+}
+
+.section-data-module {
+  border-left: 3px solid var(--color-primary);
 }
 
 .assembly-meta {
