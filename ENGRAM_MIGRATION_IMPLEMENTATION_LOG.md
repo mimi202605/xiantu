@@ -314,3 +314,34 @@
 ### Next
 
 - Phase 7: add retrieval debug UI panel and expand setting controls for rerank/trim introspection.
+
+---
+
+## Phase 7 (Completed)
+
+### Objectives
+
+- Expose rerank/trim controls in settings UI.
+- Keep config behavior consistent with normalization constraints.
+
+### Delivered
+
+- Expanded Engram settings UI:
+  - `src/components/engram/EngramSettingsSection.vue`
+  - added controls for:
+    - rerank: `enabled/providerUrl/model/topN`
+    - trim: `enabled/trigger/tokenLimit/countLimit/keepRecent`
+- All control values flow through existing `withUpdate + normalizeEngramConfig` path.
+- Added wide input style for endpoint URL usability.
+
+### Verification
+
+- `npm run type-check` passed.
+- IDE lint checks passed.
+- legacy-safe guarantees preserved:
+  - only config UI changed
+  - no forced behavior change unless user enables/tunes engram
+
+### Next
+
+- Phase 8: add dedicated retrieval debug panel and end-to-end regression tests for legacy vs hybrid parity.

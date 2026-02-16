@@ -1,5 +1,18 @@
 # 更新日志
 
+## [MING] 通用版 0.2.81 (2026-02-16)
+
+- **Engram 迁移 Phase 7（设置面板补齐）**：
+  - Engram 设置区新增 `rerank` 与 `trim` 全量参数控制（启用、阈值、窗口、预算等）。
+  - hybrid 调优可在 UI 完成，不再依赖手改配置 JSON。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - `legacy` 默认行为保持不变。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`。
+
+---
+
 ## [MING] 通用版 0.2.80 (2026-02-16)
 
 - **Engram 迁移 Phase 6（可观测性与适配增强）**：

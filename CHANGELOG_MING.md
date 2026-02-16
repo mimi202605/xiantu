@@ -4,6 +4,39 @@
 
 ---
 
+## [0.2.81] - 2026-02-16
+
+### Engram 迁移：Phase 7（设置面板补齐 Rerank/Trim 控制）
+
+- **Engram 设置 UI 扩展**
+  - `EngramSettingsSection.vue` 新增可视化配置项：
+    - `rerank.enabled`
+    - `rerank.providerUrl`
+    - `rerank.model`
+    - `rerank.topN`
+    - `trim.enabled`
+    - `trim.trigger`（count/token）
+    - `trim.tokenLimit`
+    - `trim.countLimit`
+    - `trim.keepRecent`
+  - 保持与 `normalizeEngramConfig()` 一致：输入值走统一归一化与边界约束。
+
+- **用户价值**
+  - 向量召回、重排、裁剪关键参数均可在设置页直接调试与验证。
+  - 避免手工改本地配置，降低 hybrid 调优成本。
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+#### 涉及文件
+
+- `src/components/engram/EngramSettingsSection.vue`
+- `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.80] - 2026-02-16
 
 ### Engram 迁移：Phase 6（调试可见性 + Provider 适配增强）

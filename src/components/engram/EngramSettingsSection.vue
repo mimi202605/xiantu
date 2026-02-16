@@ -94,6 +94,105 @@
 
       <div class="setting-item">
         <div class="setting-info">
+          <label class="setting-name">启用 Rerank</label>
+          <span class="setting-desc">开启后对召回候选进行二次重排（可选）。</span>
+        </div>
+        <div class="setting-control">
+          <label class="setting-switch">
+            <input type="checkbox" :checked="config.rerank.enabled" @change="onToggleRerank" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">Rerank Endpoint</label>
+          <span class="setting-desc">Rerank 服务地址（完整 URL）。</span>
+        </div>
+        <div class="setting-control">
+          <input class="config-input wide" type="text" :value="config.rerank.providerUrl" @input="onRerankProviderUrlInput" />
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">Rerank Model</label>
+          <span class="setting-desc">重排模型名称（可留空使用服务默认）。</span>
+        </div>
+        <div class="setting-control">
+          <input class="config-input" type="text" :value="config.rerank.model" @input="onRerankModelInput" />
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">Rerank TopN</label>
+          <span class="setting-desc">重排窗口输出上限。</span>
+        </div>
+        <div class="setting-control">
+          <input class="config-input" type="number" min="1" max="100" :value="config.rerank.topN" @input="onRerankTopNInput" />
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">启用 Trim</label>
+          <span class="setting-desc">按策略裁剪历史事件，防止记忆无限增长。</span>
+        </div>
+        <div class="setting-control">
+          <label class="setting-switch">
+            <input type="checkbox" :checked="config.trim.enabled" @change="onToggleTrim" />
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">Trim Trigger</label>
+          <span class="setting-desc">count：按条数；token：按估算 token。</span>
+        </div>
+        <div class="setting-control">
+          <select class="setting-select" :value="config.trim.trigger" @change="onTrimTriggerChange">
+            <option value="count">count</option>
+            <option value="token">token</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">Trim Token Limit</label>
+          <span class="setting-desc">触发 token 模式时的预算上限。</span>
+        </div>
+        <div class="setting-control">
+          <input class="config-input" type="number" min="200" max="200000" :value="config.trim.tokenLimit" @input="onTrimTokenLimitInput" />
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">Trim Count Limit</label>
+          <span class="setting-desc">触发 count 模式时保留的事件条数上限。</span>
+        </div>
+        <div class="setting-control">
+          <input class="config-input" type="number" min="10" max="20000" :value="config.trim.countLimit" @input="onTrimCountLimitInput" />
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
+          <label class="setting-name">Keep Recent</label>
+          <span class="setting-desc">无论何种 trim 策略都优先保留的最新事件条数。</span>
+        </div>
+        <div class="setting-control">
+          <input class="config-input" type="number" min="1" max="500" :value="config.trim.keepRecent" @input="onTrimKeepRecentInput" />
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-info">
           <label class="setting-name">调试面板</label>
           <span class="setting-desc">开启后可在后续版本查看检索候选与分数细节。</span>
         </div>
@@ -190,6 +289,69 @@ const onMinScoreInput = (event: Event) => {
   });
 };
 
+const onToggleRerank = (event: Event) => {
+  const checked = (event.target as HTMLInputElement).checked;
+  withUpdate((next) => {
+    next.rerank.enabled = checked;
+  });
+};
+
+const onRerankProviderUrlInput = (event: Event) => {
+  const value = (event.target as HTMLInputElement).value;
+  withUpdate((next) => {
+    next.rerank.providerUrl = value;
+  });
+};
+
+const onRerankModelInput = (event: Event) => {
+  const value = (event.target as HTMLInputElement).value;
+  withUpdate((next) => {
+    next.rerank.model = value;
+  });
+};
+
+const onRerankTopNInput = (event: Event) => {
+  const value = Number((event.target as HTMLInputElement).value);
+  withUpdate((next) => {
+    next.rerank.topN = Number.isFinite(value) ? value : next.rerank.topN;
+  });
+};
+
+const onToggleTrim = (event: Event) => {
+  const checked = (event.target as HTMLInputElement).checked;
+  withUpdate((next) => {
+    next.trim.enabled = checked;
+  });
+};
+
+const onTrimTriggerChange = (event: Event) => {
+  const value = (event.target as HTMLSelectElement).value === 'token' ? 'token' : 'count';
+  withUpdate((next) => {
+    next.trim.trigger = value;
+  });
+};
+
+const onTrimTokenLimitInput = (event: Event) => {
+  const value = Number((event.target as HTMLInputElement).value);
+  withUpdate((next) => {
+    next.trim.tokenLimit = Number.isFinite(value) ? value : next.trim.tokenLimit;
+  });
+};
+
+const onTrimCountLimitInput = (event: Event) => {
+  const value = Number((event.target as HTMLInputElement).value);
+  withUpdate((next) => {
+    next.trim.countLimit = Number.isFinite(value) ? value : next.trim.countLimit;
+  });
+};
+
+const onTrimKeepRecentInput = (event: Event) => {
+  const value = Number((event.target as HTMLInputElement).value);
+  withUpdate((next) => {
+    next.trim.keepRecent = Number.isFinite(value) ? value : next.trim.keepRecent;
+  });
+};
+
 const onToggleDebug = (event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
   withUpdate((next) => {
@@ -207,6 +369,10 @@ const onToggleDebug = (event: Event) => {
   color: #374151;
   font-size: 0.875rem;
   width: 140px;
+}
+
+.config-input.wide {
+  width: 280px;
 }
 
 .config-input:focus {
