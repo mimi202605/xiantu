@@ -4,6 +4,53 @@
 
 ---
 
+## [0.2.75] - 2026-02-16
+
+### Engram 迁移：Phase 1（可运行读写链路）
+
+- **写路径（EventNode 落盘）**
+  - 新增 `src/services/engram/eventBuilder.ts`：
+    - 从 `GM_Response` 构建 `MingEventNode`。
+    - 采用轻量 burn 逻辑（`structured_kv -> summary`）生成检索友好文本。
+  - `AIBidirectionalSystem.processGmResponse()`：
+    - 在主流程不阻塞的前提下追加事件到 `系统.扩展.engramMemory.events`。
+    - 写入失败仅告警，不影响主回合命令执行。
+
+- **读路径（hybrid 替代检索入口）**
+  - 新增 `src/services/engram/unifiedRetriever.ts`：
+    - 聚合四类候选：`events`、`triples`、`graph`、`rules`。
+    - 统一打分排序并输出单一检索块（Phase 1 为非向量基线）。
+  - 新增 `src/services/engram/injectionFormatter.ts`：
+    - 负责去重、token/行数预算裁剪、分区格式化输出。
+  - `AIBidirectionalSystem.processPlayerAction()`：
+    - `legacy` 模式：保持 `memoryRetrieve()`。
+    - `hybrid` 模式：改走 `unifiedRetrieve()`（检索入口被替代，不再双链路并列拼接）。
+    - 新增 `retrievalMode` 调试透出到提示词组装 data module。
+
+- **分步生成同步增强**
+  - `splitGeneration` 第1步与第2步都接入统一检索块注入，避免仅单步模式生效导致行为差异。
+
+- **配置读取**
+  - `src/services/engram/config.ts` 增加 `loadEngramConfigFromStorage()`，统一从 `dad_game_settings.engram` 读取并归一化。
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+  - 默认 `engram.enabled=false`，legacy 流程保持不变。
+
+#### 涉及文件
+
+- `src/utils/AIBidirectionalSystem.ts`
+- `src/services/engram/eventBuilder.ts`（新增）
+- `src/services/engram/unifiedRetriever.ts`（新增）
+- `src/services/engram/injectionFormatter.ts`（新增）
+- `src/services/engram/config.ts`
+- `src/services/engram/index.ts`
+- `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`
+- `CHANGELOG.md` / `CHANGELOG_MING.md`
+
+---
+
 ## [0.2.74] - 2026-02-16
 
 ### Engram 迁移：Phase 0（基础设施落地）

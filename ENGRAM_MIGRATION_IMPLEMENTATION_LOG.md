@@ -48,3 +48,47 @@
 ### Next
 
 - Phase 1: implement EventNode ingestion and unified hybrid retriever (without vectors first), and replace `memoryRetrieve()` only when `retrievalMode='hybrid'`.
+
+---
+
+## Phase 1 (Completed)
+
+### Objectives
+
+- Land a runnable engram read/write path.
+- Keep `legacy` unchanged and switch retrieval entry in `hybrid`.
+- Start with non-vector baseline scoring and formatting.
+
+### Delivered
+
+- Added event write pipeline:
+  - `src/services/engram/eventBuilder.ts`
+  - `AIBidirectionalSystem.processGmResponse()` appends built `EventNode` to `engramMemory.events`.
+- Added hybrid retrieval pipeline:
+  - `src/services/engram/unifiedRetriever.ts`
+  - `src/services/engram/injectionFormatter.ts`
+  - unified candidates from `events + triples + graph + rules`.
+- Added mode gate in main loop:
+  - `legacy` -> `memoryRetrieve()`
+  - `hybrid` -> `unifiedRetrieve()`
+- Added storage config loader:
+  - `loadEngramConfigFromStorage()` in `config.ts`
+- Synced split generation:
+  - retrieval block also injected in split step1/step2 prompts.
+
+### Verification
+
+- `npm run type-check` passed.
+- IDE lint checks passed.
+- default remains legacy-safe:
+  - `engram.enabled = false`
+  - no behavior change unless user enables hybrid mode.
+
+### Notes
+
+- Phase 1 intentionally does not include embeddings/rerank execution.
+- Vector path and rerank path are reserved for Phase 2+ rollout.
+
+### Next
+
+- Phase 2: embedding service + vector index write/read + score fusion + optional rerank.

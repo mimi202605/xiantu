@@ -32,6 +32,14 @@ import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
 import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync } from '@/utils/locationUtils';
 import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/locationNpcGenerationPromptsMing';
 import { getMidTermContent, formatMidTermEntryForPrompt } from '@/utils/memoryHelpers';
+import {
+  appendEngramEvents,
+  buildEventsFromResponse,
+  loadEngramConfigFromStorage,
+  readEngramMemoryFromSaveData,
+  unifiedRetrieve,
+  writeEngramMemoryToSaveData,
+} from '@/services/engram';
 import type { LocationEntry, NpcProfile, ImplicitMidTermEntry } from '@/types/game';
 
 type PlainObject = Record<string, unknown>;
@@ -491,21 +499,37 @@ class AIBidirectionalSystemClass {
       const npcsAtLocation = getNpcsAtLocation(stateForAI as Record<string, unknown>, playerLocDesc);
       const recentNpcNames = [...new Set([...importantNpcIdentifiers, ...npcsAtLocation])].slice(0, 20);
 
+      const engramConfig = loadEngramConfigFromStorage();
+      const retrievalMode: 'legacy' | 'hybrid' =
+        engramConfig.enabled && engramConfig.retrievalMode === 'hybrid' ? 'hybrid' : 'legacy';
       let retrievalBlock = '';
       try {
-        retrievalBlock = memoryRetrieve(stateForAI as Record<string, unknown>, {
-          playerName: (stateForAI.角色?.身份 as any)?.名字,
-          locationDesc: playerLocDesc,
-          recentNpcNames,
-          maxLines: 35,
-        });
+        if (retrievalMode === 'hybrid') {
+          const unified = await unifiedRetrieve({
+            saveData: stateForAI as Record<string, unknown>,
+            userInput: userMessage,
+            playerName: (stateForAI.角色?.身份 as any)?.名字,
+            locationDesc: playerLocDesc,
+            recentNpcNames,
+            maxTokens: 550,
+            maxLines: 35,
+          });
+          retrievalBlock = unified.block;
+        } else {
+          retrievalBlock = memoryRetrieve(stateForAI as Record<string, unknown>, {
+            playerName: (stateForAI.角色?.身份 as any)?.名字,
+            locationDesc: playerLocDesc,
+            recentNpcNames,
+            maxLines: 35,
+          });
+        }
       } catch (e) {
         console.warn('[AI双向系统] 语义记忆检索失败:', e);
       }
 
       // 不注入隐式中期记忆：与短期记忆重叠，AI 仅接收 短期记忆(5条) + 中期记忆 + 长期记忆，避免重复
 
-      if (npcsAtLocation.length > 0) {
+      if (retrievalMode === 'legacy' && npcsAtLocation.length > 0) {
         const npcSummaries = npcsAtLocation
           .map((name) => {
             const npc = (stateForAI.社交?.关系 as any)?.[name];
@@ -797,7 +821,7 @@ ${assembledPrompt}
 ${travelStatusPrompt}
 ${coreStatusSummary}
 ${vectorMemorySection ? `\n${vectorMemorySection}\n` : ''}
-${retrievalBlock ? `\n# 语义记忆与实体索引\n${retrievalBlock}\n` : ''}
+${retrievalBlock ? `\n# 统一记忆检索\n${retrievalBlock}\n` : ''}
 # 游戏状态
 你正在修仙世界《仙途》中扮演GM。以下是当前完整游戏存档(JSON格式):
 ${stateJsonString}
@@ -808,7 +832,7 @@ ${stateJsonString}
         const promptAssemblyStore = usePromptAssemblyStore();
         const dataModules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [
           { key: 'coreStatusSummary', 构成: '角色核心状态速览', 生成原因: '上下文', flow引用: '主回合', content: coreStatusSummary },
-          { key: 'semanticAndEntities', 构成: '语义记忆与实体索引', 生成原因: '按关联NPC与重要程度', flow引用: '主回合', content: retrievalBlock || '(空)' },
+          { key: 'semanticAndEntities', 构成: `统一记忆检索(${retrievalMode})`, 生成原因: '按关联NPC与重要程度', flow引用: '主回合', content: retrievalBlock || '(空)' },
           { key: 'stateJson', 构成: '游戏状态JSON（含中期记忆、长期记忆）', 生成原因: '完整存档', flow引用: '主回合', content: stateJsonString }
         ];
         if (travelStatusPrompt) {
@@ -1002,6 +1026,7 @@ ${stateJsonString}
           const tavernEnv = !!tavernHelper;
           const flowRef = opts?.flowName ?? (step === 1 ? '分步第1步' : '分步第2步');
           const push = opts?.onSection;
+          const retrievalContextBlock = retrievalBlock ? `\n# 统一记忆检索\n${retrievalBlock}\n` : '';
 
           if (step === 1) {
             // 第1步：只输出正文纯文本，不需要JSON格式和指令相关的提示词
@@ -1009,7 +1034,7 @@ ${stateJsonString}
             const worldStandardsPrompt = await getPrompt('worldStandards');
             const textFormatsPrompt = await getPrompt('textFormatRules');
             const narrativeStateJson = buildNarrativeStateForStep1();
-            const statusBlock = `${coreStatusSummary}${vectorMemorySection ? `\n${vectorMemorySection}\n` : ''}`;
+            const statusBlock = `${coreStatusSummary}${vectorMemorySection ? `\n${vectorMemorySection}\n` : ''}${retrievalContextBlock}`;
             push?.({ key: 'splitGenerationStep1', 构成: '分步正文规则', 生成原因: '第1步仅输出正文', flow引用: flowRef, content: stepRules });
             push?.({ key: 'textFormatRules', 构成: '判定系统', 生成原因: '战斗/探索等场景必须使用判定', flow引用: flowRef, content: textFormatsPrompt });
             push?.({ key: 'worldStandards', 构成: '世界观设定', 生成原因: '叙事风格一致', flow引用: flowRef, content: worldStandardsPrompt });
@@ -1030,8 +1055,7 @@ ${worldStandardsPrompt}
 
 ---
 
-${coreStatusSummary}
-${vectorMemorySection ? `\n${vectorMemorySection}\n` : ''}
+${statusBlock}
 # 当前游戏状态（用于叙事判定，无需输出指令）
 ${narrativeStateJson}
 `.trim();
@@ -1092,13 +1116,14 @@ ${cotPrompt}
           push?.({ key: 'eventSystemRules', 构成: '世界事件规则', 生成原因: '事件演变与影响', flow引用: flowRef, content: eventRules });
 
           const assembled = sections.join('\n\n---\n\n');
-          push?.({ key: 'statusSummary', 构成: '状态摘要', 生成原因: '上下文', flow引用: flowRef, content: coreStatusSummary });
+          push?.({ key: 'statusSummary', 构成: '状态摘要', 生成原因: '上下文', flow引用: flowRef, content: `${coreStatusSummary}${retrievalContextBlock}` });
           push?.({ key: 'stateJson', 构成: '游戏状态JSON', 生成原因: '完整存档供指令生成', flow引用: flowRef, content: `# 游戏状态（JSON）\n${stateJsonString}` });
 
           return `
 ${assembled}
 
 ${coreStatusSummary}
+${retrievalContextBlock}
 
 # 游戏状态（JSON）
 ${stateJsonString}
@@ -1956,6 +1981,27 @@ ${step1Text}
         entry = { 相关角色: [], 事件时间: timePrefix, 记忆主体: text };
       }
       if (entry.记忆主体) (saveData as any).社交.记忆.隐式中期记忆.push(entry);
+    }
+
+    // [Engram] 写入事件记忆（phase-1：仅写 EventNode，EntityNode 后续补齐）
+    try {
+      const newEvents = buildEventsFromResponse({
+        response,
+        saveData: saveData as SaveData,
+      });
+      if (newEvents.length > 0) {
+        const currentEngram = readEngramMemoryFromSaveData(saveData as Record<string, unknown>);
+        const nextEngram = appendEngramEvents(currentEngram, newEvents);
+        writeEngramMemoryToSaveData(saveData as Record<string, unknown>, nextEngram);
+        changes.push({
+          key: '系统.扩展.engramMemory.events',
+          action: 'append',
+          oldValue: currentEngram.events.length,
+          newValue: nextEngram.events.length,
+        });
+      }
+    } catch (error) {
+      console.warn('[AI双向系统] 写入 Engram EventNode 失败（已忽略，不影响主流程）:', error);
     }
 
     // 🔥 检查短期记忆是否超限，超限则删除最旧的短期记忆，并将对应的隐式中期记忆转化为正式中期记忆

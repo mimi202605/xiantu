@@ -1,5 +1,24 @@
 # 更新日志
 
+## [MING] 通用版 0.2.75 (2026-02-16)
+
+- **Engram 迁移 Phase 1（可运行读写链路）**：
+  - 新增 `eventBuilder`：将 GM 响应文本烧录为 `EventNode`，写入 `系统.扩展.engramMemory.events`。
+  - 新增 `unifiedRetriever` + `injectionFormatter`：在 hybrid 模式下统一生成检索上下文（事件记忆、语义记忆、关系图谱、场景规则），并做 token/行数预算裁剪。
+  - `AIBidirectionalSystem` 读路径接入模式门控：
+    - `legacy`：保持原 `memoryRetrieve()`。
+    - `hybrid`：改走 `unifiedRetrieve()`（替代检索入口，非共存双链路）。
+  - `AIBidirectionalSystem` 写路径接入事件落盘：
+    - `processGmResponse()` 在文本处理后追加 EventNode。
+  - 分步生成（step1/step2）也接入统一记忆检索块，避免仅单步模式增强。
+- **稳定性验证**：
+  - `npm run type-check` 通过。
+  - IDE lint 检查通过。
+  - 默认仍为 `legacy`，未开启 hybrid 时行为不变。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)** 与 `ENGRAM_MIGRATION_IMPLEMENTATION_LOG.md`。
+
+---
+
 ## [MING] 通用版 0.2.74 (2026-02-16)
 
 - **Engram 迁移 Phase 0（基础设施）**：

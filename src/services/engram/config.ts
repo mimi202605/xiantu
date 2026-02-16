@@ -77,3 +77,14 @@ export function normalizeEngramConfig(raw: unknown): MingEngramConfig {
     debug: value.debug === true,
   };
 }
+
+export function loadEngramConfigFromStorage(storageKey = 'dad_game_settings'): MingEngramConfig {
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return normalizeEngramConfig(DEFAULT_ENGRAM_CONFIG);
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return normalizeEngramConfig(parsed?.engram);
+  } catch {
+    return normalizeEngramConfig(DEFAULT_ENGRAM_CONFIG);
+  }
+}
