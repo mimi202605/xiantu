@@ -24,6 +24,27 @@ export interface UnifiedRetrieveInput {
   rerankEndpointUrl?: string;
   /** 来自 API 管理的 Rerank 模型，优先于 engramConfig.rerank.model */
   rerankModel?: string;
+  /** 来自 API 管理的 Rerank API Key，用于 Authorization: Bearer，避免 401 */
+  rerankApiKey?: string;
+}
+
+export interface UnifiedRetrieveDebug {
+  embeddingRequest?: {
+    query: string;
+    model?: string;
+    provider?: string;
+    vectorDimension?: number;
+    usedFallback?: boolean;
+    responsePreview?: string;
+  };
+  rerankRequest?: {
+    query: string;
+    candidatesCount: number;
+    topN: number;
+    model?: string;
+    endpoint?: string;
+    responsePreview?: string;
+  };
 }
 
 export interface UnifiedRetrieveOutput {
@@ -42,6 +63,8 @@ export interface UnifiedRetrieveOutput {
     rerankUsed: boolean;
     tokenEstimate: number;
   };
+  /** 调试用：本轮 embedding/rerank 请求与响应摘要，供提示词组装展示 */
+  debug?: UnifiedRetrieveDebug;
 }
 
 const tokenize = (text: string): string[] =>
@@ -234,6 +257,7 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
 
   let embeddingUsed = false;
   let vectorCandidates = 0;
+  const debug: UnifiedRetrieveDebug = {};
   if (
     engramConfig.embedding.enabled &&
     input.vectorContext &&
@@ -245,6 +269,14 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
       const embedded = await embedTexts([input.userInput], engramConfig);
       const queryVector = embedded.vectors[0] || [];
       embeddingUsed = !embedded.usedFallback;
+      debug.embeddingRequest = {
+        query: input.userInput.trim(),
+        model: engramConfig.embedding.model,
+        provider: engramConfig.embedding.provider,
+        vectorDimension: queryVector.length,
+        usedFallback: embedded.usedFallback,
+        responsePreview: `${embedded.vectors.length} vector(s), dim=${queryVector.length}${embedded.usedFallback ? ' (fallback)' : ''}`,
+      };
 
       const minScore = engramConfig.embedding.minScore;
       const vectorScoredEvents = eventCandidates
@@ -322,9 +354,19 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
     const rerank = await rerankCandidates(input.userInput, rerankInput, engramConfig, {
       endpointUrl: input.rerankEndpointUrl,
       model: input.rerankModel,
+      apiKey: input.rerankApiKey,
     });
     if (rerank.used) {
       rerankUsed = true;
+      const preview = JSON.stringify(rerank.scoreByKey, null, 2);
+      debug.rerankRequest = {
+        query: input.userInput.trim(),
+        candidatesCount: rerankInput.length,
+        topN: engramConfig.rerank.topN,
+        model: input.rerankModel ?? engramConfig.rerank.model,
+        endpoint: input.rerankEndpointUrl ?? engramConfig.rerank.providerUrl,
+        responsePreview: preview.length > 2500 ? `${preview.slice(0, 2500)}\n... (truncated)` : preview,
+      };
       allCandidates = allCandidates
         .map((candidate) => {
           const rerankScore = rerank.scoreByKey[candidate.key];
@@ -360,5 +402,6 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
       rerankUsed,
       tokenEstimate: formatted.tokenEstimate,
     },
+    debug: Object.keys(debug).length > 0 ? debug : undefined,
   };
 }

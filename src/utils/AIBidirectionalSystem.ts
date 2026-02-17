@@ -522,6 +522,7 @@ class AIBidirectionalSystemClass {
           : undefined;
       let retrievalBlock = '';
       let hybridRetrievalStats: Record<string, unknown> | null = null;
+      let hybridRetrievalDebug: import('@/services/engram/unifiedRetriever').UnifiedRetrieveDebug | null = null;
       try {
         if (retrievalMode === 'hybrid') {
           const { useAPIManagementStore } = await import('@/stores/apiManagementStore');
@@ -541,9 +542,11 @@ class AIBidirectionalSystemClass {
             vectorContext,
             rerankEndpointUrl,
             rerankModel,
+            rerankApiKey: rerankApi?.apiKey?.trim() || undefined,
           });
           retrievalBlock = unified.block;
           hybridRetrievalStats = unified.stats as unknown as Record<string, unknown>;
+          hybridRetrievalDebug = unified.debug ?? null;
           if (engramConfig.debug) {
             console.log('[Engram][Hybrid][Stats]', unified.stats);
           }
@@ -859,39 +862,39 @@ ${retrievalBlock ? `\n# 统一记忆检索\n${retrievalBlock}\n` : ''}
 ${stateJsonString}
 `.trim();
 
-      // 调试可视化：记录完整 system 提示词、提示词模组、数据模组（含游戏状态/语义记忆等）、以及 assistant 短期记忆
-      if (shouldRecordAssembly && assemblyModules.length > 0) {
-        const promptAssemblyStore = usePromptAssemblyStore();
-        const dataModules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [
-          { key: 'coreStatusSummary', 构成: '角色核心状态速览', 生成原因: '上下文', flow引用: '主回合', content: coreStatusSummary },
-          { key: 'semanticAndEntities', 构成: `统一记忆检索(${retrievalMode})`, 生成原因: '按关联NPC与重要程度', flow引用: '主回合', content: retrievalBlock || '(空)' },
-          { key: 'stateJson', 构成: '游戏状态JSON（含中期记忆、长期记忆）', 生成原因: '完整存档', flow引用: '主回合', content: stateJsonString }
-        ];
-        if (engramConfig.debug && hybridRetrievalStats) {
-          dataModules.push({
-            key: 'engramHybridStats',
-            构成: 'Engram Hybrid 检索统计',
-            生成原因: '调试',
-            flow引用: '主回合',
-            content: JSON.stringify(hybridRetrievalStats, null, 2),
-          });
-        }
-        if (travelStatusPrompt) {
-          dataModules.push({ key: 'travelStatus', 构成: '联机穿越状态', 生成原因: '穿越场景', flow引用: '主回合', content: travelStatusPrompt });
-        }
-        const memoryToSendForRecord = (typeof shortTermMemoryForPrompt !== 'undefined' ? shortTermMemoryForPrompt : shortTermMemory) as string[];
-        const memoryContentRecord = memoryToSendForRecord.length > 0
-          ? `# 【最近事件】\n${memoryToSendForRecord.join('\n')}。根据这刚刚发生的文本事件，合理生成下一次文本信息，要保证衔接流畅、不断层，符合上文的文本信息`
-          : undefined;
-        promptAssemblyStore.record({
-          fullPrompt: systemPrompt,
-          modules: assemblyModules.map((m) => ({ ...m, flow引用: '主回合' })),
-          dataModules,
-          flowName: '主回合',
-          timestamp: Date.now(),
-          memoryContent: memoryContentRecord
+      // 提示词组装：始终记录主回合（便于查看 Embedding/Rerank 等）；调试模式开启时额外包含提示词模组列表
+      const promptAssemblyStore = usePromptAssemblyStore();
+      const dataModules: Array<{ key: string; 构成: string; 生成原因: string; flow引用: string; content: string }> = [
+        { key: 'coreStatusSummary', 构成: '角色核心状态速览', 生成原因: '上下文', flow引用: '主回合', content: coreStatusSummary },
+        { key: 'semanticAndEntities', 构成: `统一记忆检索(${retrievalMode})`, 生成原因: '按关联NPC与重要程度', flow引用: '主回合', content: retrievalBlock || '(空)' },
+        { key: 'stateJson', 构成: '游戏状态JSON（含中期记忆、长期记忆）', 生成原因: '完整存档', flow引用: '主回合', content: stateJsonString }
+      ];
+      if (engramConfig.debug && hybridRetrievalStats) {
+        dataModules.push({
+          key: 'engramHybridStats',
+          构成: 'Engram Hybrid 检索统计',
+          生成原因: '调试',
+          flow引用: '主回合',
+          content: JSON.stringify(hybridRetrievalStats, null, 2),
         });
       }
+      if (travelStatusPrompt) {
+        dataModules.push({ key: 'travelStatus', 构成: '联机穿越状态', 生成原因: '穿越场景', flow引用: '主回合', content: travelStatusPrompt });
+      }
+      const memoryToSendForRecord = (typeof shortTermMemoryForPrompt !== 'undefined' ? shortTermMemoryForPrompt : shortTermMemory) as string[];
+      const memoryContentRecord = memoryToSendForRecord.length > 0
+        ? `# 【最近事件】\n${memoryToSendForRecord.join('\n')}。根据这刚刚发生的文本事件，合理生成下一次文本信息，要保证衔接流畅、不断层，符合上文的文本信息`
+        : undefined;
+      promptAssemblyStore.record({
+        fullPrompt: systemPrompt,
+        modules: shouldRecordAssembly ? assemblyModules.map((m) => ({ ...m, flow引用: '主回合' })) : [],
+        dataModules,
+        flowName: '主回合',
+        timestamp: Date.now(),
+        memoryContent: memoryContentRecord,
+        embeddingRequest: hybridRetrievalDebug?.embeddingRequest,
+        rerankRequest: hybridRetrievalDebug?.rerankRequest,
+      });
 
       const userActionForAI = (userMessage && userMessage.toString().trim()) || '继续当前活动';
       console.log('[AI双向系统] 用户输入 userMessage:', userMessage);

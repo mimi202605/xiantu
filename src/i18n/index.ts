@@ -801,6 +801,7 @@ const autoTranslateMap: Record<string, string> = {
   '角色数据': 'Character Data',
   '记忆数据': 'Memory Data',
   '实体与语义': 'Entities & Semantic',
+  'Engram': 'Engram',
   '关系图': 'Relationship Graph',
   '显示标签': 'Show labels',
   '恢复默认': 'Reset layout',

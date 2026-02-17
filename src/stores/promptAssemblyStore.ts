@@ -5,9 +5,9 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 
-/** 标记「新回合开始」的 flowName：见到则清空上一回合，只保留本回合内的快照 */
-const ROUND_START_FLOW_NAMES = ['主回合', '分步第1步', '开局第1步'] as const;
-/** 单回合内最多保留的快照数（主回合=1，分步=2，开局=2，预留记忆总结等） */
+/** 标记「新回合开始」的 flowName：见到则清空上一回合，只保留本回合内的快照。不含 分步第1步，以便启用分步时 主回合 与 分步1/2 共存。 */
+const ROUND_START_FLOW_NAMES = ['主回合', '开局第1步'] as const;
+/** 单回合内最多保留的快照数（主回合+分步1+2 或 开局1+2，预留记忆总结等） */
 const MAX_SNAPSHOTS_PER_ROUND = 10;
 
 export interface PromptModule {
@@ -38,6 +38,24 @@ export interface AssemblySnapshot {
   memoryContent?: string;
   /** 本步骤对应的 API 调用说明（如：第1次 API：system=分步第1步, assistant=记忆, user=玩家输入） */
   apiCallDescription?: string;
+  /** 本步骤若调用了 Embedding 请求（hybrid 检索），用于调试展示 */
+  embeddingRequest?: {
+    query: string;
+    model?: string;
+    provider?: string;
+    vectorDimension?: number;
+    usedFallback?: boolean;
+    responsePreview?: string;
+  };
+  /** 本步骤若调用了 Rerank 请求（hybrid 检索），用于调试展示 */
+  rerankRequest?: {
+    query: string;
+    candidatesCount: number;
+    topN: number;
+    model?: string;
+    endpoint?: string;
+    responsePreview?: string;
+  };
 }
 
 export const usePromptAssemblyStore = defineStore('promptAssembly', () => {

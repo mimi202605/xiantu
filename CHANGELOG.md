@@ -1,5 +1,14 @@
 # 更新日志
 
+## [MING] 通用版 0.2.83 (2026-02-17)
+
+- **Rerank 鉴权**：Rerank 请求增加 `Authorization: Bearer <apiKey>`（来自 API 管理当前 Rerank API），修复 401。
+- **提示词组装**：主回合始终记录（不依赖调试模式）；启用分步时 主回合 与 分步1/2 共存，可切换查看；新增「Embedding 请求（本步骤）」「Rerank 请求（本步骤）」区块；分步视图下显示说明 hint。
+- **游戏变量**：新增「Engram」数据类型，实时查看事件/实体/关系及对应 embedding 状态与预览。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.82 (2026-02-16)
 
 - **Engram 与 API 管理整合**：Embedding/Rerank 的 API 与模型统一在 API 管理 → 辅助功能中分配与编辑；系统设置中仅只读展示当前 API 与模型，总开关「启用 Engram 增强」仅此处有效。

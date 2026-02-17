@@ -25,6 +25,8 @@ export interface RerankOptions {
   endpointUrl?: string;
   /** 优先使用：来自 API 管理分配的 model，未传时回退到 config.rerank.model */
   model?: string;
+  /** API Key，用于 Authorization: Bearer <apiKey>，避免 401 */
+  apiKey?: string;
 }
 
 export async function rerankCandidates(
@@ -46,6 +48,14 @@ export async function rerankCandidates(
   }
 
   const endpoint = providerUrl;
+  const apiKey = typeof options?.apiKey === 'string' ? options.apiKey.trim() : '';
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+  }
+
   try {
     const response = await axios.post(
       endpoint,
@@ -56,9 +66,7 @@ export async function rerankCandidates(
         top_n: topN,
       },
       {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         timeout: 60000,
       },
     );

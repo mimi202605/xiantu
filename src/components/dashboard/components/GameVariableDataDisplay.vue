@@ -34,6 +34,7 @@ import CustomOptionsSection from './CustomOptionsSection.vue'
 import GameVariableCharacterSection from './GameVariableCharacterSection.vue'
 import GameVariableSaveDataSection from './GameVariableSaveDataSection.vue'
 import GameVariableGameIndexSection from './GameVariableGameIndexSection.vue'
+import GameVariableEngramSection from './GameVariableEngramSection.vue'
 import GameVariableWorldInfoSection from './GameVariableWorldInfoSection.vue'
 import GameVariableMemorySection from './GameVariableMemorySection.vue'
 import GameVariableRawDataSection from './GameVariableRawDataSection.vue'
@@ -52,6 +53,8 @@ interface Props {
   worldInfo: Record<string, GameVariableValue>
   memoryData: Record<string, GameVariableValue>
   gameIndexData?: { entities?: unknown[]; relationships?: unknown[]; semanticMemory?: unknown } | null
+  engramData?: import('@/types/game').MingEngramMemory | null
+  vectorContext?: { characterId: string; slotId: string } | null
   socialRelations?: Record<string, unknown>
   allGameData: Record<string, GameVariableValue>
   filteredCoreDataViews: Record<string, GameVariableValue>
@@ -89,6 +92,8 @@ const getCurrentDataComponent = () => {
       return GameVariableSaveDataSection
     case 'gameIndex':
       return GameVariableGameIndexSection
+    case 'engram':
+      return GameVariableEngramSection
     case 'worldInfo':
       return GameVariableWorldInfoSection
     case 'memory':
@@ -136,6 +141,11 @@ const getCurrentDataProps = (): any => {
         gameIndexData: props.gameIndexData ?? null,
         socialRelations: props.socialRelations ?? {},
         playerName: String((props.characterData as Record<string, unknown>)?.名字 ?? ''),
+      }
+    case 'engram':
+      return {
+        engramData: props.engramData ?? null,
+        vectorContext: props.vectorContext ?? null,
       }
     case 'worldInfo':
       return {

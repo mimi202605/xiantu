@@ -4,6 +4,47 @@
 
 ---
 
+## [0.2.83] - 2026-02-17
+
+### Engram 调试与展示：Rerank 鉴权、提示词组装主回合可见、游戏变量 Engram 可视化
+
+- **Rerank 请求鉴权（修复 401）**
+  - `rerankService`：`RerankOptions` 新增 `apiKey?: string`；请求头增加 `Authorization: Bearer <apiKey>`，与 Embedding 一致，避免未鉴权导致 401。
+  - `unifiedRetriever`：`UnifiedRetrieveInput` 新增 `rerankApiKey`；调用 `rerankCandidates` 时传入。
+  - `AIBidirectionalSystem`：主回合 hybrid 检索时从 API 管理当前 Rerank API 读取 `apiKey` 并传入 `unifiedRetrieve`。
+
+- **提示词组装：主回合始终记录且与分步共存**
+  - 主回合不再依赖「调试模式 + 有模组」才记录：每次主回合都会写入一条「主回合」快照（含 fullPrompt、dataModules、embeddingRequest、rerankRequest）；调试开启时额外包含提示词模组列表。
+  - `promptAssemblyStore`：将「分步第1步」从 `ROUND_START_FLOW_NAMES` 中移除，仅保留「主回合」「开局第1步」为回合开始（会清空上一回合）。启用分步生成时，记录顺序为 主回合 → 分步第1步 → 分步第2步，三者共存于同一回合快照列表，用户可切换查看「主回合」及 Embedding/Rerank 区块。
+  - 提示词组装面板：当当前快照非主回合且无 embedding/rerank 数据时，显示说明「Embedding / Rerank 请求仅在「主回合」且启用 hybrid 检索时记录…」。
+
+- **提示词组装：Embedding / Rerank 请求区块**
+  - `AssemblySnapshot` 新增可选 `embeddingRequest`、`rerankRequest`（query、model、endpoint、responsePreview 等）。
+  - `unifiedRetriever` 返回 `debug?: { embeddingRequest?, rerankRequest? }`，主回合记录时写入 store。
+  - 面板中新增独立 section「Embedding 请求（本步骤）」「Rerank 请求（本步骤）」，与分步模组同级展示。
+
+- **游戏变量：Engram 数据可视化**
+  - 游戏变量查看新增数据类型「Engram」：与「实体与语义」并列，实时展示 `系统.扩展.engramMemory`。
+  - 新组件 `GameVariableEngramSection.vue`：展示 Meta（schema_version、embedding_model、vector_dim、向量库状态）、事件列表（含向量有无/维度、embedding 预览）、实体列表（同上）、关系列表；向量库按当前存档 context 从 IndexedDB 异步加载。
+  - `GameVariablePanel`：新增 `engramData`、`vectorContext`，`dataTypes` 增加 `engram`；`GameVariableDataDisplay` 路由到 `GameVariableEngramSection`。
+
+- **涉及文件**
+  - `src/services/engram/rerankService.ts`（apiKey、Authorization header）
+  - `src/services/engram/unifiedRetriever.ts`（UnifiedRetrieveDebug、rerankApiKey、debug 填充与返回）
+  - `src/utils/AIBidirectionalSystem.ts`（主回合始终 record、hybridRetrievalDebug、rerankApiKey 传入）
+  - `src/stores/promptAssemblyStore.ts`（ROUND_START 不含 分步第1步；Snapshot 增加 embeddingRequest/rerankRequest）
+  - `src/components/dashboard/PromptAssemblyPanel.vue`（Embedding/Rerank section、engram 说明 hint）
+  - `src/components/dashboard/GameVariablePanel.vue`（engramData、vectorContext、engram tab）
+  - `src/components/dashboard/components/GameVariableDataDisplay.vue`（engram 分支与 props）
+  - `src/components/dashboard/components/GameVariableEngramSection.vue`（新增）
+  - `src/i18n/index.ts`（Engram 文案）
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+---
+
 ## [0.2.82] - 2026-02-16
 
 ### Engram 与 API 管理整合 + Rerank 路径 + 回退时向量库修剪

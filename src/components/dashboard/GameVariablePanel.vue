@@ -29,6 +29,8 @@
       :worldInfo="worldInfo"
       :memoryData="memoryData"
       :gameIndexData="gameIndexData"
+      :engramData="engramData"
+      :vectorContext="vectorContext"
       :socialRelations="socialRelations"
       :allGameData="allGameData"
       :filteredCoreDataViews="filteredCoreDataViews"
@@ -190,6 +192,14 @@ const gameIndexData = computed(() => {
   }
 })
 
+const engramData = computed(() => gameStateStore.engramMemory ?? null)
+
+const vectorContext = computed(() => {
+  const active = characterStore.rootState?.当前激活存档
+  if (!active?.角色ID || active?.存档槽位 == null) return null
+  return { characterId: active.角色ID, slotId: active.存档槽位 }
+})
+
 const socialRelations = computed(() => gameStateStore.relationships ?? {})
 
 const allGameData = computed(() => ({
@@ -228,6 +238,7 @@ const getDataCount = (type: string) => {
     case 'worldInfo': return getWorldItemCount()
     case 'memory': return getMemoryCount()
     case 'gameIndex': return getGameIndexCount()
+    case 'engram': return getEngramCount()
     case 'raw': return Object.keys(allGameData.value).length
     default: return 0
   }
@@ -238,6 +249,15 @@ const getGameIndexCount = () => {
   const r = Array.isArray(gameIndexData.value.relationships) ? gameIndexData.value.relationships.length : 0
   const t = Array.isArray(gameIndexData.value.semanticMemory?.triples) ? gameIndexData.value.semanticMemory.triples.length : 0
   return e + r + t
+}
+
+const getEngramCount = () => {
+  const mem = engramData.value
+  if (!mem) return 0
+  const ev = Array.isArray(mem.events) ? mem.events.length : 0
+  const en = Array.isArray(mem.entities) ? mem.entities.length : 0
+  const rel = Array.isArray(mem.relations) ? mem.relations.length : 0
+  return ev + en + rel
 }
 
 const getMemoryCount = () => {
@@ -258,6 +278,7 @@ const getWorldItemCount = () => {
 const dataTypes = [
   { key: 'saveData',  label: t('存档数据(短路径)'), icon: 'Archive' },
   { key: 'gameIndex', label: t('实体与语义'), icon: 'Network' },
+  { key: 'engram',    label: t('Engram'), icon: 'Brain' },
   { key: 'core',      label: t('核心数据'), icon: 'Database' },
   { key: 'character', label: t('角色数据'), icon: 'Users' },
   { key: 'worldInfo', label: t('世界信息'), icon: 'Book' },

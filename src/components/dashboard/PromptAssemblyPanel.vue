@@ -50,6 +50,9 @@
         <span class="api-call-desc" v-if="selectedSnapshot.apiCallDescription" :title="selectedSnapshot.apiCallDescription">
           本步骤对应：{{ selectedSnapshot.apiCallDescription }}
         </span>
+        <span class="engram-hint" v-if="!selectedSnapshot.embeddingRequest && !selectedSnapshot.rerankRequest && selectedSnapshot.flowName !== '主回合'">
+          Embedding / Rerank 请求仅在「主回合」且启用 hybrid 检索时记录；分步生成不经过统一检索，故此处无此两项。进行主回合对话后请选择「主回合」快照查看。
+        </span>
       </div>
 
       <div class="assembly-content" v-if="selectedSnapshot">
@@ -67,6 +70,40 @@
             <span class="token-badge">约 {{ memoryTokens }} tokens</span>
           </h3>
           <pre class="block-content memory-content">{{ selectedSnapshot.memoryContent }}</pre>
+        </section>
+
+        <section class="section-engram-request section-embedding" v-if="selectedSnapshot.embeddingRequest">
+          <h3 class="section-title">Embedding 请求（本步骤）</h3>
+          <dl class="module-meta">
+            <dt>query：</dt>
+            <dd>{{ selectedSnapshot.embeddingRequest.query }}</dd>
+            <dt>model：</dt>
+            <dd>{{ selectedSnapshot.embeddingRequest.model ?? '-' }}</dd>
+            <dt>provider：</dt>
+            <dd>{{ selectedSnapshot.embeddingRequest.provider ?? '-' }}</dd>
+            <dt>vectorDimension：</dt>
+            <dd>{{ selectedSnapshot.embeddingRequest.vectorDimension ?? '-' }}</dd>
+            <dt>usedFallback：</dt>
+            <dd>{{ selectedSnapshot.embeddingRequest.usedFallback ?? false }}</dd>
+          </dl>
+          <pre class="block-content module-content">{{ selectedSnapshot.embeddingRequest.responsePreview ?? '-' }}</pre>
+        </section>
+
+        <section class="section-engram-request section-rerank" v-if="selectedSnapshot.rerankRequest">
+          <h3 class="section-title">Rerank 请求（本步骤）</h3>
+          <dl class="module-meta">
+            <dt>query：</dt>
+            <dd>{{ selectedSnapshot.rerankRequest.query }}</dd>
+            <dt>candidatesCount：</dt>
+            <dd>{{ selectedSnapshot.rerankRequest.candidatesCount }}</dd>
+            <dt>topN：</dt>
+            <dd>{{ selectedSnapshot.rerankRequest.topN }}</dd>
+            <dt>model：</dt>
+            <dd>{{ selectedSnapshot.rerankRequest.model ?? '-' }}</dd>
+            <dt>endpoint：</dt>
+            <dd>{{ selectedSnapshot.rerankRequest.endpoint ?? '-' }}</dd>
+          </dl>
+          <pre class="block-content module-content">{{ selectedSnapshot.rerankRequest.responsePreview ?? '-' }}</pre>
         </section>
 
         <h3 class="section-title modules-heading">本步骤使用的提示词模组（共 {{ selectedSnapshot.modules.length }} 个）</h3>
@@ -307,6 +344,18 @@ function exportSnapshot() {
   border-left: 3px solid var(--color-primary);
 }
 
+.section-engram-request {
+  border-left: 3px solid var(--color-primary);
+}
+
+.section-embedding {
+  border-left-color: #4ec9b0;
+}
+
+.section-rerank {
+  border-left-color: #c586c0;
+}
+
 .assembly-meta {
   display: flex;
   flex-wrap: wrap;
@@ -343,6 +392,18 @@ function exportSnapshot() {
   border-radius: 6px;
   background: var(--color-background);
   border: 1px solid var(--color-border);
+}
+
+.engram-hint {
+  display: block;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  background: rgba(var(--color-primary-rgb, 99, 102, 241), 0.08);
+  border-radius: 6px;
+  border-left: 3px solid var(--color-primary);
+  line-height: 1.45;
 }
 
 .modules-heading {
