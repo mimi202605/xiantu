@@ -1295,6 +1295,48 @@ onMounted(() => {
   border-color: #6b7280;
 }
 
+/* 数字/文本配置输入框（与 setting-select 统一视觉） */
+.config-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  min-width: 80px;
+  max-width: 140px;
+  transition: border-color 0.2s ease;
+}
+
+.config-input:hover {
+  border-color: #94a3b8;
+}
+
+.config-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.config-input.wide {
+  max-width: 100%;
+  width: 280px;
+}
+
+[data-theme='dark'] .config-input {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .config-input:hover {
+  border-color: #6b7280;
+}
+
+[data-theme='dark'] .config-input::placeholder {
+  color: #9ca3af;
+}
+
 /* 开关样式 */
 .setting-switch {
   position: relative;
