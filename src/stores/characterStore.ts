@@ -2014,7 +2014,8 @@ export const useCharacterStore = defineStore('characterV3', () => {
     await storage.saveSaveData(active.角色ID, active.存档槽位, rolledBackData);
     await commitMetadataToStorage();
 
-    // [Engram] 回退后同步修剪向量库：仅保留回退后存档中仍存在的事件/实体向量，移除被回退掉的 embedding，保证库洁净并避免重名实体冲突
+    // [Engram] 回退后同步修剪向量库：仅保留回退后存档中仍存在的事件/实体向量，移除被回退掉的 embedding，保证库洁净并避免重名实体冲突。
+    // 回退不修改 localStorage（dad_game_settings）与 API 管理，故 Engram/hybrid/rerank 配置不变；若回退后主回合不再触发 rerank，多为回退后存档中事件/实体/语义过少导致 allCandidates 为空。
     try {
       const { loadEngramVectorStore, saveEngramVectorStore, trimVectorStoreToMemory } = await import('@/services/engram/vectorRepository');
       const { ensureEngramMemory } = await import('@/services/engram/memoryRepository');

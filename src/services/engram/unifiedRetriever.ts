@@ -345,6 +345,9 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
   ].sort((a, b) => b.score - a.score);
 
   let rerankUsed = false;
+  if (engramConfig.rerank.enabled && input.userInput.trim().length > 0 && allCandidates.length === 0) {
+    console.debug('[Engram] Rerank 已启用但未执行：当前无候选（allCandidates.length=0），常见于回退后存档中事件/实体/语义很少或为空。');
+  }
   if (engramConfig.rerank.enabled && input.userInput.trim().length > 0 && allCandidates.length > 0) {
     const rerankWindow = Math.max(20, engramConfig.rerank.topN * 3);
     const rerankInput = allCandidates.slice(0, rerankWindow).map((candidate) => ({

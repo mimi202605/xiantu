@@ -4,6 +4,26 @@
 
 ---
 
+## [0.2.85] - 2026-02-17
+
+### 回退与 Rerank：说明与可观测
+
+- **回退不影响 Rerank 配置**
+  - 回退仅覆盖存档并修剪向量库，**不修改** localStorage（`dad_game_settings`）与 API 管理，故 Engram 总开关、hybrid、Rerank 配置在回退后保持不变。
+  - 若回退后主回合不再触发 Rerank 请求，多为回退后存档中事件/实体/语义记忆过少，导致统一检索候选列表 `allCandidates` 为空（Rerank 仅在候选数 > 0 时调用）。
+
+- **可观测**
+  - `unifiedRetriever`：当 Rerank 已启用但 `allCandidates.length === 0` 时输出 `console.debug('[Engram] Rerank 已启用但未执行：当前无候选…')`，便于确认是否为“无候选故未调用”。
+  - `characterStore` 回退逻辑处增加注释，说明上述行为及原因。
+  - `docs/ENGRAM_API_MANAGEMENT_USER_GUIDE.md`：在「主回合回退与 Engram」中补充回退不改配置、以及回退后 Rerank 未执行时的原因与控制台提示。
+
+- **涉及文件**
+  - `src/services/engram/unifiedRetriever.ts`
+  - `src/stores/characterStore.ts`
+  - `docs/ENGRAM_API_MANAGEMENT_USER_GUIDE.md`
+
+---
+
 ## [0.2.84] - 2026-02-17
 
 ### 地点结构：仅扁平数组 + 上级（不兼容旧存档）+ 生成须带全父级
