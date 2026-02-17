@@ -19,12 +19,13 @@
     </div>
     <div v-if="hasChildren && expanded" class="location-children">
       <LocationTreeNode
-        v-for="(child, idx) in entry.内部"
+        v-for="(child, idx) in children"
         :key="child.名称 || idx"
         :entry="child"
         :explored-set="exploredSet"
         :current-location-desc="currentLocationDesc"
         :depth="depth + 1"
+        :flat-entries="flatEntries"
       />
     </div>
   </div>
@@ -38,14 +39,26 @@ import type { LocationEntry } from '@/types/game';
 
 const { t } = useI18n();
 
-const props = defineProps<{
-  entry: LocationEntry;
-  exploredSet: Set<string>;
-  currentLocationDesc: string;
-  depth: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    entry: LocationEntry;
+    exploredSet: Set<string>;
+    currentLocationDesc: string;
+    depth: number;
+    /** 扁平地点列表，用于按 上级 推导子节点；不传则无子级 */
+    flatEntries?: LocationEntry[];
+  }>(),
+  { flatEntries: undefined }
+);
 
 const expanded = ref(true);
+
+/** 子节点：由扁平列表中 上级 === entry.名称 的条目组成 */
+const children = computed(() => {
+  const flat = props.flatEntries;
+  if (!Array.isArray(flat)) return [];
+  return flat.filter((e) => e.上级 === props.entry.名称);
+});
 
 const isExplored = computed(() => props.exploredSet.has(props.entry.名称));
 const isCurrent = computed(
@@ -55,9 +68,7 @@ const isCurrent = computed(
       props.entry.名称 &&
       (props.currentLocationDesc.includes(props.entry.名称) || props.entry.名称.includes(props.currentLocationDesc)))
 );
-const hasChildren = computed(
-  () => Array.isArray(props.entry.内部) && props.entry.内部.length > 0
-);
+const hasChildren = computed(() => children.value.length > 0);
 
 const toggleExpand = () => {
   if (hasChildren.value) expanded.value = !expanded.value;

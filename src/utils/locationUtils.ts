@@ -1,32 +1,37 @@
 /**
  * @fileoverview
  * 地图与地点相关工具函数。
- * 地点数据结构：顶层在 地点信息 数组中并列（parallel）；每项可有 内部 递归子地点；
- * 地点NPC 存于每个地点内，可追溯各地点的 NPC。
+ * 地点信息为**扁平数组**，通过 `上级` 建树（见 map-test-data-locations.md）；无嵌套结构。
  */
 
 import type { LocationEntry } from '@/types/game';
 import { useGameStateStore } from '@/stores/gameStateStore';
 
 /**
- * 在递归地点树中按名称查找地点条目
+ * 在扁平地点数组中按 名称 查找。
  */
-function findLocationInTree(
+export function findLocationInTree(
   entries: (LocationEntry | unknown)[] | undefined,
   locationName: string
-): LocationEntry | null {
+): (LocationEntry & { 地点NPC?: string[] }) | null {
   if (!Array.isArray(entries)) return null;
+  const found = entries.find(
+    (e) => e && typeof e === 'object' && (e as LocationEntry).名称 === locationName
+  );
+  return found != null ? (found as LocationEntry & { 地点NPC?: string[] }) : null;
+}
+
+/**
+ * 遍历扁平地点数组中每个条目（无递归）。
+ */
+export function forEachLocationInTree(
+  entries: (LocationEntry & { 地点NPC?: string[] })[] | undefined,
+  callback: (loc: LocationEntry & { 地点NPC?: string[] }) => void
+): void {
+  if (!Array.isArray(entries)) return;
   for (const e of entries) {
-    if (e && typeof e === 'object' && (e as LocationEntry).名称 === locationName) {
-      return e as LocationEntry;
-    }
-    const inner = (e as LocationEntry)?.内部;
-    if (Array.isArray(inner)) {
-      const found = findLocationInTree(inner, locationName);
-      if (found) return found;
-    }
+    if (e && typeof e === 'object') callback(e as LocationEntry & { 地点NPC?: string[] });
   }
-  return null;
 }
 
 /**
@@ -155,25 +160,6 @@ export function appendNpcsToLocation(
 }
 
 /**
- * 遍历地点树中每个地点条目（含递归 内部），对每个条目执行 callback。
- */
-function forEachLocationInTree(
-  entries: (LocationEntry & { 地点NPC?: string[] })[] | undefined,
-  callback: (loc: LocationEntry & { 地点NPC?: string[] }) => void
-): void {
-  if (!Array.isArray(entries)) return;
-  for (const e of entries) {
-    if (e && typeof e === 'object') {
-      const loc = e as LocationEntry & { 地点NPC?: string[] };
-      callback(loc);
-      if (Array.isArray(loc.内部)) {
-        forEachLocationInTree(loc.内部 as (LocationEntry & { 地点NPC?: string[] })[], callback);
-      }
-    }
-  }
-}
-
-/**
  * 从「除指定地点外」的所有地点的 地点NPC 中移除该 NPC。
  * 用于保证同一 NPC 只出现在一个地点的 地点NPC 列表中。
  */
@@ -199,9 +185,9 @@ export function removeNpcFromOtherLocations(
 }
 
 /**
- * 确保指定地点在 地点信息 树中存在。
- * 支持 `·` 分隔符表示层级：`A·B·C` → A 为 B 的上级，B 为 C 的上级。
- * 若某层级已存在则复用，不存在则创建。
+ * 确保指定地点在 地点信息 中存在（仅扁平结构：顶层数组 + 上级）。
+ * 支持 `·` 分隔符：`A·B·C` 表示三层，每层 名称 为从根起的全路径（如 S市、S市·巴别塔、S市·巴别塔·露台）。
+ * 若某层已存在则复用，不存在则 push 到顶层 地点信息 数组，不写入 内部。
  * 返回最末端地点条目。
  */
 export function ensureLocationExists(
@@ -222,32 +208,25 @@ export function ensureLocationExists(
   }
   const entries = 信息.地点信息 as (LocationEntry & { 地点NPC?: string[] })[];
 
-  // 按 · 分割层级
-  const parts = locationDesc.split('·').map(s => s.trim()).filter(Boolean);
+  const parts = locationDesc.split('·').map((s) => s.trim()).filter(Boolean);
   if (parts.length === 0) return null;
 
-  let currentEntries = entries;
-  let parentName: string | undefined;
-  let lastLoc: LocationEntry | null = null;
+  let parentFullPath: string | undefined;
+  let lastLoc: (LocationEntry & { 地点NPC?: string[] }) | null = null;
 
-  for (const partName of parts) {
-    let found = findLocationInTree(currentEntries, partName);
+  for (let i = 0; i < parts.length; i++) {
+    const fullPath = parts.slice(0, i + 1).join('·');
+    let found = findLocationInTree(entries, fullPath);
     if (!found) {
-      // 创建新地点
       const newLoc: LocationEntry & { 地点NPC?: string[] } = {
-        名称: partName,
-        ...(parentName ? { 上级: parentName } : {}),
-        内部: [],
+        名称: fullPath,
+        ...(parentFullPath != null ? { 上级: parentFullPath } : {}),
         地点NPC: [],
       };
-      currentEntries.push(newLoc);
+      entries.push(newLoc);
       found = newLoc;
     }
-    if (!Array.isArray(found.内部)) {
-      found.内部 = [];
-    }
-    parentName = partName;
-    currentEntries = found.内部 as (LocationEntry & { 地点NPC?: string[] })[];
+    parentFullPath = fullPath;
     lastLoc = found;
   }
 
@@ -328,5 +307,3 @@ export function calibrateNpcLocationSync(saveData: Record<string, unknown>): voi
   });
 }
 
-/** 导出供其他模块使用 */
-export { findLocationInTree, forEachLocationInTree };

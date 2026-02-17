@@ -1,14 +1,14 @@
 /**
  * @fileoverview
- * 地图布局工具：将地点树转换为带坐标的节点，用于 minimap 展示。
- * 支持「细化」：当 focus 到某结构时改为外部大、内部小，避免拥挤；可递归细化（focus 到内部结构时继续细化）。
+ * 地图布局工具：将地点**扁平数组**按 上级 建树，转换为带坐标的节点（见 map-test-data-locations.md）。
+ * 支持「细化」：当 focus 到某结构时改为外部大、内部小，避免拥挤。
  */
 
 import type { LocationEntry } from '@/types/game';
 
 export interface MapLocationNode {
   entry: LocationEntry;
-  /** 唯一标识（名称） */
+  /** 唯一标识（名称）；扁平结构下 名称 为全路径，如 S市·巴别塔·云端天宫露台 */
   id: string;
   /** SVG 坐标 x */
   x: number;
@@ -52,7 +52,7 @@ function seededRandom(name: string, salt: number): number {
 }
 
 /**
- * 从扁平数组按 上级 构建树：顶层=无上级或上级不在列表中；子=上级匹配父名称
+ * 从扁平数组按 上级 构建父子关系：顶层 = 无上级或上级不在列表中；子 = 上级匹配父 名称。
  */
 function buildTreeFromFlat(flat: LocationEntry[]): Map<string, LocationEntry[]> {
   const byParent = new Map<string, LocationEntry[]>();
@@ -60,8 +60,7 @@ function buildTreeFromFlat(flat: LocationEntry[]): Map<string, LocationEntry[]> 
 
   for (const e of flat) {
     if (!e?.名称) continue;
-    const parentName = e.上级 && nameSet.has(e.上级) ? e.上级 : null;
-    const key = parentName ?? '__root__';
+    const key = e.上级 && nameSet.has(e.上级) ? e.上级 : '__root__';
     if (!byParent.has(key)) byParent.set(key, []);
     byParent.get(key)!.push(e);
   }
@@ -69,7 +68,7 @@ function buildTreeFromFlat(flat: LocationEntry[]): Map<string, LocationEntry[]> 
 }
 
 /**
- * 递归收集节点（支持 上级 树与 内部 嵌套）
+ * 递归收集节点：仅按 上级 建树，id = 名称（扁平下 名称 即全路径，唯一）
  */
 function collectFromTree(
   entries: LocationEntry[],
@@ -83,28 +82,8 @@ function collectFromTree(
     if (!e?.名称 || idSet.has(e.名称)) continue;
     idSet.add(e.名称);
 
-    const childrenFrom内部 = Array.isArray(e.内部) ? e.内部 : [];
-    const childrenFrom上级 = byParent.get(e.名称) ?? [];
-    const allChildren = [...childrenFrom内部];
-    for (const c of childrenFrom上级) {
-      if (!c?.名称) continue;
-
-      // 检查是否冗余：如果 c 是 "A·B·C" 形式，当前是 A，且 B 已经在子节点中（通常来自内部），
-      // 则 c 实际上是 B 的后代，不应直接挂在 A 下面。
-      let isRedundant = false;
-      if (c.名称.startsWith(e.名称 + '·')) {
-        const suffix = c.名称.slice(e.名称.length + 1);
-        const firstPart = suffix.split('·')[0];
-        if (allChildren.some((existing) => existing?.名称 === firstPart)) {
-          isRedundant = true;
-        }
-      }
-
-      if (!isRedundant && !allChildren.some((x) => x?.名称 === c.名称)) {
-        allChildren.push(c);
-      }
-    }
-    const childIds = allChildren.map((c) => c?.名称).filter(Boolean) as string[];
+    const children = byParent.get(e.名称) ?? [];
+    const childIds = children.map((c) => c?.名称).filter(Boolean) as string[];
 
     const fontSizeScale = depth === 0 ? 1 : Math.pow(CHILD_SCALE, depth);
     const radius = BASE_RADIUS * fontSizeScale;
@@ -121,8 +100,8 @@ function collectFromTree(
       fontSizeScale,
     });
 
-    if (allChildren.length > 0) {
-      collectFromTree(allChildren, e.名称, depth + 1, byParent, result, idSet);
+    if (children.length > 0) {
+      collectFromTree(children, e.名称, depth + 1, byParent, result, idSet);
     }
   }
 }
@@ -260,11 +239,10 @@ export function buildLocationMapNodes(
     ? (entries.filter((e) => e && typeof e === 'object') as LocationEntry[])
     : [];
   const byParent = buildTreeFromFlat(list);
-  const rootEntries = byParent.get('__root__') ?? [];
-  const roots = rootEntries.length > 0 ? rootEntries : list;
+  const roots = byParent.get('__root__') ?? list;
   const result: MapLocationNode[] = [];
   const idSet = new Set<string>();
-  collectFromTree(roots, null, 0, byParent, result, idSet);
+  collectFromTree(roots.length > 0 ? roots : list, null, 0, byParent, result, idSet);
 
   layoutTopLevel(result);
   const nodeMap = new Map(result.map((n) => [n.id, n]));

@@ -4,6 +4,42 @@
 
 ---
 
+## [0.2.84] - 2026-02-17
+
+### 地点结构：仅扁平数组 + 上级（不兼容旧存档）+ 生成须带全父级
+
+- **地点数据结构（不兼容变更）**
+  - 地点信息改为**仅「扁平数组 + 上级」**建树，移除 `内部` 嵌套；类型 `LocationEntry` 删除 `内部?`。
+  - `locationUtils`：`findLocationInTree`、`forEachLocationInTree` 改为仅操作扁平数组（无递归）；删除 `normalizeLocationEntriesToFlat`。`ensureLocationExists` 只向顶层 `地点信息` push，每层 `名称` 为全路径、`上级` 为父级全路径。
+  - `locationMapUtils`：地图建树仅用扁平列表 + `上级`，不再做归一化；节点 id 为 `名称`（全路径）。
+  - `saveMigration`：地点 NPC 迁移只遍历顶层数组；迁移时对每条地点执行 `delete e.内部`，旧存档加载后持久化数据不再含 `内部`。
+  - `worldHeartbeatPromptsMing`：地点列表直接遍历扁平数组生成 prompt 行，不再调用归一化。
+  - `LocationTreeNode.vue`：子节点由可选 prop `flatEntries` 按 `上级 === entry.名称` 推导，不再读取 `entry.内部`。
+
+- **Prompt：生成地点须带全部父级**
+  - **主流程 Step2**（`inlinePromptsMing`）：地点与探索增加「生成地点时必须生成其全部父级地点结构」，多级路径须按层级依次 push 每一级（先根级再末级），并注明缺漏父级会导致地图无法显示层级。
+  - **位置更新**（`businessRulesMing`）：在「位置更新」下增加说明——`描述` 为多级路径时必须同时向 `世界.信息.地点信息` 补全全部父级，并指向「地点信息同步」。
+  - **地点信息同步 / 数据定义**：明确多级路径须依次 push 每一级并给出示例（东荒大陆 → 东荒大陆·青云城 → 东荒大陆·青云城·客栈）。
+  - **地图 NPC 请求**（`locationNpcGenerationPromptsMing`）：输出格式增加「地点结构修正」——若当前地点为多级路径，须在 tavern_commands 中补全全部父级（push 世界.信息.地点信息）；原则增加「地点层级补全」，要求先 push 该地点及每一级父地点再输出 set NPC。
+
+- **文档**
+  - `map-test-data-locations.md`：规范说明改为「仅使用扁平数组 + 上级，无嵌套字段」（移除旧存档兼容表述）。
+
+- **涉及文件**
+  - `src/types/game.d.ts`（LocationEntry 移除 内部）
+  - `src/utils/locationUtils.ts`（flat-only find/forEach，ensureLocationExists 只 push 顶层）
+  - `src/utils/locationMapUtils.ts`（不再 normalize，仅 上级 建树）
+  - `src/utils/saveMigration.ts`（地点迁移仅顶层，delete 内部）
+  - `src/utils/prompts/tasks/worldHeartbeatPromptsMing.ts`（地点行直接遍历扁平）
+  - `src/utils/prompts/definitions/ming/inlinePromptsMing.ts`（Step2 地点父级要求）
+  - `src/utils/prompts/definitions/ming/businessRulesMing.ts`（位置更新衔接、地点信息同步父级示例）
+  - `src/utils/prompts/definitions/ming/dataDefinitionsMing.ts`（多级地点须生成全部父级）
+  - `src/utils/prompts/tasks/locationNpcGenerationPromptsMing.ts`（地点结构修正与层级补全）
+  - `src/components/dashboard/components/LocationTreeNode.vue`（flatEntries、children 由 上级 推导）
+  - `docs/map-test-data-locations.md`
+
+---
+
 ## [0.2.83] - 2026-02-17
 
 ### Engram 调试与展示：Rerank 鉴权、提示词组装主回合可见、游戏变量 Engram 可视化

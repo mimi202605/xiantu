@@ -47,23 +47,16 @@ function formatGameTime(t?: GameTime | null): string {
   return `${t.年}年${t.月}月${t.日}日 ${String(t.小时 ?? 0).padStart(2, '0')}:${m}`;
 }
 
-/** 递归收集地点名称与描述，用于 prompt 中的地图信息 */
-function flattenLocationTree(
-  entries: (LocationEntry | { 名称?: string; 描述?: string; 内部?: unknown[] })[] | undefined,
-  indent = ''
+/** 从扁平地点信息生成 prompt 用地点列表（每行一名称+描述） */
+function formatLocationLinesForPrompt(
+  entries: (LocationEntry | { 名称?: string; 描述?: string })[] | undefined
 ): string[] {
-  if (!Array.isArray(entries) || entries.length === 0) return [];
-  const lines: string[] = [];
-  for (const e of entries) {
+  if (!Array.isArray(entries)) return [];
+  return entries.map((e) => {
     const name = (e as LocationEntry).名称 ?? (e as any).name ?? '?';
     const desc = (e as LocationEntry).描述 ?? (e as any).描述 ?? '';
-    lines.push(`${indent}- ${name}${desc ? `：${desc}` : ''}`);
-    const inner = (e as LocationEntry).内部 as (LocationEntry & { 内部?: unknown[] })[] | undefined;
-    if (Array.isArray(inner) && inner.length > 0) {
-      lines.push(...flattenLocationTree(inner, indent + '  '));
-    }
-  }
-  return lines;
+    return `- ${name}${desc ? `：${desc}` : ''}`;
+  });
 }
 
 /** 单个 NPC 的完整信息块（身份、关系、位置、状态、记忆等），便于 LLM 以该 NPC 视角推演 */
@@ -122,7 +115,7 @@ export function buildWorldHeartbeatPrompt(input: WorldHeartbeatPromptInput): str
   const timeStr = formatGameTime(gameTime);
 
   const locationEntries = (worldInfo as any)?.地点信息;
-  const locationLines = flattenLocationTree(locationEntries);
+  const locationLines = formatLocationLinesForPrompt(locationEntries);
 
   const npcBlocks = candidateNpcNames
     .map((name) => relations[name])

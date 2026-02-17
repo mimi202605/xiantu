@@ -1,5 +1,14 @@
 # 更新日志
 
+## [MING] 通用版 0.2.84 (2026-02-17)
+
+- **地点结构（不兼容）**：地点信息改为仅「扁平数组 + 上级」建树，移除 `内部`；查找/遍历/补全/地图均按扁平处理；迁移时删除旧条目的 `内部`。
+- **Prompt**：生成地点须生成全部父级（多级路径按层级依次 push）；位置更新与地点信息同步衔接；地图 NPC 请求增加地点结构修正与层级补全。
+- **文档**：`map-test-data-locations.md` 规范更新。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.83 (2026-02-17)
 
 - **Rerank 鉴权**：Rerank 请求增加 `Authorization: Bearer <apiKey>`（来自 API 管理当前 Rerank API），修复 401。

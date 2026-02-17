@@ -40,6 +40,7 @@ const RESPONSE_FORMAT = `
 - 若无路人则：\`"tavern_commands": []\`
 - 每个命令：action 固定为 "set"，key 为 "社交.关系.{NPC中文名}"，value 为**完整**的 NPC 档案对象。
 - NPC 名字不得与 existingNpcNames 重复，且必须与 key 中的名字一致（value.名字 === key 最后一段）。
+- **地点结构修正**：若当前地点名称为多级路径（如 \`S市·上城区·素家庄园\`），必须在 tavern_commands 中**补全全部父级地点**。即：用 \`push 世界.信息.地点信息\` 依次添加每一级（名称 为从根到该级的全路径，上级 为上一级全路径）。例如对「S市·上城区·素家庄园」须先 push \`{名称:"S市", 描述?: "..."}\`，再 push \`{名称:"S市·上城区", 上级:"S市", 描述?: "..."}\`，再 push \`{名称:"S市·上城区·素家庄园", 上级:"S市·上城区", 描述?: "..."}\`；若某级已存在可省略该条，但不得漏掉任一父级，否则地图无法正确显示层级。
 `.trim();
 
 const NPC_STRUCTURE_HINT = `
@@ -106,6 +107,7 @@ export function buildLocationNpcGenerationPrompt(input: LocationNpcGenerationInp
 - 仅生成**逻辑上会出现在该地点**的人（店铺有店员/顾客、街道有行人、荒野可无人）。
 - 姓名不得与已有 NPC 重复。已有名字：${existingNpcNames.length ? existingNpcNames.join('、') : '无'}。
 - 每个 NPC 的 \`当前位置.描述\` 必须**完全等于**：\`${locationDesc}\`。
+- **地点层级补全**：当前地点 \`${locationDesc}\` 若含多级（用 · 分隔），必须在 tavern_commands 中**先 push 该地点及其每一级父地点**到 \`世界.信息.地点信息\`（名称=全路径，上级=父级全路径），再输出 set NPC。例如「S市·上城区·素家庄园」须确保存在 S市、S市·上城区、S市·上城区·素家庄园 三条地点，地图才能正确显示树形结构。
 
 ## 当前信息
 - **地点**：${locationDesc}

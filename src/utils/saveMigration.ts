@@ -269,23 +269,22 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       if (typeof hb.遗忘回合数 !== 'number' || hb.遗忘回合数 < 0) (normalized.世界.状态 as any).心跳.遗忘回合数 = 10;
       if (!Array.isArray(hb.历史)) (normalized.世界.状态 as any).心跳.历史 = [];
     }
-    // 迁移旧 世界.信息.地点NPC（Record）到各地点内的 地点NPC
+    // 迁移旧 世界.信息.地点NPC（Record）到各地点内的 地点NPC；并移除地点条目的 内部 字段（结构已改为仅扁平+上级）
     const old地点NPC = normalized.世界?.信息?.地点NPC;
-    if (isPlainObject(old地点NPC) && Array.isArray(normalized.世界?.信息?.地点信息)) {
-      const migrateNpcIntoLocation = (entries: any[]) => {
-        for (let i = 0; i < entries.length; i++) {
-          const e = entries[i];
-          if (!e || typeof e !== 'object' || typeof e.名称 !== 'string') continue;
-          const name = e.名称;
-          const npcList = old地点NPC[name];
+    if (Array.isArray(normalized.世界?.信息?.地点信息)) {
+      const entries = normalized.世界.信息.地点信息 as any[];
+      for (let i = 0; i < entries.length; i++) {
+        const e = entries[i];
+        if (!e || typeof e !== 'object' || typeof e.名称 !== 'string') continue;
+        if (isPlainObject(old地点NPC)) {
+          const npcList = old地点NPC[e.名称];
           if (Array.isArray(npcList) && npcList.length > 0) {
             e.地点NPC = npcList;
           }
-          if (Array.isArray(e.内部)) migrateNpcIntoLocation(e.内部);
         }
-      };
-      migrateNpcIntoLocation(normalized.世界.信息.地点信息);
-      delete normalized.世界.信息.地点NPC;
+        delete e.内部;
+      }
+      if (isPlainObject(old地点NPC)) delete normalized.世界.信息.地点NPC;
     }
     const rels = normalized.社交?.关系;
     if (isPlainObject(rels)) {

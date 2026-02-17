@@ -593,16 +593,14 @@ export interface WorldFaction {
 }
 
 /**
- * 地点条目（递归结构，用于地图系统）
- * 顶层地点在 地点信息 数组中并列存储（parallel）；每个地点的子地点在 内部 中递归嵌套
- * 地点NPC 存于每个地点内，可追溯各地点的 NPC；玩家离开后重点 NPC 会离开，普通 NPC 留守
+ * 地点条目（扁平数组 + 上级 建树，见 map-test-data-locations.md）
+ * 地点信息 为扁平数组，每项 名称 唯一（全路径如 S市·巴别塔·露台），上级 为父节点 名称。
  */
 export interface LocationEntry {
   名称: string;
   描述?: string;
-  上级?: string;         // 父地点名称，根节点无；子查父
-  内部?: LocationEntry[]; // 子地点，递归；父查子
-  地点NPC?: string[];    // 本地的 NPC 名列表；与 社交.关系 对耦
+  上级?: string;      // 父地点名称，根节点无；子查父
+  地点NPC?: string[]; // 本地的 NPC 名列表；与 社交.关系 对耦
 }
 
 /** 世界地点信息（扩展 LocationEntry，兼容旧数据） */
@@ -629,7 +627,7 @@ export interface WorldGenerationInfo {
 /** 完整的世界信息数据结构（不含大陆/势力，开局不生成） */
 export interface WorldInfo {
   世界名称: string;
-  地点信息: (WorldLocation | LocationEntry)[]; // 顶层并列；每项可有 内部 递归子地点；地点NPC 存于各地点内
+  地点信息: (WorldLocation | LocationEntry)[]; // 扁平数组，按 上级 建树；地点NPC 存于各地点内
   地图配置?: WorldMapConfig;
   // 从 WorldGenerationInfo 扁平化
   生成时间: string;
