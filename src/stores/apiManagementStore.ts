@@ -19,7 +19,14 @@ export interface APIConfig {
   temperature: number;
   maxTokens: number;
   enabled: boolean;
+  /** 是否使用自定义路径（如 /rerank）。默认关闭。仅对部分功能生效（如 Rerank）。 */
+  useCustomRouting?: boolean;
+  /** 自定义路径，例如 /rerank 或 v1/rerank。useCustomRouting 为 true 时与 url 拼接为最终请求地址。 */
+  customRoutingPath?: string;
 }
+
+/** Rerank 默认路径：当未启用自定义路径时，在 API 的 url 后追加此路径。 */
+export const DEFAULT_RERANK_ROUTING_PATH = '/rerank';
 
 export type APIUsageType =
   | 'main'  // 主游戏流程
@@ -31,7 +38,8 @@ export type APIUsageType =
   | 'event_generation'  // 世界事件生成（随机事件/世界变革等）
   | 'world_heartbeat'  // 世界心跳（周期性世界模拟）
   | 'location_npc_generation'  // 新地点NPC生成
-  | 'embedding'; // 向量化检索/写入
+  | 'embedding'  // Engram 向量化检索/写入
+  | 'rerank';  // Engram 重排服务
 
 /**
  * 辅助功能的生成模式（仅酒馆端可选）
@@ -78,6 +86,7 @@ export const useAPIManagementStore = defineStore('apiManagement', () => {
     { type: 'world_heartbeat', apiId: 'default' },
     { type: 'location_npc_generation', apiId: 'default' },
     { type: 'embedding', apiId: 'default' },
+    { type: 'rerank', apiId: 'default' },
   ];
 
   const DEFAULT_FUNCTION_MODES: FunctionModeConfig[] = [
@@ -88,6 +97,7 @@ export const useAPIManagementStore = defineStore('apiManagement', () => {
     { type: 'world_heartbeat', mode: 'raw' },
     { type: 'location_npc_generation', mode: 'raw' },
     { type: 'embedding', mode: 'raw' },
+    { type: 'rerank', mode: 'raw' },
   ];
 
   // 默认功能启用状态（可选功能默认关闭，核心功能默认开启）
@@ -218,7 +228,9 @@ export const useAPIManagementStore = defineStore('apiManagement', () => {
           model: 'gpt-4o',
           temperature: 0.7,
           maxTokens: 16000,
-          enabled: true
+          enabled: true,
+          useCustomRouting: false,
+          customRoutingPath: '',
         });
       }
     } catch (error) {
@@ -303,6 +315,21 @@ export const useAPIManagementStore = defineStore('apiManagement', () => {
     }
 
     return api;
+  };
+
+  /**
+   * 获取 Rerank 请求的完整端点 URL。
+   * 若 API 启用 useCustomRouting 且填写了 customRoutingPath，则 url + customRoutingPath；
+   * 否则使用默认路径 DEFAULT_RERANK_ROUTING_PATH（/rerank）。
+   */
+  const getRerankEndpointUrl = (): string | null => {
+    const api = getAPIForType('rerank');
+    if (!api || !api.url || typeof api.url !== 'string') return null;
+    const base = api.url.replace(/\/+$/, '');
+    const useCustom = api.useCustomRouting === true && typeof api.customRoutingPath === 'string' && api.customRoutingPath.trim().length > 0;
+    const pathRaw = useCustom ? api.customRoutingPath!.trim() : DEFAULT_RERANK_ROUTING_PATH;
+    const path = pathRaw.startsWith('/') ? pathRaw : `/${pathRaw}`;
+    return `${base}${path}`;
   };
 
   // 切换API启用状态
@@ -409,6 +436,7 @@ export const useAPIManagementStore = defineStore('apiManagement', () => {
     deleteAPI,
     assignAPI,
     getAPIForType,
+    getRerankEndpointUrl,
     toggleAPI,
     setFunctionMode,
     getFunctionMode,

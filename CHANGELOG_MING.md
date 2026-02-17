@@ -4,6 +4,46 @@
 
 ---
 
+## [0.2.82] - 2026-02-16
+
+### Engram 与 API 管理整合 + Rerank 路径 + 回退时向量库修剪
+
+- **Engram API 统一纳入 API 管理**
+  - `apiManagementStore`：新增 `rerank` 为 `APIUsageType`，默认分配与 function modes 含 embedding/rerank。
+  - **API 管理 → 辅助功能**：新增「Embedding向量化」「Rerank重排」分配项，用户可为两者单独选择或新增 API（URL、Model、API Key 等在 API 列表中编辑）。
+  - **系统设置 → 记忆增强（Engram）**：当前 Embedding API、Rerank API 及其 **模型** 改为**只读展示**（来源于 API 管理），不可在此编辑；总开关「启用 Engram 增强」仅在此处，关闭后覆盖「启用向量检索」「启用 Rerank」。
+  - Embedding/Rerank 实际使用的 **模型** 优先取自 API 管理中当前分配 API 的 `model` 字段；系统设置中「Embedding Model」「Rerank Model」仅作只读展示。
+
+- **Rerank 端点路径**
+  - 默认：Rerank 请求使用 `{API base URL}/rerank`（`DEFAULT_RERANK_ROUTING_PATH`），修复此前缺少路径的问题。
+  - **可选自定义路径**：`APIConfig` 新增 `useCustomRouting?: boolean`、`customRoutingPath?: string`；API 管理编辑界面新增「使用自定义路径」开关与路径输入（如 `v1/rerank`）。`getRerankEndpointUrl()` 据此生成完整端点；系统设置只读展示实际使用的 Rerank 端点 URL。
+
+- **主回合回退与向量库洁净**
+  - 回退到「上次对话」时，除整份存档（含 `系统.扩展.engramMemory`）替换为备份外，**同步修剪 IndexedDB 向量库**：仅保留回退后存档中仍存在的事件/实体 ID 对应向量，移除被回退掉的那次对话所产生的 embedding。
+  - `vectorRepository` 新增 `trimVectorStoreToMemory(store, memory)`；`characterStore.rollbackToLastConversation` 在保存回退数据后调用，保证向量库无死数据并避免回退后重生成时重名实体向量冲突。
+  - 失败时仅打 `debug.warn`，不阻断回退流程。
+
+- **文档**
+  - 新增 `docs/ENGRAM_API_MANAGEMENT_USER_GUIDE.md`：实现范围总览、可配置项详解（API 管理 + 系统设置 Engram）、Engram 记忆系统完整实现（记忆结构/写入/向量/检索/Trim）、主回合回退与向量修剪说明、用户流程与开发者参考。
+
+- **涉及文件**
+  - `src/stores/apiManagementStore.ts`（rerank 类型、useCustomRouting/customRoutingPath、getRerankEndpointUrl、DEFAULT_RERANK_ROUTING_PATH）
+  - `src/components/dashboard/APIManagementPanel.vue`（辅助功能 embedding/rerank、自定义路径 UI）
+  - `src/components/engram/EngramSettingsSection.vue`（只读 API/模型展示、getRerankEndpointUrl 展示）
+  - `src/services/engram/embeddingService.ts`（模型优先 API 管理）
+  - `src/services/engram/rerankService.ts`（RerankOptions.model、endpointUrl）
+  - `src/services/engram/unifiedRetriever.ts`（rerankEndpointUrl、rerankModel 入参）
+  - `src/services/engram/vectorRepository.ts`（trimVectorStoreToMemory）
+  - `src/utils/AIBidirectionalSystem.ts`（getRerankEndpointUrl、rerankModel 传入 unifiedRetrieve）
+  - `src/stores/characterStore.ts`（回退后修剪向量库）
+  - `docs/ENGRAM_API_MANAGEMENT_USER_GUIDE.md`（新增）
+
+- **验证**
+  - `npm run type-check` 通过。
+  - IDE lints 无新增错误。
+
+---
+
 ## [0.2.81] - 2026-02-16
 
 ### Engram 迁移：Phase 7（设置面板补齐 Rerank/Trim 控制）

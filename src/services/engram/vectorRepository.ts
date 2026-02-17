@@ -82,3 +82,43 @@ export function mergeEntityVectors(
     dim,
   };
 }
+
+/**
+ * 仅保留与给定记忆中 event/entity ID 对应的向量，移除其余（如回退后不再存在的节点），保证向量库与存档一致。
+ * 用于主回合回退时同步清理 IndexedDB 中的 embedding，避免死数据与重名实体向量冲突。
+ */
+export function trimVectorStoreToMemory(
+  store: EngramVectorStore,
+  memory: { events?: Array<{ id?: string }>; entities?: Array<{ id?: string }> },
+): EngramVectorStore {
+  const eventIds = new Set(
+    (memory.events || []).map((e) => e?.id).filter((id): id is string => typeof id === 'string' && id.length > 0),
+  );
+  const entityIds = new Set(
+    (memory.entities || []).map((e) => e?.id).filter((id): id is string => typeof id === 'string' && id.length > 0),
+  );
+
+  const eventVectors: Record<string, number[]> = {};
+  const entityVectors: Record<string, number[]> = {};
+  for (const id of eventIds) {
+    if (store.eventVectors?.[id]) eventVectors[id] = store.eventVectors[id];
+  }
+  for (const id of entityIds) {
+    if (store.entityVectors?.[id]) entityVectors[id] = store.entityVectors[id];
+  }
+
+  let dim = typeof store?.dim === 'number' ? store.dim : 0;
+  for (const v of Object.values(eventVectors)) {
+    if (Array.isArray(v)) dim = Math.max(dim, v.length);
+  }
+  for (const v of Object.values(entityVectors)) {
+    if (Array.isArray(v)) dim = Math.max(dim, v.length);
+  }
+
+  return {
+    eventVectors,
+    entityVectors,
+    model: store?.model ?? '',
+    dim,
+  };
+}

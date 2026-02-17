@@ -1,5 +1,5 @@
 <template>
-  <div class="settings-section">
+  <div class="engram-settings-section settings-section">
     <div class="section-header">
       <h4 class="section-title">🧠 记忆增强（Engram）</h4>
     </div>
@@ -31,10 +31,14 @@
         </div>
       </div>
 
+      <div class="subsection-divider" aria-hidden="true"></div>
+      <p class="subsection-label">向量检索</p>
+      <p class="engram-api-hint">在「API 管理」→ 辅助功能 中为 Embedding / Rerank 分配 API，此处仅显示当前配置。</p>
+
       <div class="setting-item">
         <div class="setting-info">
           <label class="setting-name">启用向量检索</label>
-          <span class="setting-desc">开启后使用 embedding 语义召回，关闭时仅走图谱/规则维度。</span>
+          <span class="setting-desc">开启后使用 embedding 语义召回，关闭时仅走图谱/规则维度。总开关关闭时本项不生效。</span>
         </div>
         <div class="setting-control">
           <label class="setting-switch">
@@ -46,29 +50,21 @@
 
       <div class="setting-item">
         <div class="setting-info">
-          <label class="setting-name">Embedding Provider</label>
-          <span class="setting-desc">向量服务提供商。</span>
+          <label class="setting-name">当前 Embedding API</label>
+          <span class="setting-desc">只读，来自 API 管理中的「Embedding向量化」分配。</span>
         </div>
         <div class="setting-control">
-          <select class="setting-select" :value="config.embedding.provider" @change="onProviderChange">
-            <option value="openai">openai</option>
-            <option value="ollama">ollama</option>
-            <option value="vllm">vllm</option>
-            <option value="cohere">cohere</option>
-            <option value="jina">jina</option>
-            <option value="voyage">voyage</option>
-            <option value="custom">custom</option>
-          </select>
+          <span class="api-readonly">{{ embeddingApiDisplay }}</span>
         </div>
       </div>
 
       <div class="setting-item">
         <div class="setting-info">
           <label class="setting-name">Embedding Model</label>
-          <span class="setting-desc">向量模型名称。</span>
+          <span class="setting-desc">只读，来自 API 管理中当前 Embedding API 的模型。</span>
         </div>
         <div class="setting-control">
-          <input class="config-input" type="text" :value="config.embedding.model" @input="onModelInput" />
+          <span class="api-readonly">{{ embeddingModelDisplay }}</span>
         </div>
       </div>
 
@@ -85,17 +81,20 @@
       <div class="setting-item">
         <div class="setting-info">
           <label class="setting-name">Min Score</label>
-          <span class="setting-desc">向量最低相似度阈值（0-1）。</span>
+          <span class="setting-desc">向量最低相似度阈值（0–1）。</span>
         </div>
         <div class="setting-control">
           <input class="config-input" type="number" min="0" max="1" step="0.05" :value="config.embedding.minScore" @input="onMinScoreInput" />
         </div>
       </div>
 
+      <div class="subsection-divider" aria-hidden="true"></div>
+      <p class="subsection-label">Rerank</p>
+
       <div class="setting-item">
         <div class="setting-info">
           <label class="setting-name">启用 Rerank</label>
-          <span class="setting-desc">开启后对召回候选进行二次重排（可选）。</span>
+          <span class="setting-desc">开启后对召回候选进行二次重排（可选）。总开关关闭时本项不生效。</span>
         </div>
         <div class="setting-control">
           <label class="setting-switch">
@@ -107,21 +106,21 @@
 
       <div class="setting-item">
         <div class="setting-info">
-          <label class="setting-name">Rerank Endpoint</label>
-          <span class="setting-desc">Rerank 服务地址（完整 URL）。</span>
+          <label class="setting-name">当前 Rerank API</label>
+          <span class="setting-desc">只读，来自 API 管理中的「Rerank重排」分配，其 URL 作为重排端点。</span>
         </div>
         <div class="setting-control">
-          <input class="config-input wide" type="text" :value="config.rerank.providerUrl" @input="onRerankProviderUrlInput" />
+          <span class="api-readonly">{{ rerankApiDisplay }}</span>
         </div>
       </div>
 
       <div class="setting-item">
         <div class="setting-info">
           <label class="setting-name">Rerank Model</label>
-          <span class="setting-desc">重排模型名称（可留空使用服务默认）。</span>
+          <span class="setting-desc">只读，来自 API 管理中当前 Rerank API 的模型（可留空使用服务默认）。</span>
         </div>
         <div class="setting-control">
-          <input class="config-input" type="text" :value="config.rerank.model" @input="onRerankModelInput" />
+          <span class="api-readonly">{{ rerankModelDisplay }}</span>
         </div>
       </div>
 
@@ -134,6 +133,9 @@
           <input class="config-input" type="number" min="1" max="100" :value="config.rerank.topN" @input="onRerankTopNInput" />
         </div>
       </div>
+
+      <div class="subsection-divider" aria-hidden="true"></div>
+      <p class="subsection-label">Trim（记忆裁剪）</p>
 
       <div class="setting-item">
         <div class="setting-info">
@@ -191,6 +193,8 @@
         </div>
       </div>
 
+      <div class="subsection-divider" aria-hidden="true"></div>
+
       <div class="setting-item">
         <div class="setting-info">
           <label class="setting-name">调试面板</label>
@@ -211,6 +215,7 @@
 import { computed } from 'vue';
 import type { MingEngramConfig } from '@/types/game';
 import { DEFAULT_ENGRAM_CONFIG, normalizeEngramConfig } from '@/services/engram/config';
+import { useAPIManagementStore } from '@/stores/apiManagementStore';
 
 const props = defineProps<{
   modelValue?: MingEngramConfig;
@@ -221,7 +226,34 @@ const emit = defineEmits<{
   (e: 'change'): void;
 }>();
 
+const apiStore = useAPIManagementStore();
 const config = computed(() => normalizeEngramConfig(props.modelValue ?? DEFAULT_ENGRAM_CONFIG));
+
+const embeddingApiDisplay = computed(() => {
+  const api = apiStore.getAPIForType('embedding');
+  if (!api) return '未分配';
+  return api.name ? `${api.name}${api.url ? ` · ${api.url}` : ''}` : (api.url || '未分配');
+});
+
+const rerankApiDisplay = computed(() => {
+  const api = apiStore.getAPIForType('rerank');
+  if (!api) return '未分配';
+  const endpoint = apiStore.getRerankEndpointUrl();
+  const urlDisplay = endpoint || api.url || '';
+  return api.name ? `${api.name}${urlDisplay ? ` · ${urlDisplay}` : ''}` : (urlDisplay || '未分配');
+});
+
+const embeddingModelDisplay = computed(() => {
+  const api = apiStore.getAPIForType('embedding');
+  const model = api?.model?.trim();
+  return model || '未设置';
+});
+
+const rerankModelDisplay = computed(() => {
+  const api = apiStore.getAPIForType('rerank');
+  const model = api?.model?.trim();
+  return model || '未设置';
+});
 
 const withUpdate = (updater: (next: MingEngramConfig) => void) => {
   const next = normalizeEngramConfig(config.value);
@@ -251,30 +283,6 @@ const onToggleEmbedding = (event: Event) => {
   });
 };
 
-const onProviderChange = (event: Event) => {
-  const provider = (event.target as HTMLSelectElement).value;
-  withUpdate((next) => {
-    if (
-      provider === 'openai' ||
-      provider === 'ollama' ||
-      provider === 'custom' ||
-      provider === 'vllm' ||
-      provider === 'cohere' ||
-      provider === 'jina' ||
-      provider === 'voyage'
-    ) {
-      next.embedding.provider = provider;
-    }
-  });
-};
-
-const onModelInput = (event: Event) => {
-  const model = (event.target as HTMLInputElement).value;
-  withUpdate((next) => {
-    next.embedding.model = model;
-  });
-};
-
 const onTopKInput = (event: Event) => {
   const value = Number((event.target as HTMLInputElement).value);
   withUpdate((next) => {
@@ -293,20 +301,6 @@ const onToggleRerank = (event: Event) => {
   const checked = (event.target as HTMLInputElement).checked;
   withUpdate((next) => {
     next.rerank.enabled = checked;
-  });
-};
-
-const onRerankProviderUrlInput = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value;
-  withUpdate((next) => {
-    next.rerank.providerUrl = value;
-  });
-};
-
-const onRerankModelInput = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value;
-  withUpdate((next) => {
-    next.rerank.model = value;
   });
 };
 
@@ -361,29 +355,253 @@ const onToggleDebug = (event: Event) => {
 </script>
 
 <style scoped>
-.config-input {
-  padding: 0.45rem 0.65rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
+.engram-settings-section.settings-section {
+  margin-bottom: 1.5rem;
   background: white;
-  color: #374151;
-  font-size: 0.875rem;
-  width: 140px;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
 }
 
-.config-input.wide {
+.engram-settings-section .section-header {
+  padding: 1rem 1.25rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.engram-settings-section .section-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.engram-settings-section .settings-list {
+  padding: 0.5rem;
+}
+
+.engram-settings-section .setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+.engram-settings-section .setting-item:hover {
+  background: #f8fafc;
+}
+
+.engram-settings-section .setting-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.engram-settings-section .setting-name {
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.engram-settings-section .setting-desc {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.engram-settings-section .setting-control {
+  display: flex;
+  align-items: center;
+}
+
+.subsection-divider {
+  height: 1px;
+  margin: 0.5rem 1.25rem;
+  background: #e2e8f0;
+}
+
+.subsection-label {
+  margin: 0.75rem 1.25rem 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.engram-api-hint {
+  margin: 0.25rem 1.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.engram-settings-section .api-readonly {
+  font-size: 0.875rem;
+  color: #64748b;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.engram-settings-section .setting-select {
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23374151' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  appearance: none;
+  min-width: 120px;
+}
+
+.engram-settings-section .setting-select:hover {
+  border-color: #94a3b8;
+}
+
+.engram-settings-section .setting-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.engram-settings-section .setting-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.engram-settings-section .setting-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.engram-settings-section .switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.2s;
+  border-radius: 24px;
+}
+
+.engram-settings-section .switch-slider::before {
+  position: absolute;
+  content: '';
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.2s;
+  border-radius: 50%;
+}
+
+.engram-settings-section input:checked + .switch-slider {
+  background-color: #3b82f6;
+}
+
+.engram-settings-section input:checked + .switch-slider::before {
+  transform: translateX(20px);
+}
+
+.engram-settings-section .config-input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: white;
+  color: #374151;
+  font-size: 0.875rem;
+  min-width: 80px;
+  max-width: 140px;
+  transition: border-color 0.2s ease;
+}
+
+.engram-settings-section .config-input:hover {
+  border-color: #94a3b8;
+}
+
+.engram-settings-section .config-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.engram-settings-section .config-input-wide {
+  max-width: 100%;
   width: 280px;
 }
 
-.config-input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.12);
+/* 深色主题（与主设置面板一致） */
+[data-theme='dark'] .engram-settings-section.settings-section {
+  background: #1e293b;
+  border-color: #475569;
 }
 
-[data-theme='dark'] .config-input {
-  background: #374151;
+[data-theme='dark'] .engram-settings-section .section-header {
+  background: #334155;
+  border-bottom-color: #475569;
+}
+
+[data-theme='dark'] .engram-settings-section .section-title,
+[data-theme='dark'] .engram-settings-section .setting-name {
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .engram-settings-section .setting-desc {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .subsection-label {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .engram-api-hint {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .engram-settings-section .api-readonly {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .subsection-divider {
+  background: #475569;
+}
+
+[data-theme='dark'] .engram-settings-section .setting-item:hover {
+  background: #334155;
+}
+
+[data-theme='dark'] .engram-settings-section .setting-select,
+[data-theme='dark'] .engram-settings-section .config-input {
+  background-color: #374151;
   border-color: #4b5563;
   color: #e5e7eb;
+}
+
+[data-theme='dark'] .engram-settings-section .setting-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e5e7eb' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+}
+
+[data-theme='dark'] .engram-settings-section .setting-select:hover,
+[data-theme='dark'] .engram-settings-section .config-input:hover {
+  border-color: #6b7280;
+}
+
+[data-theme='dark'] .engram-settings-section .switch-slider {
+  background-color: #4b5563;
 }
 </style>

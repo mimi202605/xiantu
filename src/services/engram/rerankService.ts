@@ -20,13 +20,25 @@ const normalizeScore = (raw: unknown): number | null => {
   return raw;
 };
 
+export interface RerankOptions {
+  /** 优先使用：来自 API 管理分配的端点，未传时回退到 config.rerank.providerUrl */
+  endpointUrl?: string;
+  /** 优先使用：来自 API 管理分配的 model，未传时回退到 config.rerank.model */
+  model?: string;
+}
+
 export async function rerankCandidates(
   query: string,
   candidates: RerankCandidateInput[],
   config: MingEngramConfig,
+  options?: RerankOptions,
 ): Promise<RerankResult> {
-  const providerUrl = typeof config.rerank.providerUrl === 'string' ? config.rerank.providerUrl.trim() : '';
-  const model = typeof config.rerank.model === 'string' ? config.rerank.model : '';
+  const fromApi = typeof options?.endpointUrl === 'string' ? options.endpointUrl.trim() : '';
+  const fromConfig = typeof config.rerank.providerUrl === 'string' ? config.rerank.providerUrl.trim() : '';
+  const providerUrl = fromApi || fromConfig;
+  const modelFromOptions = typeof options?.model === 'string' ? options.model.trim() : '';
+  const modelFromConfig = typeof config.rerank.model === 'string' ? config.rerank.model : '';
+  const model = modelFromOptions || modelFromConfig;
   const topN = typeof config.rerank.topN === 'number' && Number.isFinite(config.rerank.topN) ? config.rerank.topN : 10;
 
   if (!config.rerank.enabled || !providerUrl || candidates.length === 0) {

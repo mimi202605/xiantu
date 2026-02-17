@@ -2014,6 +2014,19 @@ export const useCharacterStore = defineStore('characterV3', () => {
     await storage.saveSaveData(active.角色ID, active.存档槽位, rolledBackData);
     await commitMetadataToStorage();
 
+    // [Engram] 回退后同步修剪向量库：仅保留回退后存档中仍存在的事件/实体向量，移除被回退掉的 embedding，保证库洁净并避免重名实体冲突
+    try {
+      const { loadEngramVectorStore, saveEngramVectorStore, trimVectorStoreToMemory } = await import('@/services/engram/vectorRepository');
+      const { ensureEngramMemory } = await import('@/services/engram/memoryRepository');
+      const engramMemory = ensureEngramMemory((rolledBackData as any)?.系统?.扩展?.engramMemory);
+      const vectorContext = { characterId: active.角色ID, slotId: active.存档槽位 };
+      const currentStore = await loadEngramVectorStore(vectorContext);
+      const trimmedStore = trimVectorStoreToMemory(currentStore, engramMemory);
+      await saveEngramVectorStore(vectorContext, trimmedStore);
+    } catch (e) {
+      debug.warn('角色商店', '回退时修剪 Engram 向量库失败（已忽略）', e);
+    }
+
     // 🔥 修复：同步到gameStateStore，确保UI立即更新
     gameStateStore.loadFromSaveData(rolledBackData);
 

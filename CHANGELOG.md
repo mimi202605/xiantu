@@ -1,5 +1,15 @@
 # 更新日志
 
+## [MING] 通用版 0.2.82 (2026-02-16)
+
+- **Engram 与 API 管理整合**：Embedding/Rerank 的 API 与模型统一在 API 管理 → 辅助功能中分配与编辑；系统设置中仅只读展示当前 API 与模型，总开关「启用 Engram 增强」仅此处有效。
+- **Rerank 路径**：默认请求 `{base}/rerank`；API 配置支持可选「使用自定义路径」（如 `v1/rerank`）。
+- **主回合回退**：回退时同步修剪向量库，仅保留回退后仍存在的事件/实体向量，避免死数据与重名实体向量冲突。
+- **文档**：新增 `docs/ENGRAM_API_MANAGEMENT_USER_GUIDE.md`（实现范围、可配置项、回退与向量修剪说明、用户流程与开发参考）。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.81 (2026-02-16)
 
 - **Engram 迁移 Phase 7（设置面板补齐）**：

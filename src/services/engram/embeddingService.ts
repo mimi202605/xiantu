@@ -101,7 +101,13 @@ export async function embedTexts(
       };
     }
 
-    const modelName = config.embedding.model || apiConfig.model;
+    // 优先使用 API 管理中该 API 配置的 model，其次 Engram 配置中的 model
+    const modelName =
+      (typeof apiConfig.model === 'string' && apiConfig.model.trim())
+        ? apiConfig.model.trim()
+        : (typeof config.embedding.model === 'string' && config.embedding.model.trim())
+          ? config.embedding.model.trim()
+          : '';
     const provider = config.embedding.provider;
     if (provider !== 'ollama' && !apiConfig.apiKey) {
       return {
@@ -179,7 +185,7 @@ export async function embedTexts(
     if (!valid) {
       return {
         vectors: fallbackVectors,
-        modelUsed: config.embedding.model,
+        modelUsed: modelName || config.embedding.model,
         providerUsed: provider,
         usedFallback: true,
       };
@@ -187,7 +193,7 @@ export async function embedTexts(
 
     return {
       vectors: vectors.map((vector: number[]) => l2Normalize(vector)),
-      modelUsed: modelName,
+      modelUsed: modelName || config.embedding.model,
       providerUsed: provider,
       usedFallback: false,
     };

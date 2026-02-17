@@ -20,6 +20,10 @@ export interface UnifiedRetrieveInput {
   maxLines?: number;
   engramConfig?: MingEngramConfig;
   vectorContext?: EngramVectorStoreContext;
+  /** 来自 API 管理的 Rerank 端点，优先于 engramConfig.rerank.providerUrl */
+  rerankEndpointUrl?: string;
+  /** 来自 API 管理的 Rerank 模型，优先于 engramConfig.rerank.model */
+  rerankModel?: string;
 }
 
 export interface UnifiedRetrieveOutput {
@@ -315,7 +319,10 @@ export async function unifiedRetrieve(input: UnifiedRetrieveInput): Promise<Unif
       key: candidate.key,
       text: candidate.text,
     }));
-    const rerank = await rerankCandidates(input.userInput, rerankInput, engramConfig);
+    const rerank = await rerankCandidates(input.userInput, rerankInput, engramConfig, {
+      endpointUrl: input.rerankEndpointUrl,
+      model: input.rerankModel,
+    });
     if (rerank.used) {
       rerankUsed = true;
       allCandidates = allCandidates

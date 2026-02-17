@@ -32,6 +32,7 @@ import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
 import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync } from '@/utils/locationUtils';
 import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/locationNpcGenerationPromptsMing';
 import { getMidTermContent, formatMidTermEntryForPrompt } from '@/utils/memoryHelpers';
+import { aiService } from '@/services/aiService';
 import {
   appendEngramEvents,
   buildEntitiesFromEvents,
@@ -383,7 +384,6 @@ class AIBidirectionalSystemClass {
     onProgressUpdate?.('正在优化文本…');
 
     try {
-      const { aiService } = await import('@/services/aiService');
       const textOptPrompt = await getPrompt('textOptimization');
 
       const optimizedText = await aiService.generateRaw({
@@ -441,7 +441,6 @@ class AIBidirectionalSystemClass {
 
     // 检查AI服务可用性（酒馆或自定义API）
     if (!tavernHelper) {
-      const { aiService } = await import('@/services/aiService');
       const availability = aiService.checkAvailability();
       if (!availability.available) {
         throw new Error(availability.message);
@@ -525,6 +524,11 @@ class AIBidirectionalSystemClass {
       let hybridRetrievalStats: Record<string, unknown> | null = null;
       try {
         if (retrievalMode === 'hybrid') {
+          const { useAPIManagementStore } = await import('@/stores/apiManagementStore');
+          const apiStore = useAPIManagementStore();
+          const rerankApi = apiStore.getAPIForType('rerank');
+          const rerankEndpointUrl = apiStore.getRerankEndpointUrl()?.trim() || undefined;
+          const rerankModel = rerankApi?.model?.trim() || undefined;
           const unified = await unifiedRetrieve({
             saveData: stateForAI as Record<string, unknown>,
             userInput: userMessage,
@@ -535,6 +539,8 @@ class AIBidirectionalSystemClass {
             maxLines: 35,
             engramConfig,
             vectorContext,
+            rerankEndpointUrl,
+            rerankModel,
           });
           retrievalBlock = unified.block;
           hybridRetrievalStats = unified.stats as unknown as Record<string, unknown>;
@@ -1019,7 +1025,6 @@ ${stateJsonString}
       });
 
       // 🔥 [流式传输修复] 优先使用配置中的streaming设置
-      const { aiService } = await import('@/services/aiService');
       const aiConfig = aiService.getConfig();
       const useStreaming = options?.useStreaming ?? aiConfig.streaming ?? true;
 
@@ -1303,7 +1308,6 @@ ${step1Text}
         });
       } else {
         // 自定义API模式
-        const { aiService } = await import('@/services/aiService');
         response = await aiService.generate({
           user_input: finalUserInput,
           should_stream: useStreaming,
@@ -1499,7 +1503,6 @@ ${step1Text}
 
     // 检查AI服务可用性（酒馆或自定义API）
     if (!tavernHelper) {
-      const { aiService } = await import('@/services/aiService');
       const availability = aiService.checkAvailability();
       if (!availability.available) {
         throw new Error(availability.message);
@@ -1510,7 +1513,6 @@ ${step1Text}
     let gmResponse: GM_Response;
     try {
       // 🔥 [流式传输修复] 优先使用配置中的streaming设置
-      const { aiService } = await import('@/services/aiService');
       const aiConfig = aiService.getConfig();
       const useStreaming = options?.useStreaming ?? aiConfig.streaming ?? true;
       const generateMode = options?.generateMode || 'generate'; // 默认使用 generate 模式
@@ -1776,8 +1778,6 @@ ${step1Text}
         }
       } else {
         // 自定义API模式
-        const { aiService } = await import('@/services/aiService');
-
         if (generateMode === 'generateRaw') {
           console.log('[AI双向系统] 自定义API模式 - 使用 generateRaw 模式生成初始消息');
           response = await aiService.generateRaw({
@@ -2518,7 +2518,6 @@ ${step1Text}
       const tavernHelper = getTavernHelper();
 
       // 从aiService读取通用配置（流式等）
-      const { aiService } = await import('@/services/aiService');
       const aiConfig = aiService.getConfig();
       const useStreaming = aiConfig.streaming !== false;
 
@@ -2721,7 +2720,6 @@ ${saveDataJson}`;
         .join('\n');
       const refinePrompt = await getPrompt('midTermRefine');
       const userPrompt = refinePrompt.replace('{{记忆内容}}', memoriesText);
-      const { aiService } = await import('@/services/aiService');
       const aiConfig = aiService.getConfig();
       let useRawMode = true;
       try {
@@ -2941,7 +2939,6 @@ ${saveDataJson}`;
     }
 
     const tavernHelper = getTavernHelper();
-    const { aiService } = await import('@/services/aiService');
     let rawResponse: string;
     if (tavernHelper) {
       rawResponse = String(

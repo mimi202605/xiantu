@@ -312,7 +312,7 @@
 
           <!-- 辅助功能列表 -->
           <div
-            v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'world_heartbeat', 'location_npc_generation', 'embedding']"
+            v-for="funcType in ['memory_summary', 'text_optimization', 'world_generation', 'event_generation', 'world_heartbeat', 'location_npc_generation', 'embedding', 'rerank']"
             :key="funcType"
             class="setting-item"
           >
@@ -383,9 +383,9 @@
                   </option>
                 </select>
 
-                <!-- Raw/标准模式选择（仅非embedding功能且为酒馆模式时显示） -->
+                <!-- Raw/标准模式选择（仅非 embedding/rerank 且为酒馆模式时显示） -->
                 <select
-                  v-if="isTavernEnvFlag && funcType !== 'embedding'"
+                  v-if="isTavernEnvFlag && funcType !== 'embedding' && funcType !== 'rerank'"
                   :value="apiStore.getFunctionMode(funcType as APIUsageType)"
                   @change="updateFunctionMode(funcType as APIUsageType, ($event.target as HTMLSelectElement).value as any)"
                   class="setting-select mode-select"
@@ -493,6 +493,20 @@
               v-model="editingAPI.url"
               class="form-input"
               :placeholder="getProviderPresetUrl(editingAPI.provider || 'openai')"
+            />
+          </div>
+
+          <div class="form-group custom-routing-group">
+            <label class="checkbox-label">
+              <input type="checkbox" v-model="editingAPI.useCustomRouting" />
+              <span>{{ t('使用自定义路径') }}</span>
+            </label>
+            <p class="form-hint">{{ t('用于 Rerank 等需固定路径的接口。关闭时 Rerank 默认请求 {base}/rerank。') }}</p>
+            <input
+              v-if="editingAPI.useCustomRouting"
+              v-model="editingAPI.customRoutingPath"
+              class="form-input"
+              :placeholder="t('例如 /rerank 或 v1/rerank')"
             />
           </div>
 
@@ -706,7 +720,9 @@ const editingAPI = ref<Partial<APIConfig>>({
   model: 'gpt-4o',
   temperature: 0.7,
   maxTokens: 16000,
-  enabled: true
+  enabled: true,
+  useCustomRouting: false,
+  customRoutingPath: '',
 });
 const editingAPIId = ref<string | null>(null);
 
@@ -783,6 +799,7 @@ const getFunctionName = (type: APIUsageType): string => {
     world_heartbeat: t('世界心跳'),
     location_npc_generation: t('新地点NPC生成'),
     embedding: t('Embedding向量化'),
+    rerank: t('Rerank重排'),
   };
   return map[type] || type;
 };
@@ -801,7 +818,8 @@ const getFunctionDesc = (type: APIUsageType): string => {
       event_generation: '生成世界事件（可配置Raw/标准模式）',
       world_heartbeat: '周期性世界模拟与演变（可配置Raw/标准模式）',
       location_npc_generation: '玩家到达新地点时生成路人NPC（可配置Raw/标准模式）',
-      embedding: 'Engram 向量检索与向量写入专用API（OpenAI兼容 /v1/embeddings）'
+      embedding: 'Engram 向量检索与向量写入专用API（OpenAI兼容 /v1/embeddings）',
+      rerank: 'Engram 检索结果重排专用API（在 API 管理中分配后，系统设置中显示为只读）'
     };
     return descs[type] || '';
   } else {
@@ -816,7 +834,8 @@ const getFunctionDesc = (type: APIUsageType): string => {
       event_generation: '生成世界事件（可用快速模型）',
       world_heartbeat: '周期性世界模拟与演变（建议使用快速模型）',
       location_npc_generation: '玩家到达新地点时生成路人NPC（建议使用快速模型）',
-      embedding: 'Engram 向量检索与向量写入专用API（OpenAI兼容 /v1/embeddings）'
+      embedding: 'Engram 向量检索与向量写入专用API（OpenAI兼容 /v1/embeddings）',
+      rerank: 'Engram 检索结果重排专用API（在 API 管理中分配后，系统设置中显示为只读）'
     };
     return descs[type] || '';
   }
@@ -974,7 +993,9 @@ const saveAPI = () => {
       model: editingAPI.value.model || getProviderPresetModel(editingAPI.value.provider as APIProvider),
       temperature: editingAPI.value.temperature || 0.7,
       maxTokens: editingAPI.value.maxTokens || 16000,
-      enabled: true
+      enabled: true,
+      useCustomRouting: editingAPI.value.useCustomRouting ?? false,
+      customRoutingPath: editingAPI.value.customRoutingPath ?? '',
     };
     apiStore.addAPI(newConfig);
     toast.success(t('API配置已添加'));
@@ -1023,7 +1044,9 @@ const closeDialogs = () => {
     model: 'gpt-4o',
     temperature: 0.7,
     maxTokens: 16000,
-    enabled: true
+    enabled: true,
+    useCustomRouting: false,
+    customRoutingPath: '',
   };
   availableModels.value = [];
 };
@@ -1852,6 +1875,24 @@ input:checked + .switch-slider:before {
 
 .form-group.half {
   flex: 1;
+}
+
+.custom-routing-group .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  cursor: pointer;
+}
+
+.custom-routing-group .form-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.custom-routing-group .form-input {
+  margin-top: 0.5rem;
 }
 
 .model-input-row {
