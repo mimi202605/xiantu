@@ -108,6 +108,7 @@ export function buildLocationNpcGenerationPrompt(input: LocationNpcGenerationInp
 - 姓名不得与已有 NPC 重复。已有名字：${existingNpcNames.length ? existingNpcNames.join('、') : '无'}。
 - 每个 NPC 的 \`当前位置.描述\` 必须**完全等于**：\`${locationDesc}\`。
 - **地点层级补全**：当前地点 \`${locationDesc}\` 若含多级（用 · 分隔），必须在 tavern_commands 中**先 push 该地点及其每一级父地点**到 \`世界.信息.地点信息\`（名称=全路径，上级=父级全路径），再输出 set NPC。例如「S市·上城区·素家庄园」须确保存在 S市、S市·上城区、S市·上城区·素家庄园 三条地点，地图才能正确显示树形结构。
+- **禁止非地点**：若当前地点为载具、飞行器或「XX内」（如豪华轿车内、飞舟内、机舱内、船内、车厢内），**不得** push \`世界.信息.地点信息\`；仅可输出 set NPC，且不得新增或补全此类非地点到地点信息。
 
 ## 当前信息
 - **地点**：${locationDesc}

@@ -4,6 +4,20 @@
 
 ---
 
+## [0.2.86] - 2026-02-17
+
+### Prompt：禁止将载具/飞行器/非地点作为地点
+
+- **地点仅限真实场所**：禁止将载具（轿车内、马车内）、飞行器（飞舟内、机舱内）、船内、车厢内等非地点作为 `角色.位置.描述` 或 push 到 `世界.信息.地点信息`；若角色在移动载具中，应写其当前所处的地面地点（出发地/目的地/途经地）。
+- **涉及 prompt**：位置更新与地点信息同步（businessRulesMing）、地点与探索 Step2（inlinePromptsMing）、地点信息数据定义（dataDefinitionsMing）、地图 NPC 请求（locationNpcGenerationPromptsMing）。
+- **涉及文件**
+  - `src/utils/prompts/definitions/ming/businessRulesMing.ts`
+  - `src/utils/prompts/definitions/ming/inlinePromptsMing.ts`
+  - `src/utils/prompts/definitions/ming/dataDefinitionsMing.ts`
+  - `src/utils/prompts/tasks/locationNpcGenerationPromptsMing.ts`
+
+---
+
 ## [0.2.85] - 2026-02-17
 
 ### 回退与 Rerank：说明与可观测
