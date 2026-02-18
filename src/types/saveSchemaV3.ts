@@ -125,7 +125,7 @@ export interface SaveDataV3 {
     扩展?: Record<string, unknown> & {
       语义记忆?: Record<string, unknown>;
       engramMemory?: MingEngramMemory;
-      已发送信息?: Array<{ text: string; timestamp: number }>;
+      已发送信息?: Array<{ text: string; timestamp: number; roundIndex?: number }>;
     };
     联机: OnlineStateV3;
   };

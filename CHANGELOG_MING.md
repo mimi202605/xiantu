@@ -4,6 +4,19 @@
 
 ---
 
+## [0.2.87] - 2026-02-17
+
+### 记忆中心：已发送信息按回合唯一、重发覆盖
+
+- **行为**：因回退后可能重复发送同一回合的 prompt，已发送记录改为**每回合仅保留一条**；同一回合再次发送时覆盖该回合的既有记录，不再追加重复条。
+- **实现**：`已发送信息` 项增加可选 `roundIndex`（回合序号）；`appendSentMessage(text, roundIndex?)` 传入当前 `roundNumber` 时，先查找同 `roundIndex` 记录并原地覆盖，否则追加；旧存档无 `roundIndex` 的条目仍正常展示。
+- **涉及文件**
+  - `src/types/saveSchemaV3.ts`
+  - `src/stores/gameStateStore.ts`
+  - `src/components/dashboard/MainGamePanel.vue`
+
+---
+
 ## [0.2.86] - 2026-02-17
 
 ### Prompt：禁止将载具/飞行器/非地点作为地点

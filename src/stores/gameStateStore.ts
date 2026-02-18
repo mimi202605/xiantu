@@ -87,8 +87,8 @@ interface GameState {
   roundNumber: number;
   // [MING] 世界心跳配置与历史（世界.状态.心跳）
   worldHeartbeat: WorldHeartbeatConfig | null;
-  /** 已发送信息：玩家发给 API 的原文记录，仅供查阅，不参与任何 prompt 生成 */
-  sentToApiMessages: { text: string; timestamp: number }[];
+  /** 已发送信息：玩家发给 API 的原文记录，仅供查阅，不参与任何 prompt 生成；roundIndex 用于同回合覆盖，每回合唯一一条 */
+  sentToApiMessages: { text: string; timestamp: number; roundIndex?: number }[];
 }
 
 export const useGameStateStore = defineStore('gameState', {
@@ -394,6 +394,7 @@ export const useGameStateStore = defineStore('gameState', {
       const rawSent = 扩展 && typeof 扩展 === 'object' && (扩展 as any).已发送信息;
       this.sentToApiMessages = Array.isArray(rawSent)
         ? rawSent.filter((e: any) => e && typeof e.text === 'string' && typeof e.timestamp === 'number')
+            .map((e: any) => ({ text: e.text, timestamp: e.timestamp, roundIndex: typeof e.roundIndex === 'number' ? e.roundIndex : undefined }))
         : [];
 
       // Tavern 兜底：即使存档没带“角色.身体”，也保证 UI/变量面板有可写路径
@@ -929,11 +930,19 @@ export const useGameStateStore = defineStore('gameState', {
       console.log('[gameStateStore] ✅ 已添加到短期记忆', finalContent.substring(0, 50) + '...');
     },
 
-    /** 追加一条“已发送信息”记录（仅玩家查阅，不参与任何 API prompt） */
-    appendSentMessage(text: string) {
+    /** 追加或覆盖“已发送信息”记录（仅玩家查阅，不参与任何 API prompt）。传入 roundIndex 时同回合只保留一条，重发会覆盖该回合记录。 */
+    appendSentMessage(text: string, roundIndex?: number) {
       if (!text || typeof text !== 'string') return;
       if (!Array.isArray(this.sentToApiMessages)) this.sentToApiMessages = [];
-      this.sentToApiMessages.unshift({ text: text.trim(), timestamp: Date.now() });
+      const record = { text: text.trim(), timestamp: Date.now(), roundIndex };
+      if (typeof roundIndex === 'number') {
+        const idx = this.sentToApiMessages.findIndex((e) => e.roundIndex === roundIndex);
+        if (idx >= 0) {
+          this.sentToApiMessages[idx] = record;
+          return;
+        }
+      }
+      this.sentToApiMessages.unshift(record);
     },
   },
 });
