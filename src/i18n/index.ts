@@ -277,7 +277,7 @@ const autoTranslateMap: Record<string, string> = {
   '个角色': ' characters', '存档管理': 'Save Management', '导出存档': 'Export Saves',
   '导入存档': 'Import Saves', '导出选中角色的存档': 'Export saves', '向选中角色导入存档': 'Import saves',
   '道途未启': 'No Characters', '尚未创建任何法身，请返回道途开启修仙之旅': 'Create a character first',
-  '踏入仙途': 'Begin Journey', '导入角色': 'Import Character', '请选择左侧角色查看存档详情': 'Select a character', '正在加载存档...': 'Loading saves...',
+  '踏入仙途': 'Begin Journey', '导入角色': 'Import Character', '全量导入': 'Full Restore', '请选择左侧角色查看存档详情': 'Select a character', '正在加载存档...': 'Loading saves...',
   '手动存档': 'Manual Saves', '存档通过游戏内保存功能创建': 'Created via in-game save',
   '空存档槽': 'Empty Slot', '通过游戏内保存创建': 'Create via in-game save', '重命名': 'Rename',
   '上次对话存档不可删除（用于回滚）': 'Cannot delete last save', '时间点存档不可删除（定时自动覆盖）': 'Cannot delete time save',
