@@ -931,9 +931,9 @@ const exportSettings = () => {
       uiSettings: collectExtraUiSettings(),
       exportInfo: {
         timestamp: new Date().toISOString(),
-        version: '1.0.5',
+        version: '1.0.6',
         userAgent: navigator.userAgent,
-        gameVersion: '天命 v1.0.5'
+        gameVersion: '天命 v1.0.6'
       }
     };
 
