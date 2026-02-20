@@ -40,6 +40,13 @@
         @change="handleImportFile"
         style="display: none"
       />
+      <input
+        ref="fullBackupFileInput"
+        type="file"
+        accept=".json"
+        @change="handleFullBackupFile"
+        style="display: none"
+      />
       <LegacySaveMigrationModal
         :open="showLegacyMigrationModal"
         :targetCharId="legacyMigrationStandalone ? null : selectedCharId"
@@ -98,6 +105,7 @@
         <div class="empty-actions">
           <button @click="goBack" class="btn-create">{{ $t('踏入仙途') }}</button>
           <button @click="importCharacter" class="btn-import">{{ $t('导入角色') }}</button>
+          <button @click="importFullBackup" class="btn-import-full">{{ $t('全量导入') }}</button>
         </div>
       </div>
 
@@ -118,6 +126,14 @@
             >
               <Upload :size="16" />
               <span>{{ $t('导入') }}</span>
+            </button>
+            <button
+              @click="importFullBackup"
+              class="btn-header-action import-full"
+              :title="$t('全量导入')"
+            >
+              <Upload :size="16" />
+              <span>{{ $t('全量导入') }}</span>
             </button>
             <button
               @click="openLegacyMigrationStandalone"
@@ -612,6 +628,7 @@ const showDetailsModal = ref(false);
 const detailsCharacter = ref<CharacterProfile | null>(null);
 const promptInput = ref<HTMLInputElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
+const fullBackupFileInput = ref<HTMLInputElement | null>(null);
 const isCharacterPanelOpen = ref(false);
 const loading = ref(false);
 const isLoadingSaves = ref(false); // 新增：用于控制存档加载状态
@@ -1128,6 +1145,11 @@ const exportCharacter = async (charId: string) => {
       return;
     }
 
+    // 若导出的是当前激活角色，先保存当前游戏，确保当前槽位含最新一回合及世界心跳、NPC 设置
+    if (characterStore.rootState.当前激活存档?.角色ID === charId) {
+      await characterStore.saveCurrentGame({ notifyIfNoActive: false });
+    }
+
     // 🔥 修复：从 IndexedDB 加载所有存档的完整数据
     const { loadSaveData } = await import('@/utils/indexedDBManager');
 
@@ -1217,6 +1239,12 @@ const exportCharacter = async (charId: string) => {
 const exportSingleSave = async (charId: string, slotKey: string, slot: SaveSlot) => {
   loading.value = true;
   try {
+    // 若导出的是当前激活槽位，先保存当前游戏，确保含最新一回合及世界心跳、NPC 设置
+    const active = characterStore.rootState.当前激活存档;
+    if (active?.角色ID === charId && active?.存档槽位 === slotKey) {
+      await characterStore.saveCurrentGame({ notifyIfNoActive: false });
+    }
+
     // 从 IndexedDB 加载完整的存档数据
     const { loadSaveData } = await import('@/utils/indexedDBManager');
     const fullSaveDataRaw = await loadSaveData(charId, slotKey);
@@ -1380,6 +1408,78 @@ const importSaves = () => {
 const importCharacter = () => {
   importMode.value = 'character';
   fileInput.value?.click();
+};
+
+// 全量导入（完整备份：角色 + 存档 + 设置 + API + 提示词等）
+const importFullBackup = () => {
+  fullBackupFileInput.value?.click();
+};
+
+const handleFullBackupFile = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0];
+  if (!file) return;
+
+  const resetInput = () => {
+    if (fullBackupFileInput.value) fullBackupFileInput.value.value = '';
+  };
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+    const unwrapped = unwrapDadBundle(data);
+
+    if (unwrapped.type !== 'full_backup' || !unwrapped.payload) {
+      toast.error('无效的完整备份文件，请使用「完整备份」功能导出的文件');
+      resetInput();
+      return;
+    }
+
+    const payload = unwrapped.payload;
+    const charCount = Array.isArray(payload.characters) ? payload.characters.length : 0;
+    const totalSaves = Array.isArray(payload.characters)
+      ? payload.characters.reduce((sum: number, c: any) => sum + (Array.isArray(c.存档列表) ? c.存档列表.length : 0), 0)
+      : 0;
+    const summary = [
+      `${charCount} 个角色（${totalSaves} 个存档）`,
+      payload.settings ? '游戏设置' : null,
+      payload.apiConfig ? 'API配置' : null,
+      payload.prompts ? '自定义提示词' : null,
+    ].filter(Boolean).join('、');
+
+    showConfirm(
+      '全量导入',
+      `此操作将覆盖当前设置与 API 配置，并导入备份中的角色与存档。\n\n备份内容：${summary}\n\n同名角色将被跳过。确定继续？`,
+      async () => {
+        loading.value = true;
+        try {
+          const { executeFullBackupRestore } = await import('@/utils/fullBackupRestore');
+          const result = await executeFullBackupRestore(payload);
+          const parts = [`${result.importedChars} 个角色，${result.importedSaves} 个存档`];
+          if (result.skippedChars > 0) parts.push(`${result.skippedChars} 个重复角色已跳过`);
+          toast.success(`全量导入成功（${parts.join('，')}）`);
+        } catch (err) {
+          console.error('全量导入失败', err);
+          const msg = err instanceof Error ? err.message : String(err);
+          const isIdbOpen =
+            /backing store|indexedDB\.open|Internal error opening/i.test(msg) ||
+            (err instanceof DOMException && err.name === 'UnknownError');
+          toast.error(
+            isIdbOpen
+              ? '全量导入失败：无法打开本地存储。请勿在无痕/隐私模式下使用，关闭其他标签页后重试，或检查存储空间。'
+              : '全量导入失败: ' + (msg || '未知错误')
+          );
+        } finally {
+          loading.value = false;
+          resetInput();
+        }
+      },
+      resetInput
+    );
+  } catch (err) {
+    console.error('文件解析失败', err);
+    toast.error('文件解析失败，请检查是否为完整备份 JSON 文件');
+    resetInput();
+  }
 };
 
 // 处理导入文件
@@ -1887,6 +1987,20 @@ const handleImportFile = async (event: Event) => {
   transform: scale(1.05);
 }
 
+.btn-import-full {
+  padding: 1rem 2rem;
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #7c3aed;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+}
+.btn-import-full:hover {
+  transform: scale(1.05);
+}
+
 /* 管理布局 - 3行2列网格 */
 .management-layout {
   flex: 1;
@@ -1992,6 +2106,15 @@ const handleImportFile = async (event: Event) => {
 .btn-header-action.import:hover {
   background: rgba(var(--color-info-rgb), 0.1);
   border-color: var(--color-info);
+}
+
+.btn-header-action.import-full {
+  color: #7c3aed;
+  border-color: rgba(124, 58, 237, 0.4);
+}
+.btn-header-action.import-full:hover {
+  background: rgba(124, 58, 237, 0.1);
+  border-color: #7c3aed;
 }
 
 .btn-header-action.migrate {
@@ -4065,6 +4188,15 @@ const handleImportFile = async (event: Event) => {
   border-color: #77cdfe;
 }
 
+[data-theme='dark'] .btn-header-action.import-full {
+  color: #a78bfa;
+  border-color: rgba(167, 139, 250, 0.4);
+}
+[data-theme='dark'] .btn-header-action.import-full:hover {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: #a78bfa;
+}
+
 [data-theme='dark'] .btn-header-action.migrate {
   color: #e0af68;
   border-color: rgba(224, 175, 104, 0.4);
@@ -4232,6 +4364,11 @@ const handleImportFile = async (event: Event) => {
 [data-theme='dark'] .btn-import {
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.8), rgba(192, 202, 245, 0.8));
   border-color: rgba(147, 197, 253, 0.5);
+}
+
+[data-theme='dark'] .btn-import-full {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.9), rgba(167, 139, 250, 0.8));
+  border-color: rgba(167, 139, 250, 0.5);
 }
 
 /* 联机模式暗色适配 */

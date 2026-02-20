@@ -679,6 +679,12 @@ const exportSingleSave = async (save: SaveSlot) => {
   try {
     console.log('[单个存档导出] 开始导出存档:', save.存档名);
 
+    // 若导出的是当前激活槽位，先保存当前游戏，避免导出比游戏中少一回合且缺少最新世界心跳/NPC设置
+    const active = characterStore.rootState.当前激活存档;
+    if (active && (save.id === active.存档槽位 || save.存档名 === active.存档槽位)) {
+      await characterStore.saveCurrentGame({ notifyIfNoActive: false });
+    }
+
     // 从IndexedDB加载完整的存档数据
     const characterId = characterStore.rootState.当前激活存档?.角色ID;
     if (!characterId) {
@@ -743,6 +749,9 @@ const exportSingleSave = async (save: SaveSlot) => {
 const exportCharacter = async () => {
   try {
     console.log('[角色导出] 开始导出角色...');
+
+    // 先保存当前游戏，确保当前槽位含最新一回合及世界心跳、NPC 设置
+    await characterStore.saveCurrentGame({ notifyIfNoActive: false });
 
     const characterId = characterStore.rootState.当前激活存档?.角色ID;
     if (!characterId) {
@@ -826,6 +835,9 @@ const exportSaves = async () => {
     console.log('[存档导出] 开始导出存档...');
     console.log('[存档导出] savesList.value:', savesList.value);
     console.log('[存档导出] savesList 数量:', savesList.value.length);
+
+    // 先保存当前游戏，确保当前槽位含最新一回合及世界心跳、NPC 设置
+    await characterStore.saveCurrentGame({ notifyIfNoActive: false });
 
     if (!savesList.value || savesList.value.length === 0) {
       toast.warning('没有可导出的存档');
@@ -957,25 +969,27 @@ const exportFullBackup = async () => {
   try {
     console.log('[完整备份] 开始收集所有数据...');
 
-    // 1. 收集所有角色及其存档 + 向量数据
-    const { loadSaveData: loadSaveDataFn, loadFromIndexedDB } = await import('@/utils/indexedDBManager');
+    // 先保存当前游戏，确保当前槽位含最新一回合及世界心跳、NPC 设置
+    await characterStore.saveCurrentGame({ notifyIfNoActive: false });
+
+    // 1. 收集所有角色及其存档 + 向量数据（与「导出角色」同构、无损：以 IndexedDB 中实际存在的存档为准）
+    const {
+      loadSaveData: loadSaveDataFn,
+      loadFromIndexedDB,
+      getAllSaveSlotIdsForCharacter,
+    } = await import('@/utils/indexedDBManager');
     const { buildEngramVectorStoreKey } = await import('@/services/engram/vectorRepository');
 
     const allCharacters: any[] = [];
     const charEntries = Object.entries(characterStore.rootState.角色列表);
 
     for (const [charId, profile] of charEntries) {
-      const charExport: any = {
-        角色ID: charId,
-        角色信息: JSON.parse(JSON.stringify(profile)),
-        存档列表: [],
-      };
+      // 以 IndexedDB 中该角色下所有 savedata_ 键为准，不依赖 profile.存档列表，避免漏导
+      const saveSlotIds = await getAllSaveSlotIdsForCharacter(charId);
+      const savesWithFullData: any[] = [];
 
-      const saveNames = Object.keys(profile.存档列表 || {});
-      for (const saveName of saveNames) {
-        if (saveName === '上次对话') continue;
-
-        const fullData = await loadSaveDataFn(charId, saveName);
+      for (const slotKey of saveSlotIds) {
+        const fullData = await loadSaveDataFn(charId, slotKey);
         if (!fullData) continue;
 
         let v3Data: any;
@@ -983,16 +997,16 @@ const exportFullBackup = async () => {
           v3Data = isSaveDataV3(fullData as any) ? fullData : migrateSaveDataToLatest(fullData as any).migrated;
           const validation = validateSaveDataV3(v3Data as any);
           if (!validation.isValid) {
-            console.warn(`[完整备份] 存档「${saveName}」校验失败，跳过:`, validation.errors);
+            console.warn(`[完整备份] 存档「${slotKey}」校验失败，跳过:`, validation.errors);
             continue;
           }
         } catch (e) {
-          console.warn(`[完整备份] 存档「${saveName}」迁移失败，跳过:`, e);
+          console.warn(`[完整备份] 存档「${slotKey}」迁移失败，跳过:`, e);
           continue;
         }
 
-        const saveSlotMeta = profile.存档列表?.[saveName] || {};
-        const vectorKey = buildEngramVectorStoreKey({ characterId: charId, slotId: saveName });
+        const saveSlotMeta = profile.存档列表?.[slotKey] || {};
+        const vectorKey = buildEngramVectorStoreKey({ characterId: charId, slotId: slotKey });
         let vectorData = null;
         try {
           const rawVec = await loadFromIndexedDB(vectorKey);
@@ -1002,15 +1016,25 @@ const exportFullBackup = async () => {
           }
         } catch { /* 向量不存在，不影响备份 */ }
 
-        charExport.存档列表.push({
+        savesWithFullData.push({
           ...saveSlotMeta,
-          存档名: saveName,
+          id: slotKey,
+          存档名: saveSlotMeta.存档名 || slotKey,
+          角色名字: saveSlotMeta.角色名字 ?? (v3Data as any)?.角色?.身份?.名字,
+          地位: saveSlotMeta.地位 ?? (v3Data as any)?.角色?.属性?.地位?.名称,
+          位置: saveSlotMeta.位置 ?? (v3Data as any)?.角色?.位置?.描述,
+          保存时间: saveSlotMeta.保存时间,
+          最后保存时间: saveSlotMeta.最后保存时间 ?? saveSlotMeta.保存时间,
           存档数据: v3Data,
           ...(vectorData ? { 向量数据: vectorData } : {}),
         });
       }
 
-      allCharacters.push(charExport);
+      allCharacters.push({
+        角色ID: charId,
+        角色信息: JSON.parse(JSON.stringify(profile)),
+        存档列表: savesWithFullData,
+      });
     }
 
     // 2. 收集游戏设置
@@ -1135,152 +1159,23 @@ const handleImportFullBackup = async (event: Event) => {
       onConfirm: async () => {
         loading.value = true;
         try {
-          let importedChars = 0;
-          let importedSaves = 0;
-          let skippedChars = 0;
-
-          // 1. 恢复角色和存档
-          if (Array.isArray(payload.characters)) {
-            const { saveSaveData: saveSaveDataFn } = await import('@/utils/indexedDBManager');
-            const { saveEngramVectorStore } = await import('@/services/engram/vectorRepository');
-
-            for (const charExport of payload.characters) {
-              if (!charExport.角色信息 || !charExport.角色信息.角色) continue;
-
-              const charName = charExport.角色信息.角色.名字 || '未知角色';
-
-              // 检查是否已存在同名角色
-              const isDuplicate = Object.values(characterStore.rootState.角色列表).some(
-                (p: any) => p.角色.名字 === charName
-              );
-
-              if (isDuplicate) {
-                console.warn(`[完整备份恢复] 角色 "${charName}" 已存在，跳过`);
-                skippedChars++;
-                continue;
-              }
-
-              const newCharId = `char_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
-
-              const profileData = { ...charExport.角色信息 };
-              profileData.存档列表 = {};
-
-              // 写入存档数据到 IndexedDB
-              if (Array.isArray(charExport.存档列表)) {
-                for (const save of charExport.存档列表) {
-                  const saveName = save.存档名 || '导入存档';
-                  if (!save.存档数据) continue;
-
-                  let v3Data: any;
-                  try {
-                    v3Data = isSaveDataV3(save.存档数据 as any) ? save.存档数据 : migrateSaveDataToLatest(save.存档数据 as any).migrated;
-                    const validation = validateSaveDataV3(v3Data as any);
-                    if (!validation.isValid) {
-                      console.warn(`[完整备份恢复] 存档「${saveName}」校验失败，跳过`);
-                      continue;
-                    }
-                  } catch {
-                    console.warn(`[完整备份恢复] 存档「${saveName}」迁移失败，跳过`);
-                    continue;
-                  }
-
-                  await saveSaveDataFn(newCharId, saveName, v3Data);
-
-                  // 恢复向量数据
-                  if (save.向量数据 && typeof save.向量数据 === 'object') {
-                    try {
-                      await saveEngramVectorStore(
-                        { characterId: newCharId, slotId: saveName },
-                        save.向量数据
-                      );
-                    } catch { /* 向量恢复失败不影响主流程 */ }
-                  }
-
-                  // 存档元数据
-                  const attrs = v3Data?.角色?.属性;
-                  const loc = v3Data?.角色?.位置;
-                  profileData.存档列表[saveName] = {
-                    存档名: saveName,
-                    角色名字: save.角色名字 ?? v3Data?.角色?.身份?.名字,
-                    地位: save.地位 ?? attrs?.地位?.名称,
-                    位置: save.位置 ?? loc?.描述,
-                    保存时间: save.保存时间,
-                    最后保存时间: save.最后保存时间,
-                  };
-                  importedSaves++;
-                }
-              }
-
-              characterStore.rootState.角色列表[newCharId] = profileData;
-              importedChars++;
-
-              // 小延迟避免 ID 碰撞
-              await new Promise(r => setTimeout(r, 5));
-            }
-
-            // 持久化角色列表
-            if (importedChars > 0) {
-              const { saveCharacters } = await import('@/utils/indexedDBManager');
-              await saveCharacters(characterStore.rootState.角色列表);
-            }
-          }
-
-          // 2. 恢复游戏设置
-          if (payload.settings && typeof payload.settings === 'object') {
-            localStorage.setItem('dad_game_settings', JSON.stringify(payload.settings));
-          }
-
-          // 恢复 uiStore 独立设置
-          if (payload.uiSettings && typeof payload.uiSettings === 'object') {
-            const ui = payload.uiSettings;
-            if (ui.enableActionOptions !== undefined && ui.enableActionOptions !== null) {
-              localStorage.setItem('enableActionOptions', String(ui.enableActionOptions));
-            }
-            if (ui.actionOptionsPrompt !== undefined && ui.actionOptionsPrompt !== null) {
-              localStorage.setItem('actionOptionsPrompt', String(ui.actionOptionsPrompt));
-            }
-            if (ui.useStreaming !== undefined && ui.useStreaming !== null) {
-              localStorage.setItem('useStreaming', String(ui.useStreaming));
-            }
-            if (ui.useSystemCot !== undefined && ui.useSystemCot !== null) {
-              localStorage.setItem('useSystemCot', String(ui.useSystemCot));
-            }
-          }
-
-          // 3. 恢复 API 配置
-          if (payload.apiConfig && typeof payload.apiConfig === 'object') {
-            try {
-              const { useAPIManagementStore } = await import('@/stores/apiManagementStore');
-              const apiStore = useAPIManagementStore();
-              apiStore.importConfig(payload.apiConfig);
-            } catch (e) {
-              console.warn('[完整备份恢复] API配置恢复失败:', e);
-            }
-          }
-
-          // 4. 恢复自定义提示词
-          if (payload.prompts && typeof payload.prompts === 'object') {
-            try {
-              const { promptStorage } = await import('@/services/promptStorage');
-              await promptStorage.importPrompts(payload.prompts);
-            } catch (e) {
-              console.warn('[完整备份恢复] 提示词恢复失败:', e);
-            }
-          }
-
-          // 5. 恢复语言设置
-          if (payload.language && typeof payload.language === 'string') {
-            localStorage.setItem('language', payload.language);
-          }
-
+          const { executeFullBackupRestore } = await import('@/utils/fullBackupRestore');
+          const result = await executeFullBackupRestore(payload);
           await refreshSaves();
-
-          const parts = [`${importedChars} 个角色，${importedSaves} 个存档`];
-          if (skippedChars > 0) parts.push(`${skippedChars} 个重复角色已跳过`);
+          const parts = [`${result.importedChars} 个角色，${result.importedSaves} 个存档`];
+          if (result.skippedChars > 0) parts.push(`${result.skippedChars} 个重复角色已跳过`);
           toast.success(`完整备份恢复成功（${parts.join('，')}）`);
         } catch (innerError) {
           console.error('[完整备份恢复] 导入失败:', innerError);
-          toast.error(`恢复失败: ${innerError instanceof Error ? innerError.message : '未知错误'}`);
+          const msg = innerError instanceof Error ? innerError.message : String(innerError);
+          const isIdbOpen =
+            /backing store|indexedDB\.open|Internal error opening/i.test(msg) ||
+            (innerError instanceof DOMException && (innerError as DOMException).name === 'UnknownError');
+          toast.error(
+            isIdbOpen
+              ? '恢复失败：无法打开本地存储。请勿在无痕/隐私模式下使用，关闭其他标签页后重试，或检查存储空间。'
+              : `恢复失败: ${msg || '未知错误'}`
+          );
         } finally {
           loading.value = false;
         }

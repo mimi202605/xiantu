@@ -13,6 +13,20 @@
 
 ---
 
+## [0.2.91] - 2026-02-19
+
+### 全量导入 / 完整备份恢复：IndexedDB 打开失败处理
+
+- **IndexedDB 打开重试**（`indexedDBManager.ts`）
+  - `openDatabase()` 拆分为 `openDatabaseOnce()` + 带重试的 `openDatabase()`；遇「backing store」「Internal error opening」等错误时最多重试 3 次、间隔 300ms，缓解瞬时打开失败。
+  - 失败时清除 `dbInstance` 以便下次重试。
+
+- **全量导入 / 恢复完整备份错误提示**
+  - 当错误信息包含 backing store、`indexedDB.open`、Internal error opening 或 `DOMException` 且 `name === 'UnknownError'` 时，不再仅展示原始报错，改为提示：「无法打开本地存储。请勿在无痕/隐私模式下使用，关闭其他标签页后重试，或检查存储空间。」
+  - 涉及：`CharacterManagement.vue`（全量导入）、`SavePanel.vue`（恢复完整备份）。
+
+---
+
 ## [0.2.90] - 2026-02-20
 
 ### 导出/导入完整性修复 & 完整备份功能

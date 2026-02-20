@@ -20,12 +20,14 @@ const SAVEDATA_KEY_PREFIX = 'savedata_'; // savedata_{characterId}_{slotId}
 // IndexedDB 实例缓存
 let dbInstance: IDBDatabase | null = null;
 
+const MAX_OPEN_RETRIES = 3;
+const OPEN_RETRY_DELAY_MS = 300;
+
 /**
- * 打开/创建 IndexedDB 数据库
+ * 打开/创建 IndexedDB 数据库（内部实现，失败时清除缓存以便重试）
  */
-function openDatabase(): Promise<IDBDatabase> {
+function openDatabaseOnce(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    // 如果已经有缓存的实例，直接返回
     if (dbInstance) {
       resolve(dbInstance);
       return;
@@ -35,6 +37,7 @@ function openDatabase(): Promise<IDBDatabase> {
 
     request.onerror = () => {
       console.error('【乾坤宝库-IDB】数据库打开失败:', request.error);
+      dbInstance = null;
       reject(request.error);
     };
 
@@ -54,6 +57,28 @@ function openDatabase(): Promise<IDBDatabase> {
       }
     };
   });
+}
+
+/**
+ * 打开/创建 IndexedDB 数据库（带重试，缓解 "Internal error opening backing store" 等瞬时错误）
+ */
+async function openDatabase(): Promise<IDBDatabase> {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= MAX_OPEN_RETRIES; attempt++) {
+    try {
+      return await openDatabaseOnce();
+    } catch (e) {
+      lastError = e;
+      const msg = e instanceof Error ? e.message : String(e);
+      if (attempt < MAX_OPEN_RETRIES && (msg.includes('backing store') || msg.includes('Internal error'))) {
+        console.warn(`【乾坤宝库-IDB】打开失败，${OPEN_RETRY_DELAY_MS}ms 后重试 (${attempt}/${MAX_OPEN_RETRIES})...`);
+        await new Promise(r => setTimeout(r, OPEN_RETRY_DELAY_MS));
+      } else {
+        throw e;
+      }
+    }
+  }
+  throw lastError;
 }
 
 /**
@@ -480,6 +505,37 @@ export async function deleteAllSaveDataForCharacter(characterId: string): Promis
   } catch (error) {
     console.error('【乾坤宝库-IDB】批量删除存档数据时出错:', error);
     throw error;
+  }
+}
+
+/**
+ * 获取指定角色在 IndexedDB 中所有存档的槽位 ID 列表（以实际存储为准，不依赖 profile.存档列表）
+ * 用于完整备份等需要「无损导出全部存档」的场景。
+ * @param characterId 角色ID
+ * @returns 槽位 ID 数组，如 ['存档1', '时间点存档', '上次对话', ...]
+ */
+export async function getAllSaveSlotIdsForCharacter(characterId: string): Promise<string[]> {
+  try {
+    const db = await openDatabase();
+    const prefix = `${SAVEDATA_KEY_PREFIX}${characterId}_`;
+
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction([STORE_NAME], 'readonly');
+      const objectStore = transaction.objectStore(STORE_NAME);
+      const request = objectStore.getAllKeys();
+
+      request.onsuccess = () => {
+        const allKeys = (request.result || []) as string[];
+        const slotIds = allKeys
+          .filter((key): key is string => typeof key === 'string' && key.startsWith(prefix))
+          .map(key => key.slice(prefix.length));
+        resolve(slotIds);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  } catch (error) {
+    console.error('【乾坤宝库-IDB】获取角色存档槽位列表失败:', error);
+    return [];
   }
 }
 
