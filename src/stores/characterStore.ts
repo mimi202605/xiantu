@@ -1844,6 +1844,17 @@ export const useCharacterStore = defineStore('characterV3', () => {
 
       await storage.saveSaveData(charId, importName, v3Data);
 
+      // 恢复 Engram 向量数据（如果导出文件中包含）
+      if ((saveData as any).向量数据 && typeof (saveData as any).向量数据 === 'object') {
+        try {
+          const { saveEngramVectorStore } = await import('@/services/engram/vectorRepository');
+          await saveEngramVectorStore({ characterId: charId, slotId: importName }, (saveData as any).向量数据);
+          debug.log('角色商店', `✅ 已恢复向量数据: ${charId}/${importName}`);
+        } catch (e) {
+          console.warn('[导入存档] 恢复向量数据失败（不影响存档导入）:', e);
+        }
+      }
+
       const attrs = (v3Data as any)?.角色?.属性;
       const loc = (v3Data as any)?.角色?.位置;
       saveData = {
@@ -2457,6 +2468,17 @@ const importCharacter = async (profileData: CharacterProfile & { _导入存档�
 	        }
 
 	        await storage.saveSaveData(newCharId, finalSaveName, v3Data);
+
+	        // 恢复 Engram 向量数据（如果导出文件中包含）
+	        if (save.向量数据 && typeof save.向量数据 === 'object') {
+	          try {
+	            const { saveEngramVectorStore } = await import('@/services/engram/vectorRepository');
+	            await saveEngramVectorStore({ characterId: newCharId, slotId: finalSaveName }, save.向量数据);
+	            debug.log('角色商店', `✅ 已恢复向量数据: ${newCharId}/${finalSaveName}`);
+	          } catch (e) {
+	            console.warn('[导入角色] 恢复向量数据失败（不影响存档导入）:', e);
+	          }
+	        }
 
 	        const attrs = (v3Data as any)?.角色?.属性;
 	        const loc = (v3Data as any)?.角色?.位置;

@@ -893,6 +893,34 @@ const clearCache = async () => {
   });
 };
 
+/**
+ * 收集所有分散在独立 localStorage 键中的 UI 设置
+ */
+const collectExtraUiSettings = () => ({
+  enableActionOptions: uiStore.enableActionOptions,
+  actionOptionsPrompt: uiStore.actionOptionsPrompt,
+  useStreaming: uiStore.useStreaming,
+  useSystemCot: uiStore.useSystemCot,
+});
+
+/**
+ * 恢复独立 localStorage 键中的 UI 设置
+ */
+const restoreExtraUiSettings = (data: any) => {
+  if (data.enableActionOptions !== undefined) {
+    uiStore.enableActionOptions = !!data.enableActionOptions;
+  }
+  if (data.actionOptionsPrompt !== undefined) {
+    uiStore.actionOptionsPrompt = String(data.actionOptionsPrompt);
+  }
+  if (data.useStreaming !== undefined) {
+    uiStore.useStreaming = !!data.useStreaming;
+  }
+  if (data.useSystemCot !== undefined) {
+    uiStore.useSystemCot = !!data.useSystemCot;
+  }
+};
+
 // 导出设置
 const exportSettings = () => {
   debug.log('设置面板', '开始导出设置');
@@ -900,6 +928,7 @@ const exportSettings = () => {
   try {
     const exportData = {
       settings: settings,
+      uiSettings: collectExtraUiSettings(),
       exportInfo: {
         timestamp: new Date().toISOString(),
         version: '3.7.4',
@@ -952,13 +981,15 @@ const importSettings = () => {
 
       // 提取设置数据
       let settingsData: any = null;
+      let uiSettingsData: any = null;
 
       if (unwrapped.type === 'settings') {
         // dad.bundle 格式或旧格式 { type: 'settings', settings: {...} }
         settingsData = unwrapped.payload;
       } else if (importData.settings) {
-        // 旧导出格式 { settings: {...}, exportInfo: {...} }
+        // 旧导出格式 { settings: {...}, uiSettings: {...}, exportInfo: {...} }
         settingsData = importData.settings;
+        uiSettingsData = importData.uiSettings;
       } else if (unwrapped.type === null && typeof unwrapped.payload === 'object') {
         // 直接是设置对象（最旧的格式）
         settingsData = unwrapped.payload;
@@ -971,6 +1002,11 @@ const importSettings = () => {
       // 验证并合并设置
       const validatedSettings = { ...settings, ...settingsData };
       Object.assign(settings, validatedSettings);
+
+      // 恢复独立 localStorage 键中的 UI 设置
+      if (uiSettingsData && typeof uiSettingsData === 'object') {
+        restoreExtraUiSettings(uiSettingsData);
+      }
 
       await saveSettings();
 

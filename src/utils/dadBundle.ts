@@ -1,7 +1,7 @@
 export const DAD_BUNDLE_SCHEMA = 'dad.bundle';
 export const DAD_BUNDLE_VERSION = 1 as const;
 
-export type DadBundleType = 'settings' | 'prompts' | 'saves' | 'character' | 'start_config' | 'presets';
+export type DadBundleType = 'settings' | 'prompts' | 'saves' | 'character' | 'start_config' | 'presets' | 'full_backup';
 
 export interface DadBundleV1<TPayload = unknown> {
   schema: typeof DAD_BUNDLE_SCHEMA;

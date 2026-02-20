@@ -4,6 +4,33 @@
 
 ---
 
+## [0.2.90] - 2026-02-20
+
+### 导出/导入完整性修复 & 完整备份功能
+
+- **Engram 向量数据随存档导出/导入**
+  - 存档导出（单个/批量/角色）现在自动从 IndexedDB 读取 `engram_vectors_{charId}_{slotId}` 并以 `向量数据` 字段附加到导出 JSON，导入时自动恢复。
+  - 涵盖 `SavePanel.vue`（游戏内）和 `CharacterManagement.vue`（角色管理页）两处导出入口，以及 `characterStore.ts` 的 `importSave` 和 `importCharacter` 两处导入入口。
+
+- **uiStore 独立设置纳入设置导出/导入**
+  - `enableActionOptions`、`actionOptionsPrompt`、`useStreaming`、`useSystemCot` 四个设置原先存储在独立 localStorage 键中，不随 `dad_game_settings` 导出。
+  - 现在设置导出时以 `uiSettings` 字段一并导出，导入时自动恢复到 uiStore。
+
+- **完整备份功能（full_backup）**
+  - `dadBundle.ts` 新增 `full_backup` 类型。
+  - `SavePanel.vue` 存档操作区新增「完整备份」和「恢复完整备份」按钮。
+  - 导出时一次性收集：所有角色及存档（含向量数据）、游戏设置、uiStore 独立设置、API 管理配置、自定义提示词、语言设置。
+  - 导入时弹出确认对话框显示备份概要，依次恢复所有数据；同名角色自动跳过，不会覆盖现有角色。
+
+- **涉及文件**
+  - `src/utils/dadBundle.ts` — DadBundleType 新增 `full_backup`
+  - `src/components/dashboard/SavePanel.vue` — 向量导出、完整备份导出/导入、UI
+  - `src/components/dashboard/SettingsPanel.vue` — uiSettings 导出/导入
+  - `src/components/character-creation/CharacterManagement.vue` — 向量导出
+  - `src/stores/characterStore.ts` — importSave / importCharacter 向量恢复
+
+---
+
 ## [0.2.89] - 2026-02-19
 
 ### 地位系统重构：社会地位/职位（名称 + 描述）

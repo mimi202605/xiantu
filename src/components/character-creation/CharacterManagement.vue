@@ -1144,12 +1144,25 @@ const exportCharacter = async (charId: string) => {
           return null;
         }
         const patchedData = isTavernEnv() ? (ensureSaveDataHasTavernNsfw(fullData) as any) : fullData;
+        // 加载 Engram 向量数据
+        let vectorData = null;
+        try {
+          const { buildEngramVectorStoreKey } = await import('@/services/engram/vectorRepository');
+          const { loadFromIndexedDB } = await import('@/utils/indexedDBManager');
+          const vecKey = buildEngramVectorStoreKey({ characterId: charId, slotId: slotKey });
+          const rawVec = await loadFromIndexedDB(vecKey);
+          if (rawVec && typeof rawVec === 'object' &&
+              (Object.keys(rawVec.eventVectors || {}).length > 0 || Object.keys(rawVec.entityVectors || {}).length > 0)) {
+            vectorData = rawVec;
+          }
+        } catch { /* 向量不存在不影响导出 */ }
         return {
           ...save,
-          存档数据: patchedData
+          存档数据: patchedData,
+          ...(vectorData ? { 向量数据: vectorData } : {}),
         };
       })
-    ).then(results => results.filter(Boolean)); // 🔥 过滤掉空的存档
+    ).then(results => results.filter(Boolean));
 
     const normalizedSaves = savesWithFullData.map((s) => {
       if (!s) {
@@ -1221,6 +1234,19 @@ const exportSingleSave = async (charId: string, slotKey: string, slot: SaveSlot)
       throw new Error(validation.errors[0] || '存档结构校验失败');
     }
 
+    // 加载 Engram 向量数据
+    let vectorData = null;
+    try {
+      const { buildEngramVectorStoreKey } = await import('@/services/engram/vectorRepository');
+      const { loadFromIndexedDB } = await import('@/utils/indexedDBManager');
+      const vecKey = buildEngramVectorStoreKey({ characterId: charId, slotId: slotKey });
+      const rawVec = await loadFromIndexedDB(vecKey);
+      if (rawVec && typeof rawVec === 'object' &&
+          (Object.keys(rawVec.eventVectors || {}).length > 0 || Object.keys(rawVec.entityVectors || {}).length > 0)) {
+        vectorData = rawVec;
+      }
+    } catch { /* 向量不存在不影响导出 */ }
+
     const exportData = createDadBundle('saves', {
       characterId: charId,
       characterName: selectedCharacter.value?.角色?.名字,
@@ -1228,6 +1254,7 @@ const exportSingleSave = async (charId: string, slotKey: string, slot: SaveSlot)
         ...slot,
         存档名: slotKey,
         存档数据: v3SaveData,
+        ...(vectorData ? { 向量数据: vectorData } : {}),
       }],
     });
 
