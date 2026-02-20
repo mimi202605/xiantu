@@ -178,19 +178,20 @@ function parsePlayerStatusChange(change: StateChange): FormattedChange | null {
     return {
       icon: 'add',
       color: 'green',
-      title: npcName ? `【${npcName}】地位突破` : '地位突破',
-      description: `${oldValue || '凡人'} → ${newValue}`,
+      title: npcName ? `【${npcName}】地位变更` : '地位变更',
+      description: `${oldValue || '还未揭露'} → ${newValue}`,
     };
   }
 
   if (
+    key === '角色.属性.地位.描述' || key.endsWith('.地位.描述') ||
     key === '角色.属性.地位.阶段' || key.endsWith('.地位.阶段') ||
     key === '角色.属性.境界.阶段' || key.endsWith('.境界.阶段')
   ) {
     return {
       icon: 'update',
       color: 'blue',
-      title: npcName ? `【${npcName}】地位阶段提升` : '地位阶段提升',
+      title: npcName ? `【${npcName}】地位变更` : '地位变更',
       description: `${oldValue || '无'} → ${newValue}`,
     };
   }

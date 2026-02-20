@@ -4,6 +4,43 @@
 
 ---
 
+## [0.2.89] - 2026-02-19
+
+### 地位系统重构：社会地位/职位（名称 + 描述）
+
+- **数据结构（不兼容变更）**
+  - `Realm` 由五字段（名称、阶段、当前进度、下一级所需、突破描述）简化为 `{ 名称: string; 描述: string }`。
+  - 默认值由「凡人」改为 `{ 名称: "还未揭露", 描述: "" }`。
+  - 移除 `RealmStage`、`RealmStageDefinition`、`RealmDefinition` 类型；UI 不再显示修为进度条。
+
+- **生成与更新**
+  - **角色初始化**：COMMANDS_RULES_MING 增加「地位」步骤，根据出身/背景设置 `角色.属性.地位`（如世家少爷/千金、村民/学徒等）。
+  - **新地点重点 NPC 生成**：地位改为必填，格式 `{ 名称, 描述 }`，示例如「素家的专车司机」「咖啡厅的店长」「李家的千金/学生」。
+  - **世界心跳**：NPC 信息块中增加地位展示，便于 AI 在心跳中按剧情更新 `社交.关系.[NPC名].地位`。
+  - **数据定义**：CHARACTER_STRUCTURE、RELATIONS_STRUCTURE 中明确地位字段及更新方式。
+
+- **数据层**
+  - `characterInitialization.ts`：默认地位与合并逻辑仅处理 名称 + 描述。
+  - `dataRepair.ts`：`repairRealm()` 只保留 名称/描述，默认「还未揭露」；`createDefaultAttributes()` 同步。
+  - `saveMigration.ts`：境界→地位后规整为 `{ 名称, 描述 }`，去掉旧子字段。
+
+- **UI 与校验**
+  - TopBar、RightSidebar、CharacterDetailsPanel、RelationshipNetworkPanel、SavePanel、CharacterManagement：地位仅展示名称（及描述），fallback「还未揭露」；关系网编辑地位时写入 `{ 名称, 描述 }`。
+  - `commandValidator` / `commandValueValidator`：地位校验改为 名称 + 描述；stateChangeFormatter、cotCore、eventGenerators 适配新结构。
+
+- **Engram**
+  - `entity_extraction.yaml`：角色推荐字段增加 `social_status: string`，便于抽取社会地位/职位。
+
+- **涉及文件（摘要）**
+  - 类型：`src/types/game.d.ts`
+  - 数据：`characterInitialization.ts`、`dataRepair.ts`、`saveMigration.ts`、`characterStore.ts`
+  - 提示词：`dataDefinitionsMing.ts`、`locationNpcGenerationPromptsMing.ts`、`characterInitializationPromptsMing.ts`、`worldHeartbeatPromptsMing.ts`、`cotCore.ts`
+  - 系统：`AIBidirectionalSystem.ts`、`commandValidator.ts`、`commandValueValidator.ts`、`stateChangeFormatter.ts`、`eventGenerators.ts`
+  - UI：TopBar、RightSidebar、CharacterDetailsPanel、RelationshipNetworkPanel、SavePanel、CharacterManagement、useGameData
+  - Engram：`H:/engram/Engram/src/integrations/llm/prompts/entity_extraction.yaml`
+
+---
+
 ## [0.2.88] - 2026-02-17
 
 ### Engram：普通 NPC 排除、demote 时清理实体与关系

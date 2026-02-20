@@ -448,37 +448,10 @@ export interface StatusEffect {
 
 // --- 角色实时状态 ---
 
-/** 地位（原境界）结构 */
+/** 地位（社会地位/职位）结构 */
 export interface Realm {
-  名称: string;        // 地位名称
-  阶段: string;        // 阶段，如"初期"、"中期"、"后期"、"圆满"
-  当前进度: number;    // 当前进度
-  下一级所需: number;  // 突破到下一阶段所需进度
-  突破描述: string;    // 突破描述
-}
-// 地位子阶段类型
-export type RealmStage = '初期' | '中期' | '后期' | '圆满' | '极境';
-
-// 境界子阶段定义
-export interface RealmStageDefinition {
-  stage: RealmStage;
-  title: string;
-  breakthrough_difficulty: '简单' | '普通' | '困难' | '极难' | '逆天';
-  resource_multiplier: number; // 资源倍数（体力、精力、洞察力）
-  lifespan_bonus: number; // 寿命加成
-  special_abilities: string[]; // 特殊能力
-  can_cross_realm_battle?: boolean; // 是否可越阶战斗
-}
-
-export interface RealmDefinition {
-  level: number;
-  name: string;
-  title: string;
-  coreFeature: string;
-  lifespan: string;
-  activityScope: string;
-  gapDescription: string;
-  stages?: RealmStageDefinition[]; // 境界子阶段，凡人境界没有子阶段
+  名称: string;  // 社会地位/职位，如 "素家的专车司机"、"咖啡厅的店长"、"李家的千金"
+  描述: string;  // 对该地位的简短描述
 }
 
 

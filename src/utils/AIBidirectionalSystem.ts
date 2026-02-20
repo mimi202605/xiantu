@@ -610,7 +610,9 @@ class AIBidirectionalSystemClass {
 
         const realm = attributes.地位 ?? attributes.境界;
         if (realm) {
-          coreStatusSummary += `\n- 地位: ${realm.名称}-${realm.阶段} (${realm.当前进度}/${realm.下一级所需})`;
+          const realmName = typeof realm === 'object' ? (realm.名称 || '还未揭露') : realm;
+          const realmDesc = typeof realm === 'object' && realm.描述 ? ` - ${realm.描述}` : '';
+          coreStatusSummary += `\n- 地位: ${realmName}${realmDesc}`;
         }
 
         if (attributes.声望) {

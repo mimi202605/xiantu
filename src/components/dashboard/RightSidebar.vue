@@ -79,26 +79,7 @@
         <div class="realm-display">
           <div class="realm-info">
             <span class="realm-name">{{ formatRealmDisplay((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界) }}</span>
-            <span v-if="((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界)?.突破描述" class="realm-breakthrough">{{ ((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界)?.突破描述 }}</span>
-          </div>
-          <!-- 有进度数据：显示进度条（包含凡人 -> 引气入体） -->
-          <div v-if="isRealmProgressAvailable" class="realm-progress">
-            <div class="progress-bar">
-              <div
-                class="progress-fill cultivation"
-                :class="getRealmProgressClass()"
-                :style="{ width: realmProgressPercent + '%' }"
-              ></div>
-            </div>
-            <span class="progress-text" :class="getRealmProgressClass()">
-              {{ realmProgressPercent }}%
-              <span v-if="realmProgressPercent >= 100" class="breakthrough-hint">可突破!</span>
-              <span v-else-if="realmProgressPercent >= 90" class="sprint-hint">可冲刺</span>
-            </span>
-          </div>
-          <!-- 无进度数据：显示等待提示 -->
-          <div v-else class="realm-mortal">
-            <span class="mortal-text">{{ realmWaitingText }}</span>
+            <span v-if="((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界)?.描述" class="realm-breakthrough">{{ ((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界)?.描述 }}</span>
           </div>
         </div>
 
@@ -208,14 +189,12 @@ import { useUIStore } from '@/stores/uiStore';
 import type { StatusEffect } from '@/types/game.d.ts';
 import type { Realm } from '@/types/game';
 
-/** 地位（Realm）显示：名称·阶段 或仅名称 */
+/** 地位（Realm）显示：名称 */
 function formatStatusDisplay(realm: Realm | unknown): string {
   if (!realm || typeof realm !== 'object') return '';
   const r = realm as Record<string, unknown>;
   const name = (r.名称 as string)?.trim?.();
-  const stage = (r.阶段 as string)?.trim?.();
   if (!name) return '';
-  if (stage) return `${name}·${stage}`;
   return name;
 }
 import { calculateAgeFromBirthdate } from '@/utils/lifespanCalculator';
@@ -280,37 +259,6 @@ const formatTimeDisplay = (time: string | undefined): string => {
 };
 
 
-
-// 计算百分比的工具方法
-const realmProgressPercent = computed(() => {
-  const realm = (gameStateStore.attributes as any)?.地位 ?? (gameStateStore.attributes as any)?.境界;
-  if (!realm) return 0;
-  const progress = realm.当前进度;
-  const maxProgress = realm.下一级所需;
-  if (!maxProgress || maxProgress <= 0) return 0;
-  return Math.max(0, Math.min(100, Math.round((progress / maxProgress) * 100)));
-});
-
-const isRealmProgressAvailable = computed(() => {
-  const realm = (gameStateStore.attributes as any)?.地位 ?? (gameStateStore.attributes as any)?.境界;
-  const maxProgress = realm?.下一级所需;
-  return typeof maxProgress === 'number' && maxProgress > 0;
-});
-
-const realmWaitingText = computed(() => {
-  const realm = (playerStatus.value as any)?.地位 ?? (playerStatus.value as any)?.境界;
-  const desc = realm?.突破描述;
-  if (desc) return `${t('等待仙缘')} · ${desc}`;
-  return t('等待仙缘');
-});
-
-// 根据进度百分比返回CSS类名
-const getRealmProgressClass = (): string => {
-  const percent = realmProgressPercent.value;
-  if (percent >= 100) return 'realm-breakthrough';  // 红色 - 可突破
-  if (percent >= 90) return 'realm-sprint';         // 黄色 - 可冲刺
-  return '';                                         // 紫色 - 默认
-};
 
 // 体力/精力 兼容 气血/灵气
 const playerVitals = computed(() => {
@@ -401,7 +349,7 @@ const showStatusDetail = (effect: StatusEffect) => {
 
 const formatRealmDisplay = (realm?: unknown): string => {
   const text = formatStatusDisplay(realm);
-  return text || t('凡人');
+  return text || t('还未揭露');
 };
 
 // 获取声望显示文本

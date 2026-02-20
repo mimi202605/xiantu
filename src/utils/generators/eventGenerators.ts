@@ -95,8 +95,9 @@ export async function generateSpecialNpcEvent(args: {
       anySave?.角色?.名字 ||
       '无名修士';
 
-    const realmName = anySave?.角色?.属性?.境界?.名称 || '凡人';
-    const realmStage = anySave?.角色?.属性?.境界?.阶段 || '';
+    const realmObj = anySave?.角色?.属性?.地位 ?? anySave?.角色?.属性?.境界;
+    const realmName = (typeof realmObj === 'object' ? realmObj?.名称 : realmObj) || '还未揭露';
+    const realmStage = '';
     const locationDesc = String(anySave?.角色?.位置?.描述 || '未知');
     const worldInfo = (anySave?.世界?.信息 ?? null) as WorldInfo | null;
 
@@ -199,20 +200,25 @@ export async function generateWorldEvent(args: {
       (saveData as any)?.角色?.名字 ||
       '无名修士';
 
-    const realmName = (saveData as any)?.角色?.属性?.境界?.名称 || '凡人';
-    const realmStage = (saveData as any)?.角色?.属性?.境界?.阶段 || '';
+    const realmObj2 = (saveData as any)?.角色?.属性?.地位 ?? (saveData as any)?.角色?.属性?.境界;
+    const realmName = (typeof realmObj2 === 'object' ? realmObj2?.名称 : realmObj2) || '还未揭露';
+    const realmStage = '';
     const locationDesc = (saveData as any)?.角色?.位置?.描述 || '未知';
     const reputation = Number((saveData as any)?.角色?.属性?.声望 ?? 0);
 
     const relations = (saveData as any)?.社交?.关系 || {};
     const relationList = Object.values(relations)
       .filter((n: any) => n && typeof n === 'object')
-      .map((n: any) => ({
-        名字: String(n.名字 || ''),
-        与玩家关系: String(n.与玩家关系 || ''),
-        好感度: Number(n.好感度 ?? 0),
-        境界: n.境界 ? `${n.境界.名称 || ''}${n.境界.阶段 ? '-' + n.境界.阶段 : ''}` : '',
-      }))
+      .map((n: any) => {
+        const npcRealm = n.地位 ?? n.境界;
+        const npcRealmStr = npcRealm ? (typeof npcRealm === 'object' ? (npcRealm.名称 || '') : String(npcRealm)) : '';
+        return {
+          名字: String(n.名字 || ''),
+          与玩家关系: String(n.与玩家关系 || ''),
+          好感度: Number(n.好感度 ?? 0),
+          境界: npcRealmStr,
+        };
+      })
       .filter((n: any) => n.名字)
       .sort((a: any, b: any) => b.好感度 - a.好感度)
       .slice(0, 6);

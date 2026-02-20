@@ -57,7 +57,7 @@
                 <div class="icon-box realm"><Mountain :size="18" /></div>
                 <div class="stat-info">
                   <span class="label">{{ t('地位') }}</span>
-                  <span class="value highlight">{{ formatRealmDisplay((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界) || t('凡人') }}</span>
+                  <span class="value highlight">{{ formatRealmDisplay((playerStatus as any)?.地位 ?? (playerStatus as any)?.境界) || t('还未揭露') }}</span>
                 </div>
               </div>
 
@@ -372,14 +372,12 @@ const calculateFinalAttributes = (_innate: any, _save: any): any => ({ 最终六
 import { calculateAgeFromBirthdate, type GameTime as LifespanGameTime } from '@/utils/lifespanCalculator';
 import type { Realm } from '@/types/game';
 
-/** 地位（Realm）显示：名称·阶段 或仅名称 */
+/** 地位（Realm）显示：名称 */
 function formatStatusDisplay(realm: Realm | unknown): string {
   if (!realm || typeof realm !== 'object') return '';
   const r = realm as Record<string, unknown>;
   const name = (r.名称 as string)?.trim?.();
-  const stage = (r.阶段 as string)?.trim?.();
   if (!name) return '';
-  if (stage) return `${name}·${stage}`;
   return name;
 }
 import { isTavernEnv } from '@/utils/tavern';
@@ -711,7 +709,7 @@ const getOriginModalContent = () => {
 
 const formatRealmDisplay = (realm?: unknown): string => {
   const text = formatStatusDisplay(realm);
-  return text || t('凡人');
+  return text || t('还未揭露');
 };
 
 const traitLabel = '特质';
@@ -831,39 +829,22 @@ const isAnimalStage = (realm?: string): boolean => {
 };
 
 const hasValidCultivation = (): boolean => {
-  const realm = (playerStatus.value as any)?.地位 ?? (playerStatus.value as any)?.境界;
-  if (!realm) return false;
-  if (isAnimalStage(realm.名称)) return false;
-  // 凡人境界不显示修为瓶颈
-  if (realm.名称 === '凡人') return false;
-  const max = Number(realm.下一级所需 ?? 0);
-  return max > 0;
+  return false;
 };
 
 const waitingStageText = computed(() => {
   const realm = (playerStatus.value as any)?.地位 ?? (playerStatus.value as any)?.境界;
-  const desc = realm?.突破描述;
-  if (desc) return `${t('等待仙缘')} · ${desc}`;
-  return t('等待仙缘');
+  const desc = typeof realm === 'object' ? realm?.描述 : '';
+  if (desc) return desc;
+  return '';
 });
 
 const getCultivationProgress = (): number => {
-  const realm = (playerStatus.value as any)?.地位 ?? (playerStatus.value as any)?.境界;
-  if (!realm) return 0;
-  const current = Number(realm.当前进度 ?? 0);
-  const max = Number(realm.下一级所需 ?? 0);
-  if (!max) return 0;
-  return Math.max(0, Math.min(100, Math.round((current / max) * 100)));
+  return 0;
 };
 
 const formatCultivationText = (): string => {
-  const realm = (playerStatus.value as any)?.地位 ?? (playerStatus.value as any)?.境界;
-  if (!realm) return '';
-  const current = Number(realm.当前进度 ?? 0);
-  const max = Number(realm.下一级所需 ?? 0);
-  const target = String(realm.突破描述 ?? t('下一步'));
-  if (!max) return target;
-  return `${current} / ${max} · ${target}`;
+  return '';
 };
 
 const getTalentTierName = (tier: TalentTier | string | undefined): string => {

@@ -117,12 +117,8 @@ export function getCotCorePrompt(userInput: string, enableActionOptions: boolean
 □ 灵石变化 → add \`角色.背包.灵石.下品/中品/上品/极品\`
 □ 物品增删 → push/delete \`角色.背包.物品\`
 
-### 修炼与突破
-□ 日常修炼 → add \`角色.属性.境界.当前进度\`
-□ 功法熟练 → add \`角色.背包.物品.[功法ID].修炼进度\`
-□ 悟道进展 → add \`角色.大道.大道列表.[道名].当前经验\`
-□ 小阶段突破 → set \`角色.属性.境界.阶段\`（初期→中期→后期→圆满→极境）
-□ 大境界突破 → set \`角色.属性.境界.名称\` + 更新属性上限
+### 地位变更
+□ 社会地位/职位变化 → set \`角色.属性.地位\` {名称, 描述}（如升职、换工作、身份揭露等）
 
 ### 渡劫系统（重要！）
 □ 渡劫开始 → push \`角色.效果\` 添加"渡劫中"状态
@@ -151,7 +147,7 @@ export function getCotCorePrompt(userInput: string, enableActionOptions: boolean
   - NPC气血变化 → add \`社交.关系.[NPC名].属性.气血.当前\`
   - NPC灵气变化 → add \`社交.关系.[NPC名].属性.灵气.当前\`
   - NPC神识变化 → add \`社交.关系.[NPC名].属性.神识.当前\`
-  - NPC境界突破 → set \`社交.关系.[NPC名].属性.境界.名称\` + 更新上限
+  - NPC地位变更 → set \`社交.关系.[NPC名].地位\` {名称, 描述}
   - NPC位置变化 → set \`社交.关系.[NPC名].位置\`
 □ 实时关注NPC → 若\`实时关注\`为true，即使不在身边也要更新其位置/状态/内心想法
 

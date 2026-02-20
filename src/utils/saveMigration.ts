@@ -347,6 +347,11 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       if (attrs.气血 != null) { attrs.体力 = attrs.体力 ?? attrs.气血; delete attrs.气血; }
       if (attrs.灵气 != null) { attrs.精力 = attrs.精力 ?? attrs.灵气; delete attrs.灵气; }
       if (attrs.神识 != null) { attrs.洞察力 = attrs.洞察力 ?? attrs.神识; delete attrs.神识; }
+      // Migrate old Realm structure to new { 名称, 描述 }
+      if (attrs.地位 && typeof attrs.地位 === 'object') {
+        const r = attrs.地位;
+        attrs.地位 = { 名称: r.名称 || '还未揭露', 描述: r.描述 ?? '' };
+      }
     };
     const normIdentity = (id: any) => {
       if (!id || typeof id !== 'object') return;
@@ -479,6 +484,9 @@ export function migrateSaveDataToLatest(raw: SaveData): { migrated: SaveDataV3; 
       }
       if (npc.灵根 != null) { npc.特质 = npc.特质 ?? npc.灵根; delete npc.灵根; }
       if (npc.境界 != null) { npc.地位 = npc.地位 ?? npc.境界; delete npc.境界; }
+      if (npc.地位 && typeof npc.地位 === 'object') {
+        npc.地位 = { 名称: npc.地位.名称 || '还未揭露', 描述: npc.地位.描述 ?? '' };
+      }
       if (npc.先天六司 != null) { npc.先天六维属性 = npc.先天六维属性 ?? npc.先天六司; delete npc.先天六司; }
       if (npc.后天六司 != null) { npc.后天六维属性 = npc.后天六维属性 ?? npc.后天六司; delete npc.后天六司; }
     }

@@ -246,7 +246,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
           ...slot,
           id: key,
           角色名字: slot.角色名字 || profile.角色?.名字 || '未知',
-          地位: slot.地位 || slot.存档数据?.属性?.地位?.名称 || '凡人',
+          地位: slot.地位 || slot.存档数据?.属性?.地位?.名称 || '还未揭露',
           位置: slot.位置 || slot.存档数据?.位置?.描述 || '未知',
           保存时间: slot.保存时间 || null,
           最后保存时间: slot.最后保存时间 ?? slot.保存时间 ?? null,
@@ -262,7 +262,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
           ...onlineSlot,
           id: '云端修行',
           角色名字: onlineSlot.角色名字 || profile.角色?.名字 || '未知',
-          地位: onlineSlot.地位 || onlineSlot.存档数据?.属性?.地位?.名称 || '凡人',
+          地位: onlineSlot.地位 || onlineSlot.存档数据?.属性?.地位?.名称 || '还未揭露',
           位置: onlineSlot.位置 || onlineSlot.存档数据?.位置?.描述 || '未知',
           保存时间: onlineSlot.保存时间 || null,
           最后保存时间: onlineSlot.最后保存时间 ?? onlineSlot.保存时间 ?? null,
@@ -384,13 +384,13 @@ export const useCharacterStore = defineStore('characterV3', () => {
       const playerLocation = (slot.存档数据 as any).角色?.位置 ?? null;
       if (playerAttributes) {
         // 地位统一为 Realm 对象
-        slot.地位 = playerAttributes.地位?.名称 || '凡人';
+        slot.地位 = playerAttributes.地位?.名称 || '还未揭露';
 
-        // 计算修为进度百分比（从地位的当前进度获取）
-        if (typeof playerAttributes.地位 === 'object' && playerAttributes.地位 !== null) {
+        // 修为进度已移除（地位不再有进度系统）
+        if (false) {
           const realm = playerAttributes.地位 as Realm;
-          if (realm.下一级所需 > 0) {
-            slot.修为进度 = Math.floor((realm.当前进度 / realm.下一级所需) * 100);
+          if ((realm as any).下一级所需 > 0) {
+            slot.修为进度 = Math.floor(((realm as any).当前进度 / (realm as any).下一级所需) * 100);
           }
         }
       }
@@ -570,7 +570,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
               保存时间: now,
               游戏内时间: '修仙元年 春',
               角色名字: authoritativeBaseInfo.名字,
-              地位: '凡人',
+              地位: '还未揭露',
               位置: '未知',
               修为进度: 0,
               存档数据: initialSaveData
@@ -594,7 +594,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
               保存时间: now,
               游戏内时间: '修仙元年 春',
               角色名字: authoritativeBaseInfo.名字,
-              地位: '凡人',
+              地位: '还未揭露',
               位置: '未知',
               修为进度: 0,
               存档数据: initialSaveData,
@@ -1240,7 +1240,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
       slot.保存时间 = new Date().toISOString();
       const playerAttributes = (currentSaveData as any).角色?.属性;
       const playerLocation = (currentSaveData as any).角色?.位置;
-      slot.地位 = playerAttributes?.地位?.名称 || '凡人';
+      slot.地位 = playerAttributes?.地位?.名称 || '还未揭露';
       slot.位置 = playerLocation?.描述 || '未知';
       if ((currentSaveData as any).元数据?.时间) {
         const time = (currentSaveData as any).元数据.时间;
@@ -1504,16 +1504,13 @@ export const useCharacterStore = defineStore('characterV3', () => {
         存档名: saveName,
         保存时间: now,
         角色名字: (currentSaveData as any).角色?.身份?.名字,
-        地位: playerAttributes?.地位?.名称 || '凡人',
+        地位: playerAttributes?.地位?.名称 || '还未揭露',
         位置: playerLocation?.描述 || '未知',
         // 深拷贝存档数据
         存档数据: JSON.parse(JSON.stringify(currentSaveData))
       };
 
-      // 计算修为进度
-      if (playerAttributes?.地位 && playerAttributes.地位.下一级所需 > 0) {
-        newSlot.修为进度 = Math.floor((playerAttributes.地位.当前进度 / playerAttributes.地位.下一级所需) * 100);
-      }
+      newSlot.修为进度 = 0;
 
       // 更新时间
       if ((currentSaveData as any).元数据?.时间) {
@@ -1615,16 +1612,13 @@ export const useCharacterStore = defineStore('characterV3', () => {
         保存时间: now,
         存档数据: currentSaveData,
         角色名字: (currentSaveData as any).角色?.身份?.名字,
-        地位: playerAttributes?.地位?.名称 || '凡人',
+        地位: playerAttributes?.地位?.名称 || '还未揭露',
         位置: playerLocation?.描述 || '未知',
         修为进度: 0,
         游戏内时间: undefined
       };
 
-      // 计算修为进度
-      if (playerAttributes?.地位 && playerAttributes.地位.下一级所需 > 0) {
-        newSlotData.修为进度 = Math.floor((playerAttributes.地位.当前进度 / playerAttributes.地位.下一级所需) * 100);
-      }
+      newSlotData.修为进度 = 0;
 
       // 更新时间
       if ((currentSaveData as any).元数据?.时间) {
@@ -1994,7 +1988,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
     // 🔥 修复：更新元数据
     const playerAttributes = (rolledBackData as any).角色?.属性;
     const playerLocation = (rolledBackData as any).角色?.位置;
-    activeSlot.地位 = playerAttributes?.地位?.名称 || '凡人';
+    activeSlot.地位 = playerAttributes?.地位?.名称 || '还未揭露';
     activeSlot.位置 = playerLocation?.描述 || '未知';
     if ((rolledBackData as any).元数据?.时间) {
       const time = (rolledBackData as any).元数据.时间;

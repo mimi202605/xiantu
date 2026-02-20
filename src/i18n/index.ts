@@ -337,7 +337,7 @@ const autoTranslateMap: Record<string, string> = {
   '请输入': 'Enter', '请选择': 'Select', '确定要': 'Confirm', '操作成功': 'Success', '操作失败': 'Failed',
   '保存成功': 'Saved', '保存失败': 'Save Failed', '删除成功': 'Deleted', '删除失败': 'Delete Failed',
   '加载失败': 'Load Failed', '网络错误': 'Network Error', '未知错误': 'Unknown Error',
-  '仙途': 'The Great Way', '天命': 'MING', '凡人': 'Mortal', '初始地': 'Starting Point',
+  '仙途': 'The Great Way', '天命': 'MING', '凡人': 'Mortal', '还未揭露': 'Not Yet Revealed', '初始地': 'Starting Point',
   '仙道': 'Immortal Dao', '年': 'Year', '月': 'Month', '日': 'Day', '元年': 'Year 1',
   '任务': 'Quests', '寻找机缘': 'Seek Opportunity', '推演中...': 'Generating...',
   '宗门': 'Sect', '奇遇': 'Adventure', '日常': 'Daily', '系统任务': 'System Quest',

@@ -171,11 +171,8 @@ export function calculateInitialAttributes(baseInfo: CharacterBaseInfo, age: num
 
   return {
     地位: {
-      名称: "凡人",
-      阶段: "",
-      当前进度: 0,
-      下一级所需: 100,
-      突破描述: "立足当下，步步为营"
+      名称: "还未揭露",
+      描述: ""
     },
     声望: 0,
     位置: { 描述: "位置生成失败" },
@@ -948,10 +945,7 @@ async function finalizeAndSyncData(saveData: SaveData, baseInfo: CharacterBaseIn
   const mergedStatus = aiRealm && typeof aiRealm === 'object'
     ? {
         名称: aiRealm.名称 || authoritativeStatus.地位!.名称,
-        阶段: aiRealm.阶段 !== undefined ? aiRealm.阶段 : authoritativeStatus.地位!.阶段,
-        当前进度: aiRealm.当前进度 !== undefined ? aiRealm.当前进度 : authoritativeStatus.地位!.当前进度,
-        下一级所需: aiRealm.下一级所需 !== undefined ? aiRealm.下一级所需 : authoritativeStatus.地位!.下一级所需,
-        突破描述: aiRealm.突破描述 || authoritativeStatus.地位!.突破描述
+        描述: aiRealm.描述 !== undefined ? aiRealm.描述 : (authoritativeStatus.地位!.描述 ?? '')
       }
     : authoritativeStatus.地位!;
 
@@ -1148,10 +1142,7 @@ export async function initializeCharacter(
     const mergedStatusStep3 = aiRealmStep3 && typeof aiRealmStep3 === 'object'
       ? {
           名称: aiRealmStep3.名称 || authoritativeStatus.地位!.名称,
-          阶段: aiRealmStep3.阶段 !== undefined ? aiRealmStep3.阶段 : authoritativeStatus.地位!.阶段,
-          当前进度: aiRealmStep3.当前进度 !== undefined ? aiRealmStep3.当前进度 : authoritativeStatus.地位!.当前进度,
-          下一级所需: aiRealmStep3.下一级所需 !== undefined ? aiRealmStep3.下一级所需 : authoritativeStatus.地位!.下一级所需,
-          突破描述: aiRealmStep3.突破描述 || authoritativeStatus.地位!.突破描述
+          描述: aiRealmStep3.描述 !== undefined ? aiRealmStep3.描述 : (authoritativeStatus.地位!.描述 ?? '')
         }
       : authoritativeStatus.地位!;
 

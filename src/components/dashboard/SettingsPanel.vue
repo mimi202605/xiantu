@@ -279,7 +279,7 @@
           <div class="setting-item">
             <div class="setting-info">
               <label class="setting-name">{{ t('新地点重点NPC生成数量') }}</label>
-              <span class="setting-desc">{{ t('到达新地点时，生成的重点NPC数量范围') }}</span>
+              <span class="setting-desc">{{ t('到达新地点时，生成的重点NPC数量范围；0-0 表示不生成重点NPC') }}</span>
               <span class="setting-hint">{{ t('默认: 0 - 1') }}</span>
             </div>
             <div class="setting-control" style="display: flex; gap: 0.5rem; align-items: center;">
@@ -556,7 +556,8 @@ function onImportantNpcGenerationMinInput(e: Event) {
 }
 
 function onImportantNpcGenerationMaxInput(e: Event) {
-  const v = Math.max(0, Math.min(10, Number((e.target as HTMLInputElement).value) || 1));
+  const raw = Number((e.target as HTMLInputElement).value);
+  const v = Math.max(0, Math.min(10, Number.isNaN(raw) ? 1 : raw));
   // 确保 max >= min
   if (v < importantNpcGenerationMin.value) {
     gameStateStore.updateState('systemConfig.importantNpcGenerationRange.min', v);

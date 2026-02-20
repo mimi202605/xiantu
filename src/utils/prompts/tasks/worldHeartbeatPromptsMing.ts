@@ -64,6 +64,9 @@ function npcFullBlock(npc: NpcProfile & Record<string, unknown>): string {
   const lines: string[] = [];
   lines.push(`### ${npc.名字}`);
   lines.push(`- 身份/出生：${npc.出生 ? (typeof npc.出生 === 'string' ? npc.出生 : (npc.出生 as any).描述 ?? (npc.出生 as any).名称 ?? '') : '未填'}`);
+  const realmField = (npc as any).地位 ?? (npc as any).境界;
+  const realmStr = realmField ? (typeof realmField === 'object' ? (realmField.名称 || '还未揭露') : realmField) : '还未揭露';
+  lines.push(`- 地位：${realmStr}`);
   lines.push(`- 外貌描述：${(npc.外貌描述 ?? (npc as any).外貌 ?? '').slice(0, 150)}${(npc.外貌描述?.length ?? 0) > 150 ? '…' : ''}`);
   const traits = Array.isArray(npc.性格特征) ? npc.性格特征.join('、') : (npc as any).性格 ?? '';
   if (traits) lines.push(`- 性格特征：${traits}`);

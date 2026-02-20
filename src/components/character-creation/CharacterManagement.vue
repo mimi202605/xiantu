@@ -564,14 +564,12 @@ import type { CharacterProfile, SaveSlot } from '@/types/game';
 import "@/style.css";
 import type { Realm } from '@/types/game';
 
-/** 地位（Realm）显示：名称·阶段 或仅名称，无则凡人 */
+/** 地位（Realm）显示：名称 */
 function formatStatusDisplay(realm: Realm | unknown): string {
   if (!realm || typeof realm !== 'object') return '';
   const r = realm as Record<string, unknown>;
   const name = (r.名称 as string)?.trim?.();
-  const stage = (r.阶段 as string)?.trim?.();
   if (!name) return '';
-  if (stage) return `${name}·${stage}`;
   return name;
 }
 import { toast } from '@/utils/toast';
@@ -982,10 +980,9 @@ const normalizeSaveDataV3 = (saveData: unknown): SaveDataV3 | null => {
   return (isSaveDataV3(raw) ? raw : migrateSaveDataToLatest(raw).migrated) as SaveDataV3;
 };
 
-// 地位显示：名称·阶段 或仅名称，无则显示凡人
 const getRealmName = (realm: unknown): string => {
   const text = formatStatusDisplay(realm);
-  return text || '凡人';
+  return text || '还未揭露';
 };
 
 // 格式化时间

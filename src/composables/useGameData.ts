@@ -94,7 +94,7 @@ export function useGameData() {
   /**
    * 当前境界
    */
-  const currentRealm = computed(() => gameState.attributes?.地位?.名称 || '凡人');
+  const currentRealm = computed(() => gameState.attributes?.地位?.名称 || '还未揭露');
 
   /**
    * 当前位置

@@ -147,10 +147,7 @@ function validateValueType(key: string, value: unknown, action: string): string[
       } else {
         const val = value as Record<string, any>;
         if (val.名称 !== undefined && typeof val.名称 !== 'string') errors.push('地位.名称必须是字符串类型');
-        if (val.阶段 !== undefined && typeof val.阶段 !== 'string') errors.push('地位.阶段必须是字符串类型');
-        if (val.当前进度 !== undefined && typeof val.当前进度 !== 'number') errors.push('地位.当前进度必须是数字类型');
-        if (val.下一级所需 !== undefined && typeof val.下一级所需 !== 'number') errors.push('地位.下一级所需必须是数字类型');
-        if (val.突破描述 !== undefined && typeof val.突破描述 !== 'string') errors.push('地位.突破描述必须是字符串类型');
+        if (val.描述 !== undefined && typeof val.描述 !== 'string') errors.push('地位.描述必须是字符串类型');
       }
     }
 
@@ -214,7 +211,7 @@ function validateValueType(key: string, value: unknown, action: string): string[
       } else {
         const val = value as Record<string, any>;
         if (val.名称 !== undefined && typeof val.名称 !== 'string') errors.push('NPC地位.名称必须是字符串类型');
-        if (val.阶段 !== undefined && typeof val.阶段 !== 'string') errors.push('NPC地位.阶段必须是字符串类型');
+        if (val.描述 !== undefined && typeof val.描述 !== 'string') errors.push('NPC地位.描述必须是字符串类型');
       }
     }
 

@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.89 (2026-02-19)
+
+- **地位系统重构**：地位由境界式五字段改为社会地位/职位（名称 + 描述）；默认「还未揭露」；AI 在角色初始化、新地点 NPC 生成、世界心跳等流程中生成与更新地位；Engram 实体推荐字段增加 social_status。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.88 (2026-02-17)
 
 - **Engram**：普通 NPC 不再写入实体/关系；新增 prune 逻辑，主回合写入后与 demote 后均排除普通 NPC 并同步修剪向量库；修复 demote 块内 characterStore 未定义错误。

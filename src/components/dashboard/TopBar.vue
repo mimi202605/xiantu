@@ -48,13 +48,11 @@ import { useGameStateStore } from '@/stores/gameStateStore'
 import { useI18n } from '@/i18n'
 import type { Realm } from '@/types/game'
 
-/** 将地位（Realm）格式化为简短显示，如 "筑基·圆满" 或仅 "凡人" */
+/** 将地位（Realm）格式化为简短显示 */
 function formatStatus(realm: Realm | undefined | null): string {
   if (!realm || typeof realm !== 'object') return ''
   const name = realm.名称?.trim()
-  const stage = realm.阶段?.trim()
   if (!name) return ''
-  if (stage) return `${name}·${stage}`
   return name
 }
 import { getFullscreenElement, requestFullscreen, exitFullscreen, explainFullscreenError } from '@/utils/fullscreen'
@@ -85,10 +83,10 @@ const characterName = computed(() => {
 const characterRealm = computed(() => {
   try {
     const text = formatStatus(gameStateStore.attributes?.地位)
-    return text || t('凡人')
+    return text || t('还未揭露')
   } catch (e) {
     console.error('[TopBar] Error getting characterRealm:', e)
-    return t('凡人')
+    return t('还未揭露')
   }
 })
 

@@ -1489,8 +1489,9 @@ const confirmEdit = async (field: string) => {
   } else if (field === '是否为处女') {
     await updateNpcField(field, value, '私密信息.是否为处女');
   } else if (field === '地位') {
-    // 地位 can be string or {名称, 阶段}
-    await updateNpcField(field, value);
+    const existing = (gameStateStore.relationships?.[getNpcStoreKey() ?? ''] as any)?.地位;
+    const desc = existing && typeof existing === 'object' ? (existing.描述 ?? '') : '';
+    await updateNpcField(field, { 名称: String(value), 描述: desc });
   } else if (field === '年龄') {
     const newAge = parseInt(String(value));
     if (Number.isFinite(newAge) && newAge >= 0) {
@@ -1885,7 +1886,7 @@ const generateNpcTemplate = (): NpcProfile => {
     出生: '普通人',
     外貌描述: '',
     性格特征: [],
-    地位: { 名称: '凡人', 阶段: '', 当前进度: 0, 下一级所需: 0, 突破描述: '' },
+    地位: { 名称: '还未揭露', 描述: '' },
     特质: '',
     先天六维属性: { 体质: 5, 直觉: 5, 悟性: 5, 气运: 5, 魅力: 5, 心性: 5 } as any,
     属性: {
@@ -2075,24 +2076,19 @@ const npcInnateAttrs = (npc: NpcProfile): Record<string, number> => {
   return raw && typeof raw === 'object' ? raw : {};
 };
 
-// 获取NPC地位信息（未生成时显示默认「凡人」）
 const getNpcRealm = (npc: NpcProfile): string => {
   const realmField = (npc as any).地位 ?? (npc as any).境界;
-  if (!realmField) return '凡人';
+  if (!realmField) return '还未揭露';
 
   if (typeof realmField === 'object' && realmField !== null) {
-    const name = realmField.名称 || '';
-    const stage = realmField.阶段 || '';
-    if (name) {
-      return stage ? `${name}${stage}` : name;
-    }
+    return realmField.名称 || '还未揭露';
   }
 
   if (typeof realmField === 'string') {
     return realmField;
   }
 
-  return '凡人';
+  return '还未揭露';
 };
 
 // 获取NPC特质信息
