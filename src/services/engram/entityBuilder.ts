@@ -75,6 +75,7 @@ export function buildEntitiesFromEvents(input: BuildEntitiesInput): MingEntityNo
 
   if (relationships && typeof relationships === 'object') {
     for (const [name, npc] of Object.entries(relationships)) {
+      if ((npc as any)?.类型 === '普通') continue;
       const npcName = normalizeName(name);
       if (!npcName) continue;
       upsertEntity(map, npcName, 'char', {

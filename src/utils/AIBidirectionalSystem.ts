@@ -43,6 +43,7 @@ import {
   mergeEntityVectors,
   loadEngramVectorStore,
   mergeEventVectors,
+  pruneEngramToImportantNpcs,
   readEngramMemoryFromSaveData,
   saveEngramVectorStore,
   trimEngramMemory,
@@ -51,6 +52,7 @@ import {
   upsertEngramRelations,
   writeEngramMemoryToSaveData,
 } from '@/services/engram';
+import { trimVectorStoreToMemory } from '@/services/engram/vectorRepository';
 import type { LocationEntry, NpcProfile, ImplicitMidTermEntry } from '@/types/game';
 
 type PlainObject = Record<string, unknown>;
@@ -2049,6 +2051,9 @@ ${step1Text}
           nextEngram = upsertEngramRelations(nextEngram, extractedRelations);
         }
 
+        // [Engram] 仅保留 重点 NPC 的实体与关系；普通 NPC 排除并清理（含 demote 后）
+        nextEngram = pruneEngramToImportantNpcs(nextEngram, (saveData as any)?.社交?.关系);
+
         // [Engram] trim policy（仅在启用时生效）
         nextEngram = trimEngramMemory(nextEngram, engramConfig.trim);
 
@@ -2140,7 +2145,8 @@ ${step1Text}
 
               const currentVectorStore = await loadEngramVectorStore(vectorContext);
               const withEventVectors = mergeEventVectors(currentVectorStore, eventVectorPairs, embedded.modelUsed);
-              const nextVectorStore = mergeEntityVectors(withEventVectors, entityVectorPairs, embedded.modelUsed);
+              let nextVectorStore = mergeEntityVectors(withEventVectors, entityVectorPairs, embedded.modelUsed);
+              nextVectorStore = trimVectorStoreToMemory(nextVectorStore, nextEngram);
               await saveEngramVectorStore(vectorContext, nextVectorStore);
               changes.push({
                 key: '系统.扩展.engramMemory.meta.vectorizedEvents',
@@ -2424,6 +2430,24 @@ ${step1Text}
     if (!isInitialization) {
       const { runNpcMaintenance } = await import('@/services/worldHeartbeatService');
       runNpcMaintenance(saveData as SaveData);
+      // [Engram] demote 后从记忆中移除该 NPC 的实体与关系，并同步修剪向量库
+      const engramAfterDemote = readEngramMemoryFromSaveData(saveData as Record<string, unknown>);
+      const prunedEngram = pruneEngramToImportantNpcs(engramAfterDemote, (saveData as any)?.社交?.关系);
+      if (prunedEngram.entities.length !== engramAfterDemote.entities.length || prunedEngram.relations.length !== engramAfterDemote.relations.length) {
+        writeEngramMemoryToSaveData(saveData as Record<string, unknown>, prunedEngram);
+        const characterStore = useCharacterStore();
+        const activeSave = characterStore.rootState?.当前激活存档;
+        if (activeSave?.角色ID && activeSave?.存档槽位) {
+          try {
+            const vectorContext = { characterId: activeSave.角色ID, slotId: activeSave.存档槽位 };
+            const currentStore = await loadEngramVectorStore(vectorContext);
+            const trimmedStore = trimVectorStoreToMemory(currentStore, prunedEngram);
+            await saveEngramVectorStore(vectorContext, trimmedStore);
+          } catch (e) {
+            console.warn('[AI双向系统] demote 后修剪 Engram 向量库失败（已忽略）', e);
+          }
+        }
+      }
     }
 
     if (!isInitialization) {

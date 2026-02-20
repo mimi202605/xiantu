@@ -89,6 +89,7 @@ export function buildRelationsFromEvents(input: BuildRelationsInput): MingEntity
   const socialRelations = save?.社交?.关系 || {};
   if (socialRelations && typeof socialRelations === 'object' && playerId) {
     for (const [npcName, npc] of Object.entries(socialRelations)) {
+      if ((npc as any)?.类型 === '普通') continue;
       const npcId = nameToId.get(clean(npcName));
       if (!npcId) continue;
       const rel = clean((npc as any)?.与玩家关系) || 'related_to';

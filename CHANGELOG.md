@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.88 (2026-02-17)
+
+- **Engram**：普通 NPC 不再写入实体/关系；新增 prune 逻辑，主回合写入后与 demote 后均排除普通 NPC 并同步修剪向量库；修复 demote 块内 characterStore 未定义错误。
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.87 (2026-02-17)
 
 - **记忆中心**：已发送信息按回合唯一，同一回合重发时覆盖该回合记录，不再追加重复条（roundIndex + appendSentMessage 覆盖逻辑）。  

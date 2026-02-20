@@ -4,6 +4,27 @@
 
 ---
 
+## [0.2.88] - 2026-02-17
+
+### Engram：普通 NPC 排除、demote 时清理实体与关系
+
+- **仅重点 NPC 进入记忆**
+  - `entityBuilder`：从 `社交.关系` 建实体时跳过 `类型 === '普通'` 的 NPC，不再为其创建 entity。
+  - `relationBuilder`：从 `社交.关系` 建与玩家关系时同样跳过普通 NPC。事件中的 role/location/concept 仍可入实体，但由 prune 按当前 社交.关系 过滤。
+
+- **Pruning 与 demote 清理**
+  - `memoryRepository`：新增 `pruneEngramToImportantNpcs(memory, 社交关系)`，从 entities 中移除 `type === 'char'` 且名字属于当前 普通 NPC 的实体，并移除涉及这些 id 的 relations；不修改 events。
+  - **主回合写入后**：在 upsert entities/relations 之后、trim 之前执行 prune；写入向量后对 vector store 执行 `trimVectorStoreToMemory(store, nextEngram)`，移除被 prune 掉的实体对应向量。
+  - **NPC 维护（demote）后**：`runNpcMaintenance` 将不活跃重点 NPC 设为 `类型 = '普通'` 后，对 engram 执行 prune 并写回存档，同步修剪向量库（与回退时逻辑一致）；修复 demote 块内未定义 `characterStore` 的 ReferenceError（改为在块内 `useCharacterStore()`）。
+
+- **涉及文件**
+  - `src/services/engram/entityBuilder.ts`
+  - `src/services/engram/relationBuilder.ts`
+  - `src/services/engram/memoryRepository.ts`
+  - `src/utils/AIBidirectionalSystem.ts`
+
+---
+
 ## [0.2.87] - 2026-02-17
 
 ### 记忆中心：已发送信息按回合唯一、重发覆盖

@@ -125,6 +125,51 @@ export const patchEngramMeta = (
   },
 });
 
+/**
+ * 将普通 NPC 排除出 Engram：仅保留 重点 NPC 对应的实体与关系；demote 后调用即可清理。
+ * 不修改 events；仅过滤 entities 与 relations。
+ */
+export function pruneEngramToImportantNpcs(
+  memory: MingEngramMemory,
+  社交关系: Record<string, { 类型?: string; 名字?: string }> | null | undefined,
+): MingEngramMemory {
+  if (!社交关系 || typeof 社交关系 !== 'object') return memory;
+
+  const 普通Names = new Set<string>();
+  for (const [key, npc] of Object.entries(社交关系)) {
+    if ((npc as any)?.类型 !== '普通') continue;
+    const k = typeof key === 'string' ? key.trim() : '';
+    if (k) 普通Names.add(k);
+    const 名字 = (npc as any)?.名字;
+    if (typeof 名字 === 'string' && 名字.trim()) 普通Names.add(名字.trim());
+  }
+  if (普通Names.size === 0) return memory;
+
+  const isOrdinaryNpc = (entity: MingEntityNode): boolean => {
+    if ((entity as any)?.type !== 'char') return false;
+    const name = typeof (entity as any).name === 'string' ? (entity as any).name.trim() : '';
+    return name.length > 0 && 普通Names.has(name);
+  };
+
+  const toRemoveIds = new Set(
+    memory.entities.filter(isOrdinaryNpc).map((e) => e.id).filter(Boolean),
+  );
+  const nextEntities = memory.entities.filter((e) => !toRemoveIds.has(e.id));
+  const nextRelations = memory.relations.filter(
+    (r) => !toRemoveIds.has((r as any).from_id) && !toRemoveIds.has((r as any).to_id),
+  );
+
+  if (nextEntities.length === memory.entities.length && nextRelations.length === memory.relations.length) {
+    return memory;
+  }
+
+  return {
+    ...memory,
+    entities: nextEntities,
+    relations: nextRelations,
+  };
+}
+
 const estimateEventTokens = (event: MingEventNode): number => {
   const summary = typeof event.summary === 'string' ? event.summary : '';
   return Math.max(4, Math.ceil(summary.length / 4));
