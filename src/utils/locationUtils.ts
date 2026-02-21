@@ -2,22 +2,45 @@
  * @fileoverview
  * 地图与地点相关工具函数。
  * 地点信息为**扁平数组**，通过 `上级` 建树（见 map-test-data-locations.md）；无嵌套结构。
+ * 地点名称在比较与去重时统一做引号规范化，避免中文「""」与英文「"」被当作不同地点。
  */
 
 import type { LocationEntry } from '@/types/game';
 import { useGameStateStore } from '@/stores/gameStateStore';
 
+/** 中文/英文/全角等引号统一为 ASCII，便于地点名比较与去重 */
+const QUOTE_NORMALIZE_REGEX = /[\u201C\u201D\u2018\u2019\uFF02\uFF07]/g;
+const QUOTE_MAP: Record<string, string> = {
+  '\u201C': '"', // "
+  '\u201D': '"', // "
+  '\u2018': "'", // '
+  '\u2019': "'", // '
+  '\uFF02': '"', // ＂ 全角双引号
+  '\uFF07': "'", // ＇ 全角单引号
+};
+
 /**
- * 在扁平地点数组中按 名称 查找。
+ * 规范化地点名称中的引号（中文双引号/单引号、全角与英文统一），用于比较与去重。
+ */
+export function normalizeLocationName(name: string): string {
+  if (typeof name !== 'string') return '';
+  return name.replace(QUOTE_NORMALIZE_REGEX, (c) => QUOTE_MAP[c] ?? c);
+}
+
+/**
+ * 在扁平地点数组中按 名称 查找（比较时使用规范化名称，避免引号差异导致重复）。
  */
 export function findLocationInTree(
   entries: (LocationEntry | unknown)[] | undefined,
   locationName: string
 ): (LocationEntry & { 地点NPC?: string[] }) | null {
   if (!Array.isArray(entries)) return null;
-  const found = entries.find(
-    (e) => e && typeof e === 'object' && (e as LocationEntry).名称 === locationName
-  );
+  const norm = normalizeLocationName(locationName);
+  const found = entries.find((e) => {
+    if (!e || typeof e !== 'object') return false;
+    const n = (e as LocationEntry).名称;
+    return typeof n === 'string' && normalizeLocationName(n) === norm;
+  });
   return found != null ? (found as LocationEntry & { 地点NPC?: string[] }) : null;
 }
 
@@ -67,16 +90,17 @@ export function getNpcsAtLocation(
     return 地点NPC;
   }
 
-  // 2. 回退：从 社交.关系 按 当前位置.描述 **完全相等** 匹配
+  // 2. 回退：从 社交.关系 按 当前位置.描述 匹配（地点名做引号规范化后比较）
   const 关系 = (saveData?.社交 as Record<string, unknown>)?.关系 as Record<string, unknown> | undefined;
   if (!关系 || typeof 关系 !== 'object') return [];
 
+  const normLoc = normalizeLocationName(locationDesc);
   const result: string[] = [];
   for (const [name, npc] of Object.entries(关系)) {
     const 当前位置 = (npc as Record<string, unknown>)?.当前位置 as Record<string, unknown> | undefined;
     const descStr = 当前位置?.描述;
     if (typeof descStr !== 'string') continue;
-    if (descStr === locationDesc) result.push(name);
+    if (normalizeLocationName(descStr) === normLoc) result.push(name);
   }
 
   // 3. 若回退找到 NPC 且地点在树中存在，更新该地点的 地点NPC 到 store
@@ -173,8 +197,9 @@ export function removeNpcFromOtherLocations(
   const 地点信息 = (saveData?.世界 as Record<string, unknown>)?.信息 as Record<string, unknown> | undefined;
   const entries = 地点信息?.地点信息 as (LocationEntry & { 地点NPC?: string[] })[] | undefined;
 
+  const normKeep = normalizeLocationName(keepAtLocationName);
   forEachLocationInTree(entries, (loc) => {
-    if (loc.名称 === keepAtLocationName) return;
+    if (normalizeLocationName(loc.名称) === normKeep) return;
     if (!Array.isArray(loc.地点NPC)) return;
     const before = loc.地点NPC.length;
     loc.地点NPC = loc.地点NPC.filter((n) => n !== npcName);
@@ -218,15 +243,17 @@ export function ensureLocationExists(
     const fullPath = parts.slice(0, i + 1).join('·');
     let found = findLocationInTree(entries, fullPath);
     if (!found) {
+      const canonicalName = normalizeLocationName(fullPath);
+      const canonicalParent = parentFullPath != null ? normalizeLocationName(parentFullPath) : undefined;
       const newLoc: LocationEntry & { 地点NPC?: string[] } = {
-        名称: fullPath,
-        ...(parentFullPath != null ? { 上级: parentFullPath } : {}),
+        名称: canonicalName,
+        ...(canonicalParent != null ? { 上级: canonicalParent } : {}),
         地点NPC: [],
       };
       entries.push(newLoc);
       found = newLoc;
     }
-    parentFullPath = fullPath;
+    parentFullPath = found.名称;
     lastLoc = found;
   }
 
@@ -279,20 +306,22 @@ export function calibrateNpcLocationSync(saveData: Record<string, unknown>): voi
     appendNpcsToLocation(saveData, locDesc, [npcName]);
   }
 
-  // 2. 地点去重：仅修改 地点NPC（API 可能只在多处写了 地点NPC，未写 关系）
+  // 2. 地点去重：仅修改 地点NPC（按规范化名称视为同一地点，保留首次出现的地点）
   const npcFirstLocation = new Map<string, string>();
   forEachLocationInTree(entries, (loc) => {
     if (!Array.isArray(loc.地点NPC)) return;
+    const normName = normalizeLocationName(loc.名称);
     for (const npcName of loc.地点NPC) {
-      if (!npcFirstLocation.has(npcName)) npcFirstLocation.set(npcName, loc.名称);
+      if (!npcFirstLocation.has(npcName)) npcFirstLocation.set(npcName, normName);
     }
   });
   forEachLocationInTree(entries, (loc) => {
     if (!Array.isArray(loc.地点NPC)) return;
-    loc.地点NPC = loc.地点NPC.filter((n) => npcFirstLocation.get(n) === loc.名称);
+    const normName = normalizeLocationName(loc.名称);
+    loc.地点NPC = loc.地点NPC.filter((n) => npcFirstLocation.get(n) === normName);
   });
 
-  // 3. 地点 → 关系：补全/修正 关系[npc].当前位置（仅在此步写 关系）
+  // 3. 地点 → 关系：补全/修正 关系[npc].当前位置（统一写入规范化后的地点名）
   forEachLocationInTree(entries, (loc) => {
     const locName = loc.名称;
     if (!Array.isArray(loc.地点NPC)) return;
@@ -300,7 +329,8 @@ export function calibrateNpcLocationSync(saveData: Record<string, unknown>): voi
       const npc = 关系[npcName];
       if (!npc || typeof npc !== 'object') continue;
       const current = npc.当前位置;
-      if (!current || typeof current !== 'object' || current.描述 !== locName) {
+      const currentDesc = current?.描述;
+      if (!current || typeof current !== 'object' || normalizeLocationName(currentDesc) !== normalizeLocationName(locName)) {
         (npc as { 当前位置: { 描述: string } }).当前位置 = { 描述: locName };
       }
     }

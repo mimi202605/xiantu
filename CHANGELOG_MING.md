@@ -4,6 +4,32 @@
 
 ---
 
+## [0.2.92] - 2026-02-19
+
+### 地点名称引号规范化与「修复存档」
+
+- **地点名称规范化**（`locationUtils.ts`）
+  - `normalizeLocationName`：中文双/单引号（U+201C/U+201D/U+2018/U+2019）、全角引号（U+FF02/U+FF07）统一为 ASCII，便于比较与去重。
+  - `findLocationInTree`、`getNpcsAtLocation`、`ensureLocationExists`、`removeNpcFromOtherLocations`、`calibrateNpcLocationSync` 均按规范化名称比较或写入。
+
+- **dataRepair 地点合并**
+  - 合并规则：地点NPC 取并集；描述一空一不空取不空、两不空取更长；上级取先非空；保留已有 `世界.信息` 引用避免误清空。
+  - 校准前对 `世界.信息.地点信息` 做引号规范化并合并同名（规范化后）条目。
+
+- **AIBidirectionalSystem**
+  - push `世界.信息.地点信息` 时规范化名称/上级并去重；push `世界.状态.探索记录`、set `角色.位置` 时使用规范化名称。
+
+- **保存页「修复存档」**
+  - SavePanel 新增「修复存档」按钮（地点引号合并、数据校准）。
+  - 解析当前存档：优先 `当前激活存档`；若未设置但游戏已加载则用 `gameStateStore.activeCharacterId/activeSlotId` 补全；槽位按 key 或 存档名 回退查找。
+  - 修复后调用 `gameStateStore.loadFromSaveData(repaired)` 再 `saveCurrentGame()`，确保写入 IndexedDB 的为合并后数据（因保存使用 `gameStateStore.toSaveData()`）。
+
+- **gameStateStore**
+  - 新增 `activeCharacterId`、`activeSlotId`；`loadFromSaveData(saveData, options?)` 可传入并记录，供存档面板等使用。
+  - `characterStore.loadGame` 调用时传入 `{ characterId, slotId }`。
+
+---
+
 ## [1.0.6] - 2026-02-19
 
 ### 版本号

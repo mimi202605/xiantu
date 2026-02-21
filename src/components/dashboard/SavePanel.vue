@@ -267,6 +267,19 @@
           </button>
 
           <button
+            class="operation-btn"
+            v-if="!isOnlineMode"
+            @click="repairCurrentSave"
+            :disabled="loading || (!currentSave && !gameStateStore.isGameLoaded)"
+          >
+            <RefreshCw :size="16" />
+            <div class="btn-content">
+              <span class="btn-title">修复存档</span>
+              <span class="btn-desc">修复当前存档（地点引号合并、数据校准）</span>
+            </div>
+          </button>
+
+          <button
             class="operation-btn danger"
             v-if="!isOnlineMode"
             @click="clearAllSaves"
@@ -340,6 +353,7 @@ import type { SaveSlot } from '@/types/game';
 import { createDadBundle, unwrapDadBundle } from '@/utils/dadBundle';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
+import { repairSaveData } from '@/utils/dataRepair';
 
 const { t } = useI18n();
 
@@ -480,6 +494,68 @@ const refreshSaves = async () => {
   } catch (error) {
     debug.error('存档面板', '刷新失败', error);
     toast.error('刷新存档列表失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 解析当前应修复的存档：优先 当前激活存档，若未设置但游戏已加载则用 gameStateStore 记录的 characterId/slotId
+function resolveActiveSaveForRepair(): { active: { 角色ID: string; 存档槽位: string }; slot: SaveSlot | null } | null {
+  let active = characterStore.rootState.当前激活存档;
+  if (!active && gameStateStore.isGameLoaded && gameStateStore.activeCharacterId && gameStateStore.activeSlotId) {
+    characterStore.rootState.当前激活存档 = {
+      角色ID: gameStateStore.activeCharacterId,
+      存档槽位: gameStateStore.activeSlotId,
+    };
+    active = characterStore.rootState.当前激活存档;
+  }
+  if (!active) return null;
+  const profile = characterStore.rootState.角色列表[active.角色ID];
+  if (!profile?.存档列表) return { active, slot: null };
+  let slot: SaveSlot | null = profile.存档列表[active.存档槽位] ?? null;
+  if (!slot) {
+    const entry = Object.entries(profile.存档列表).find(
+      ([k, s]) => k === active!.存档槽位 || (s as SaveSlot)?.存档名 === active!.存档槽位
+    );
+    slot = entry ? (entry[1] as SaveSlot) : null;
+  }
+  return { active, slot };
+}
+
+// 修复当前存档：地点引号规范化合并、NPC 校准等
+const repairCurrentSave = async () => {
+  const resolved = resolveActiveSaveForRepair();
+  if (!resolved) {
+    toast.warning('请先选择或加载一个存档');
+    return;
+  }
+  const { active, slot } = resolved;
+  if (!slot) {
+    toast.warning('未找到对应的存档槽位，请从存档列表选择当前在玩的存档并加载一次');
+    return;
+  }
+  loading.value = true;
+  try {
+    let data = slot.存档数据;
+    if (!data) {
+      data = await characterStore.loadSaveData(active.角色ID, active.存档槽位);
+      if (!data) {
+        toast.error('无法读取存档数据，请确认该存档存在');
+        return;
+      }
+    }
+    const repaired = repairSaveData(data);
+    await characterStore.updateSaveDataDirectly(repaired);
+    gameStateStore.loadFromSaveData(repaired, {
+      characterId: characterStore.rootState.当前激活存档?.角色ID ?? undefined,
+      slotId: characterStore.rootState.当前激活存档?.存档槽位 ?? undefined,
+    });
+    await characterStore.saveCurrentGame({ notifyIfNoActive: false });
+    await refreshSaves();
+    toast.success('存档修复完成（地点已合并、数据已校准）');
+  } catch (err) {
+    console.error('[修复存档] 失败', err);
+    toast.error('修复存档失败: ' + (err instanceof Error ? err.message : '未知错误'));
   } finally {
     loading.value = false;
   }

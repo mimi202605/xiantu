@@ -16,7 +16,7 @@ import { cloneDeep } from 'lodash';
 import { isSaveDataV3, migrateSaveDataToLatest } from '@/utils/saveMigration';
 import { DEFAULT_CURRENCY, normalizeCurrency } from '@/utils/currencyDefaults';
 import { validateSaveDataV3 } from '@/utils/saveValidationV3';
-import { calibrateNpcLocationSync } from '@/utils/locationUtils';
+import { calibrateNpcLocationSync, normalizeLocationName } from '@/utils/locationUtils';
 import { createEmptyEngramMemory, ensureEngramMemory } from '@/services/engram/memoryRepository';
 
 /**
@@ -228,12 +228,49 @@ export function repairSaveData(saveData: SaveData | null | undefined): SaveData 
       if (typeof 心跳.遗忘回合数 !== 'number' || 心跳.遗忘回合数 < 0) 心跳.遗忘回合数 = 10;
       if (!Array.isArray(心跳.历史)) 心跳.历史 = [];
     }
-    // 确保 世界.信息 及 地点信息 存在（不再使用大陆/势力）
-    if (!repaired.世界.信息 || typeof repaired.世界.信息 !== 'object') repaired.世界.信息 = {};
+    // 确保 世界.信息 及 地点信息 存在（保留已有对象引用，避免丢失 地点信息）
+    if (!repaired.世界.信息 || typeof repaired.世界.信息 !== 'object') {
+      repaired.世界.信息 = repaired.世界.信息 && typeof repaired.世界.信息 === 'object' ? repaired.世界.信息 : {};
+    }
     if (!Array.isArray(repaired.世界.信息.地点信息)) repaired.世界.信息.地点信息 = [];
     delete (repaired.世界.信息 as any).大陆信息;
     delete (repaired.世界.信息 as any).势力信息;
     delete (repaired.世界.信息 as any).continents;
+
+    // 地点名称引号规范化并合并重复（中文/英文引号视为同一地点）
+    // 合并规则：地点NPC 取并集；描述/上级 一空一不空取不空、两空保持、两不空取更长的描述、上级取先非空（规范化后一致）
+    const 地点列表 = repaired.世界.信息.地点信息 as Array<{ 名称?: string; 上级?: string; 描述?: string; 地点NPC?: string[] }>;
+    const seenByNorm = new Map<string, number>();
+    const merged: typeof 地点列表 = [];
+    for (const e of 地点列表) {
+      if (!e || typeof e !== 'object' || typeof e.名称 !== 'string') continue;
+      const norm = normalizeLocationName(e.名称);
+      const e上级 = e.上级 != null ? normalizeLocationName(String(e.上级)) : '';
+      const e描述 = typeof e.描述 === 'string' ? e.描述.trim() : '';
+      const idx = seenByNorm.get(norm);
+      if (idx !== undefined) {
+        const existing = merged[idx];
+        if (Array.isArray(e.地点NPC))
+          existing.地点NPC = [...new Set([...(existing.地点NPC || []), ...e.地点NPC])];
+        const ex描述 = typeof existing.描述 === 'string' ? existing.描述.trim() : '';
+        if (e描述) {
+          if (!ex描述) existing.描述 = e.描述;
+          else if (e描述.length > ex描述.length) existing.描述 = e.描述;
+        }
+        const ex上级 = existing.上级 != null ? String(existing.上级).trim() : '';
+        if (e上级 && !ex上级) existing.上级 = e上级;
+      } else {
+        seenByNorm.set(norm, merged.length);
+        merged.push({
+          ...e,
+          名称: norm,
+          上级: e上级 ? e上级 : (e.上级 != null ? normalizeLocationName(String(e.上级)) : undefined),
+          描述: e描述 ? e.描述 : e.描述,
+          地点NPC: Array.isArray(e.地点NPC) ? [...e.地点NPC] : [],
+        });
+      }
+    }
+    repaired.世界.信息.地点信息 = merged;
 
     // 校准 关系[npc].当前位置 与 世界.信息.地点信息[地点].地点NPC 双向一致
     try {

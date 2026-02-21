@@ -46,6 +46,10 @@ interface GameState {
   gameTime: GameTime | null;
   narrativeHistory: GameMessage[] | null;
   isGameLoaded: boolean;
+  /** 当前游戏对应的角色 ID（与 characterStore 当前激活存档一致，供存档面板等使用） */
+  activeCharacterId: string | null;
+  /** 当前游戏对应的存档槽位 key（与 characterStore 当前激活存档一致） */
+  activeSlotId: string | null;
 
   // [MING] 三千大道系统已移除
   // 事件系统
@@ -108,6 +112,8 @@ export const useGameStateStore = defineStore('gameState', {
     gameTime: null,
     narrativeHistory: [],
     isGameLoaded: false,
+    activeCharacterId: null,
+    activeSlotId: null,
 
     // 其他游戏系统
     eventSystem: {
@@ -204,9 +210,12 @@ export const useGameStateStore = defineStore('gameState', {
     /**
      * 从 SaveData 对象加载状态
      * @param saveData 完整的存档数据
+     * @param options 可选，传入时记录当前存档对应的角色与槽位（供存档面板「修复存档」等使用）
      */
-    loadFromSaveData(saveData: SaveData) {
+    loadFromSaveData(saveData: SaveData, options?: { characterId?: string; slotId?: string }) {
       const v3 = (isSaveDataV3(saveData) ? saveData : migrateSaveDataToLatest(saveData).migrated) as any;
+      if (options?.characterId != null) this.activeCharacterId = options.characterId;
+      if (options?.slotId != null) this.activeSlotId = options.slotId;
 
       const deepCopy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
@@ -644,6 +653,8 @@ export const useGameStateStore = defineStore('gameState', {
       this.gameTime = null;
       this.narrativeHistory = [];
       this.isGameLoaded = false;
+      this.activeCharacterId = null;
+      this.activeSlotId = null;
 
       // 重置其他系统数据
       this.eventSystem = {

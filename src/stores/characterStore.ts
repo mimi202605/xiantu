@@ -919,7 +919,7 @@ export const useCharacterStore = defineStore('characterV3', () => {
       if (targetSlot.存档数据) {
         const patched = isTavernEnv() ? (ensureSaveDataHasTavernNsfw(targetSlot.存档数据) as SaveData) : targetSlot.存档数据;
         targetSlot.存档数据 = patched;
-        gameStateStore.loadFromSaveData(patched);
+        gameStateStore.loadFromSaveData(patched, { characterId: charId, slotId: slotKey });
         debug.log('角色商店', '✅ 存档数据已加载到 gameStateStore');
 
         // [MING] 向量记忆服务已移除 - 使用简化的记忆系统

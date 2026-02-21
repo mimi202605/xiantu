@@ -29,7 +29,7 @@ import { stripNsfwContentMing } from '@/utils/prompts/definitions/ming/dataDefin
 import { isSaveDataV3, migrateSaveDataToLatest } from './saveMigration';
 import { mergeInto扩展 } from '@/services/gameStateIndexer';
 import { retrieve as memoryRetrieve } from '@/services/memoryRetrievalService';
-import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync } from '@/utils/locationUtils';
+import { getNpcsAtLocation, onPlayerLeaveLocation, appendNpcsToLocation, findLocationInTree, calibrateNpcLocationSync, normalizeLocationName } from '@/utils/locationUtils';
 import { buildLocationNpcGenerationPrompt } from '@/utils/prompts/tasks/locationNpcGenerationPromptsMing';
 import { getMidTermContent, formatMidTermEntryForPrompt } from '@/utils/memoryHelpers';
 import { aiService } from '@/services/aiService';
@@ -3132,21 +3132,29 @@ ${saveDataJson}`;
         }
         const oldLocForLeave = path === '角色.位置' ? (get(saveData, path) as { 描述?: string } | undefined) : undefined;
         const oldDescForLeave = oldLocForLeave?.描述;
-        set(saveData, path, value);
+        let valueToSet = value;
         if (path === '角色.位置' && value && typeof value === 'object') {
-          const newDesc = (value as { 描述?: string }).描述;
+          const desc = (value as { 描述?: string }).描述;
+          if (typeof desc === 'string' && desc.trim()) {
+            valueToSet = { ...(value as object), 描述: normalizeLocationName(desc) };
+          }
+        }
+        set(saveData, path, valueToSet);
+        if (path === '角色.位置' && valueToSet && typeof valueToSet === 'object') {
+          const newDesc = (valueToSet as { 描述?: string }).描述;
           if (typeof newDesc === 'string' && newDesc.trim()) {
             const 世界 = get(saveData, '世界', {}) as Record<string, unknown>;
             if (!世界.状态) 世界.状态 = {};
             const 状态 = 世界.状态 as Record<string, unknown>;
             const 探索记录 = Array.isArray(状态.探索记录) ? 状态.探索记录 : [];
-            if (!探索记录.includes(newDesc)) {
+            const already = 探索记录.some((s: string) => normalizeLocationName(s) === newDesc);
+            if (!already) {
               探索记录.push(newDesc);
               状态.探索记录 = 探索记录;
               set(saveData, '世界', 世界);
             }
           }
-          if (typeof oldDescForLeave === 'string' && oldDescForLeave.trim() && oldDescForLeave !== newDesc) {
+          if (typeof oldDescForLeave === 'string' && oldDescForLeave.trim() && normalizeLocationName(oldDescForLeave) !== newDesc) {
             onPlayerLeaveLocation(saveData as Record<string, unknown>, oldDescForLeave, newDesc);
           }
         }
@@ -3172,21 +3180,25 @@ ${saveDataJson}`;
       }
 
       case 'push': {
-        // 世界.状态.探索记录：需确保 世界.状态 存在；地点名称去重
+        // 世界.状态.探索记录：地点名引号规范化后去重，避免同一地点因引号不同重复
         const is探索记录 = path === '世界.状态.探索记录';
         if (is探索记录) {
           const 世界 = get(saveData, '世界', {}) as any;
           if (!世界.状态) 世界.状态 = {};
           const 探索记录 = Array.isArray(世界.状态.探索记录) ? 世界.状态.探索记录 : [];
           const locName = typeof value === 'string' ? value.trim() : null;
-          if (locName && !探索记录.includes(locName)) {
-            探索记录.push(locName);
-            世界.状态.探索记录 = 探索记录;
-            set(saveData, '世界', 世界);
+          if (locName) {
+            const normLoc = normalizeLocationName(locName);
+            const already = 探索记录.some((s: string) => normalizeLocationName(s) === normLoc);
+            if (!already) {
+              探索记录.push(normLoc);
+              世界.状态.探索记录 = 探索记录;
+              set(saveData, '世界', 世界);
+            }
           }
           break;
         }
-        // 世界.信息.地点信息：需确保 世界.信息 及 地点信息 存在，否则 get 返回默认 [] 导致写入失败
+        // 世界.信息.地点信息：规范化地点名引号并去重，避免中文/英文引号产生重复地点
         const is地点信息 = path === '世界.信息.地点信息';
         if (is地点信息) {
           const 世界 = get(saveData, '世界', {}) as any;
@@ -3194,9 +3206,19 @@ ${saveDataJson}`;
           if (!Array.isArray(世界.信息.地点信息)) 世界.信息.地点信息 = [];
           const valueToPush = value ?? null;
           if (valueToPush && typeof valueToPush === 'object') {
-            世界.信息.地点信息.push(valueToPush);
-            set(saveData, '世界', 世界);
-            console.log('[AI双向系统] push 世界.信息.地点信息 成功:', (valueToPush as any)?.名称);
+            const nameRaw = (valueToPush as any).名称;
+            const nameNorm = typeof nameRaw === 'string' ? normalizeLocationName(nameRaw) : '';
+            const existing = (世界.信息.地点信息 as any[]).some(
+              (e: any) => e && typeof e.名称 === 'string' && normalizeLocationName(e.名称) === nameNorm
+            );
+            if (nameNorm && !existing) {
+              (valueToPush as any).名称 = nameNorm;
+              if ((valueToPush as any).上级 != null)
+                (valueToPush as any).上级 = normalizeLocationName(String((valueToPush as any).上级));
+              世界.信息.地点信息.push(valueToPush);
+              set(saveData, '世界', 世界);
+              console.log('[AI双向系统] push 世界.信息.地点信息 成功:', nameNorm);
+            }
           }
           break;
         }
