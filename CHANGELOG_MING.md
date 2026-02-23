@@ -4,6 +4,16 @@
 
 ---
 
+## [0.2.93] - 2026-02-19
+
+### Prompt：禁止状态/过程作为地点
+
+- **角色.位置.描述** 与 **世界.信息.地点信息** 仅限真实物理场所；禁止将状态/过程类文案作为地点。
+- 禁止示例：「离开中」「前往中」「移动中」「路上」等；路径中不得出现连续分隔符「··」（如 `区域··离开中`）。
+- 约束写入：`dataDefinitionsMing.ts`（§1.3 位置、§5.2 地点信息）、`inlinePromptsMing.ts`、`businessRulesMing.ts`（位置更新规则与地点信息同步）、`locationNpcGenerationPromptsMing.ts`、`characterInitializationPromptsMing.ts`（开局地点）。
+
+---
+
 ## [0.2.92] - 2026-02-19
 
 ### 地点名称引号规范化与「修复存档」
