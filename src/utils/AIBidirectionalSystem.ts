@@ -1438,6 +1438,16 @@ ${step1Text}
         tavern_commands: [],
         action_options: ['重试当前操作', '查看自身状态', '稍作休息']
       };
+      // 不应用、不写入 embedding，直接返回供 UI 展示；避免失败回合污染状态与后续记忆
+      return gmResponse;
+    }
+
+    // 主回合响应结构校验：未通过则不应用指令、不写入 embedding，避免重试/失败回合污染状态与向量库
+    const { validateAIResponse } = await import('@/utils/aiResponseValidator');
+    const validation = validateAIResponse(gmResponse);
+    if (!validation.isValid) {
+      console.warn('[AI双向系统] 主回合响应结构校验未通过，跳过应用与 embedding:', validation.errors);
+      return gmResponse;
     }
 
     // 3. 执行AI指令

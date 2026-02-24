@@ -4,6 +4,18 @@
 
 ---
 
+## [0.2.94] - 2026-02-19
+
+### 主回合失败/重试不应用、不写 embedding
+
+- **问题**：主回合全部重试失败或 AI 抛错时，仍会执行 `processGmResponse`，导致失败回合的指令与 embedding 被写入，污染状态与后续记忆检索。
+- **修改**
+  - **AI 抛错**：`AIBidirectionalSystem.processPlayerAction` 的 catch 中设置 fallback 后立即 `return`，不再执行「执行AI指令」与 `processGmResponse`，不应用状态、不写 embedding。
+  - **应用前校验**：在执行 `processGmResponse` 前调用与 MainGamePanel 一致的响应结构校验（`validateAIResponse`）；未通过则只返回响应对象，不应用、不写 embedding，重试时仍基于未污染存档。
+- **共享校验**：新增 `utils/aiResponseValidator.ts`，主回合响应校验逻辑由 MainGamePanel 与 AIBidirectionalSystem 共用。
+
+---
+
 ## [0.2.93] - 2026-02-19
 
 ### Prompt：禁止状态/过程作为地点

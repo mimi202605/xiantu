@@ -344,6 +344,7 @@ import FormattedText from '@/components/common/FormattedText.vue';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import type {  CharacterProfile } from '@/types/game';
 import type { GM_Response } from '@/types/AIGameMaster'; // AIGameMaster.d.ts 仍然需要保留
+import { validateAIResponse } from '@/utils/aiResponseValidator';
 
 // 定义状态变更日志类型
 interface StateChangeLog {
@@ -993,54 +994,7 @@ const recentMemories = computed(() => {
   return [];
 });
 
-// AI响应结构验证
-const validateAIResponse = (response: unknown): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-
-  if (!response) {
-    errors.push('AI响应为空');
-    return { isValid: false, errors };
-  }
-
-  // 类型断言，确保response是对象
-  const resp = response as Record<string, unknown>;
-
-  // 检查基本结构
-  if (!resp.text || typeof resp.text !== 'string') {
-    errors.push('缺少有效的text字段');
-  }
-
-  // 检查mid_term_memory字段（必须）：可为字符串或隐性格式对象 { 相关角色, 事件时间, 记忆主体 }
-  const mid = resp.mid_term_memory;
-  if (mid == null) {
-    errors.push('缺少必要的mid_term_memory字段（中期记忆总结）');
-  } else if (typeof mid === 'string') {
-    if (mid.trim().length === 0) errors.push('mid_term_memory字段不能为空');
-  } else if (typeof mid === 'object' && typeof (mid as any).记忆主体 === 'string') {
-    if ((mid as any).记忆主体.trim().length === 0) errors.push('mid_term_memory.记忆主体不能为空');
-  } else {
-    errors.push('mid_term_memory须为字符串或隐性格式对象');
-  }
-
-  // 检查tavern_commands字段（可选）
-  if (resp.tavern_commands) {
-    if (!Array.isArray(resp.tavern_commands)) {
-      errors.push('tavern_commands字段必须是数组');
-    } else {
-      // 检查每个命令的基本结构
-      resp.tavern_commands.forEach((cmd: unknown, index: number) => {
-        const command = cmd as Record<string, unknown>;
-        if (!cmd || typeof cmd !== 'object') {
-          errors.push(`tavern_commands[${index}]不是有效对象`);
-        } else if (!command.action || !command.key) {
-          errors.push(`tavern_commands[${index}]缺少必要字段(action/key)`);
-        }
-      });
-    }
-  }
-
-  return { isValid: errors.length === 0, errors };
-};
+// AI 响应结构验证使用 @/utils/aiResponseValidator（见顶部 import）
 
 const isCanceledError = (error: unknown): boolean => {
   if (!error) return false;
