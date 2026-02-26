@@ -4,6 +4,16 @@
 
 ---
 
+## [0.2.95] - 2026-02-19
+
+### Prompt：禁止泛指/占位地点并统一地点规则
+
+- **地点名称**：禁止使用「国外」「某城市」「某地点」「某办公室」「某区域」等泛指或占位名称；`角色.位置.描述` 与 `世界.信息.地点信息[*].名称` 必须为**具体物理地点**（城市、街道、建筑、房间等）。
+- **地点信息描述**：push 到 `世界.信息.地点信息` 时，各级地点必须带 `描述`，不得只写 名称 + 上级；示例中的 S市/S市·上城区 等均补全为具体描述。
+- **规则覆盖范围**：约束写入 `dataDefinitionsMing.ts`（§1.3 位置、§3.2 NPC.当前位置、§5.2 地点信息）、`inlinePromptsMing.ts`（地点与探索）、`businessRulesMing.ts`（位置更新与地点信息同步）、`locationNpcGenerationPromptsMing.ts`（地点结构修正与路人生成）、`characterInitializationPromptsMing.ts`（开局地点）、`worldHeartbeatPromptsMing.ts`（NPC.当前位置）与 `cotCore.ts`（Ming 版 CoT 位置更新规则）。
+
+---
+
 ## [0.2.94] - 2026-02-19
 
 ### 主回合失败/重试不应用、不写 embedding

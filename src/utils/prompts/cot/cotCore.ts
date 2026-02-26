@@ -40,7 +40,7 @@ export function getCotCorePromptMing(userInput: string, enableActionOptions: boo
  ## 内部自检清单（不要写出来）
 
 ### 基础同步（V3短路径）- 必须全面更新！
-□ 位置变化 → set \`角色.位置\`
+□ 位置变化 → set \`角色.位置\`（描述须为**具体**地点名，禁止「国外」「某城市」「某地点」「某办公室」「某区域」等泛指/占位）
 □ 时间流逝 → add \`元数据.时间.分钟\`
 □ 金钱变化 → add \`角色.背包.金钱.现金/铜/银/金\`
 □ 物品增删 → push/delete \`角色.背包.物品\`
@@ -64,7 +64,7 @@ export function getCotCorePromptMing(userInput: string, enableActionOptions: boo
 □ NPC属性变化（重要！）：
   - NPC体力变化 → add \`社交.关系.[NPC名].属性.体力.当前\`
   - NPC精力变化 → add \`社交.关系.[NPC名].属性.精力.当前\`
-  - NPC位置变化 → set \`社交.关系.[NPC名].位置\`
+  - NPC位置变化 → set \`社交.关系.[NPC名].当前位置\`（描述须为**具体**地点名，禁止泛指/占位）
 □ 实时关注NPC → 若\`实时关注\`为true，即使不在身边也要更新其位置/状态/内心想法/在做事项
 
 ### 世界事件系统
