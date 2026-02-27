@@ -3,8 +3,8 @@
  *
  * 双模式架构：
  * 1. 酒馆模式（Tavern）:
- *    - 主API（main）: 永远通过酒馆TavernHelper调用，使用酒馆配置的API
- *    - 辅助功能（cot/text_optimization等）: 如果配置了独立API，则使用自定义API调用
+ *    - 任意功能（含main）: 若分配了独立API（非default），直接直连自定义API
+ *    - 未分配独立API（使用default）: 走酒馆TavernHelper，使用酒馆配置的API
  *
  * 2. 网页模式（Web/Custom）:
  *    - 所有功能都通过配置的自定义API调用
@@ -338,8 +338,8 @@ class AIService {
    * 标准生成（带角色卡、聊天历史）
    *
    * 酒馆端逻辑：
-   * - usageType='main' 或未指定 → 永远走酒馆TavernHelper
-   * - 其他usageType且配置了独立API → 走自定义API
+   * - 任意usageType（含main），若配置了独立API（非default）→ 走自定义API直连
+   * - 未配置独立API（使用default）→ 走酒馆TavernHelper
    *
    * 网页端逻辑：
    * - 根据usageType查找对应API配置
@@ -400,8 +400,8 @@ class AIService {
    * 纯净生成（不带角色卡）
    *
    * 酒馆端逻辑：
-   * - usageType='main' 或未指定 → 永远走酒馆TavernHelper
-   * - 其他usageType且配置了独立API → 走自定义API
+   * - 任意usageType（含main），若配置了独立API（非default）→ 走自定义API直连
+   * - 未配置独立API（使用default）→ 走酒馆TavernHelper
    *
    * 网页端逻辑：
    * - 根据usageType查找对应API配置

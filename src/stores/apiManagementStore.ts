@@ -2,7 +2,7 @@
  * API管理Store - 支持多个API配置
  *
  * 双模式架构：
- * - 酒馆端（Tavern）：主API（main）永远通过酒馆TavernHelper调用，辅助功能可配置独立API
+ * - 酒馆端（Tavern）：任意功能（含main）若分配了独立API则直连，否则走酒馆TavernHelper
  * - 网页端（Web）：所有功能都通过配置的自定义API调用
  */
 import { defineStore } from 'pinia';
@@ -69,7 +69,7 @@ export interface APIAssignment {
 
 /**
  * 运行模式
- * - tavern: 酒馆端，主API通过TavernHelper，辅助功能可用独立API
+ * - tavern: 酒馆端，未分配独立API的功能走TavernHelper，分配了独立API的功能直连
  * - web: 网页端，所有功能都通过自定义API
  */
 export type RunMode = 'tavern' | 'web';

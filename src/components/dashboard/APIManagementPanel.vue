@@ -125,9 +125,9 @@
           <div class="hint-icon">{{ isTavernEnvFlag ? '🍺' : '🌐' }}</div>
           <div class="hint-content" v-if="isTavernEnvFlag">
             <strong>酒馆模式：</strong>主游戏流程（main）<em>永远</em>使用酒馆配置的API。
-            辅助功能如需使用独立API，请在下方分配非"默认API"的配置。
+            所有功能均可分配独立API，分配后将绕过酒馆直连该API。
             <br/>
-            <span class="hint-example">提示：未配置独立API的辅助功能也会走酒馆API，实现请求合并。</span>
+            <span class="hint-example">提示：未配置独立API的功能会走酒馆API，实现请求合并。</span>
           </div>
           <div class="hint-content" v-else>
             <strong>网页模式：</strong>所有功能都通过配置的自定义API调用。
@@ -179,37 +179,26 @@
           </div>
 
           <!-- 1. 主游戏流程 -->
-          <div
-            class="setting-item"
-            :class="{ 'tavern-locked': isTavernEnvFlag && apiStore.apiAssignments.find(a => a.type === 'main') }"
-          >
+          <div class="setting-item">
             <div class="setting-info">
-              <label class="setting-name">
-                {{ getFunctionName('main') }}
-                <span v-if="isTavernEnvFlag" class="locked-badge">🔒 酒馆API</span>
-              </label>
+              <label class="setting-name">{{ getFunctionName('main') }}</label>
               <span class="setting-desc">{{ getFunctionDesc('main') }}</span>
             </div>
             <div class="setting-control">
-              <template v-if="isTavernEnvFlag">
-                <span class="locked-text">使用酒馆配置</span>
-              </template>
-              <template v-else>
-                <select
-                  :value="apiStore.apiAssignments.find(a => a.type === 'main')?.apiId"
-                  @change="updateAssignment('main', ($event.target as HTMLSelectElement).value)"
-                  class="setting-select"
+              <select
+                :value="apiStore.apiAssignments.find(a => a.type === 'main')?.apiId"
+                @change="updateAssignment('main', ($event.target as HTMLSelectElement).value)"
+                class="setting-select"
+              >
+                <option value="default">{{ isTavernEnvFlag ? '🍺 酒馆API' : t('使用主API') }}</option>
+                <option
+                  v-for="api in apiStore.enabledAPIs.filter(a => a.id !== 'default')"
+                  :key="api.id"
+                  :value="api.id"
                 >
-                  <option value="default">{{ t('使用主API') }}</option>
-                  <option
-                    v-for="api in apiStore.enabledAPIs.filter(a => a.id !== 'default')"
-                    :key="api.id"
-                    :value="api.id"
-                  >
-                    {{ getDisplayName(api) }}
-                  </option>
-                </select>
-              </template>
+                  {{ getDisplayName(api) }}
+                </option>
+              </select>
             </div>
           </div>
 
@@ -809,7 +798,7 @@ const getFunctionDesc = (type: APIUsageType): string => {
   if (isTavernEnvFlag.value) {
     // 酒馆模式的描述
     const descs: Record<APIUsageType, string> = {
-      main: '游戏主要交互（酒馆模式下永远使用酒馆API）',
+      main: '游戏主要交互（默认走酒馆API，可分配独立API绕过酒馆直连）',
       memory_summary: '压缩总结历史记忆，包括NPC记忆（可配置Raw/标准模式）',
       text_optimization: '优化AI输出文本（可配置Raw/标准模式）',
       cot: '思维链推理（启用后可配置独立API）',
