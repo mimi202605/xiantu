@@ -136,7 +136,7 @@
                       <Download :size="16" />
                     </button>
                     <button
-                      v-if="isTavernEnvFlag"
+                      v-if="hasNativeTavernFlag"
                       @click="exportToWorldBook"
                       class="action-btn export-btn"
                       title="导出到世界书（不含记忆）"
@@ -1182,7 +1182,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useCharacterStore } from '@/stores/characterStore';
 import { useGameStateStore } from '@/stores/gameStateStore';
 import { getMemoryTime, getMemoryEvent } from '@/utils/memoryUtils';
-import { isTavernEnv } from '@/utils/tavern';
+import { isTavernEnv, hasNativeTavernHelper } from '@/utils/tavern';
 import { cloneDeep } from 'lodash';
 
 /**
@@ -1281,13 +1281,16 @@ function normalizeBodyParts(value: unknown): BodyPartDevelopment[] {
 // 🔥 新架构：从 gameStateStore 获取数据
 const gameStateStore = useGameStateStore();
 const isTavernEnvFlag = ref(isTavernEnv());
+const hasNativeTavernFlag = ref(hasNativeTavernHelper());
 
 onMounted(() => {
   isTavernEnvFlag.value = isTavernEnv();
+  hasNativeTavernFlag.value = hasNativeTavernHelper();
 });
 
 onActivated(() => {
   isTavernEnvFlag.value = isTavernEnv();
+  hasNativeTavernFlag.value = hasNativeTavernHelper();
 });
 const { t } = useI18n();
 const traitOrRootLabel = computed(() => t('特质'));
@@ -2985,7 +2988,7 @@ const exportToWorldBook = async () => {
     // 获取或创建聊天世界书
     const tavernHelper = (await import('@/utils/tavern')).getTavernHelper();
     if (!tavernHelper) {
-      uiStore.showToast(isTavernEnvFlag.value ? '酒馆助手未初始化' : '当前环境不可用', { type: 'error' });
+      uiStore.showToast(hasNativeTavernFlag.value ? '酒馆助手未初始化' : '当前环境不可用', { type: 'error' });
       return;
     }
 

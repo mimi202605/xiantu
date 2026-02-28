@@ -39,7 +39,7 @@
             <option value="name">{{ t('名称排序') }}</option>
           </select>
           <button
-            v-if="isTavernEnvFlag"
+            v-if="hasNativeTavernFlag"
             class="refresh-btn"
             @click="refreshFromTavern"
             :disabled="refreshing"
@@ -480,7 +480,7 @@ import { useCharacterStore } from '@/stores/characterStore'
 import { useGameStateStore } from '@/stores/gameStateStore'
 import { useActionQueueStore } from '@/stores/actionQueueStore'
 import { EnhancedActionQueueManager } from '@/utils/enhancedActionQueue'
-import { isTavernEnv } from '@/utils/tavern'
+import { hasNativeTavernHelper } from '@/utils/tavern'
 import type { Item, ConsumableItem } from '@/types/game'
 import { toast } from '@/utils/toast'
 import { debug } from '@/utils/debug'
@@ -491,7 +491,7 @@ const characterStore = useCharacterStore()
 const gameStateStore = useGameStateStore()
 const actionQueue = useActionQueueStore()
 const enhancedActionQueue = EnhancedActionQueueManager.getInstance()
-const isTavernEnvFlag = isTavernEnv()
+const hasNativeTavernFlag = hasNativeTavernHelper()
 const loading = ref(false)
 const refreshing = ref(false)
 const selectedItem = ref<Item | null>(null)

@@ -4,6 +4,18 @@
 
 ---
 
+## [0.2.97] - 2026-02-26
+
+### 网页模式与酒馆模式同权（流式修复 + Tavern 专属按原生环境区分）
+
+- **目标**：保留酒馆 flow 不变，将网页端权限与功能对齐酒馆（NSFW/法身/私密信息等已由 isTavernEnv 默认开启），仅「必须与酒馆互动」的功能在有原生 SillyTavern 时可用。
+- **`tavern.ts`**：新增并导出 `hasNativeTavernHelper()`，用于区分真实 SillyTavern 环境与仅开启酒馆模式（含网页）。
+- **`MainGamePanel.vue`**：流式逻辑改为按 `hasNativeTavernHelper()` 判断——无原生 Tavern 时设置 `onStreamChunk`（网页端流式生效），有原生 Tavern 时沿用事件系统；事件注册与清理、行动选项过滤「酒楼」等均改为按 `hasNativeTavernHelper()`，移除未使用的 `isTavernEnvFlag`。
+- **`InventoryPanel.vue`**：「从酒馆同步最新数据」按钮仅在 `hasNativeTavernHelper()` 为真时显示。
+- **`RelationshipNetworkPanel.vue`**：「导出到世界书」按钮仅在 `hasNativeTavernFlag` 时显示；私密信息 Tab 仍用 `isTavernEnvFlag`，网页端继续享有；导出失败时的 toast 按 `hasNativeTavernFlag` 区分文案。
+
+---
+
 ## [0.2.96] - 2026-02-26
 
 ### 功能分配：解除酒馆模式主流程 API 锁定

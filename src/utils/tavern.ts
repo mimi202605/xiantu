@@ -49,6 +49,10 @@ function findTavernSignals(): boolean {
 /**
  * 递归向上查找 TavernHelper，兼容多层 iframe 嵌套
  * 最多查找 5 层，防止无限循环
+ *
+ * 注意：
+ * - 仅用于检测「是否存在真实的 SillyTavern 环境」
+ * - 不等同于「是否开启酒馆模式」，后者由 isTavernEnv 控制（带有本地 fallback）
  */
 function getNativeTavernHelper(): any | null {
   if (typeof window === 'undefined') return null;
@@ -104,6 +108,20 @@ function getNativeTavernHelper(): any | null {
 
   if (debug) console.log('[Tavern检测] ❌ 未找到TavernHelper');
   return null;
+}
+
+/**
+ * 检查当前是否存在原生的 TavernHelper（即真实的 SillyTavern 环境）
+ *
+ * - 仅在嵌入 SillyTavern 时返回 true
+ * - 纯网页模式下始终返回 false（即便 isTavernEnv 可能因为本地设置而为 true）
+ *
+ * 用途：
+ * - 流式事件（eventOn/eventOff）等「必须依赖 SillyTavern 后端」的功能开关
+ * - 需要真实 Tavern 变量系统/世界书的功能显示控制
+ */
+export function hasNativeTavernHelper(): boolean {
+  return !!getNativeTavernHelper();
 }
 
 /**

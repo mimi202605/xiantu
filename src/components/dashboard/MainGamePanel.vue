@@ -337,7 +337,7 @@ import { panelBus } from '@/utils/panelBus';
 import { chatBus, type ChatBusPayload } from '@/utils/chatBus';
 import { EnhancedActionQueueManager } from '@/utils/enhancedActionQueue';
 import { AIBidirectionalSystem, getTavernHelper } from '@/utils/AIBidirectionalSystem';
-import { isTavernEnv } from '@/utils/tavern';
+import { hasNativeTavernHelper } from '@/utils/tavern';
 import { toast } from '@/utils/toast';
 import { aiService } from '@/services/aiService';
 import FormattedText from '@/components/common/FormattedText.vue';
@@ -472,7 +472,6 @@ const actionQueue = useActionQueueStore();
 const uiStore = useUIStore();
 let aiResetToken = 0;
 const gameStateStore = useGameStateStore();
-const isTavernEnvFlag = isTavernEnv();
 const enhancedActionQueue = EnhancedActionQueueManager.getInstance();
 const bidirectionalSystem = AIBidirectionalSystem;
 
@@ -908,7 +907,7 @@ const actionCategories = ref<ActionCategory[]>([
   }
 ]);
 
-if (!isTavernEnvFlag) {
+if (!hasNativeTavernHelper()) {
   actionCategories.value = actionCategories.value.map((category) => ({
     ...category,
     actions: category.actions.map((action) => {
@@ -1069,8 +1068,8 @@ const retryAIResponse = async (
         generation_id: retryGenerationId  // 🔥 传递 generation_id
       };
 
-      // 非酒馆环境（网页版自定义API）：需要设置 onStreamChunk 才能实时渲染
-      if (!isTavernEnvFlag) {
+      // 无原生 Tavern 时（含网页版）：用 onStreamChunk 实现流式；有 SillyTavern 时走事件系统
+      if (!hasNativeTavernHelper()) {
         console.log('[网页版流式-重试] 设置 onStreamChunk 回调');
         (options as any).onStreamChunk = (chunk: string) => {
           if (!useStreaming.value || !chunk) return;
@@ -1272,9 +1271,8 @@ const sendMessage = async () => {
         shouldAbort: () => !uiStore.isAIProcessing || aiResetToken !== resetSnapshot,
       };
 
-      // 酒馆环境：流式通过事件系统处理（STREAM_TOKEN_RECEIVED_INCREMENTALLY）
-      // 非酒馆环境（网页版自定义API）：需要设置 onStreamChunk 才能实时渲染
-      if (!isTavernEnvFlag) {
+      // 有原生 Tavern 时流式走事件系统；无时（含网页版）用 onStreamChunk 实现流式
+      if (!hasNativeTavernHelper()) {
         console.log('[网页版流式] 设置 onStreamChunk 回调');
         (options as any).onStreamChunk = (chunk: string) => {
           if (!useStreaming.value || !chunk) return;
@@ -1712,8 +1710,8 @@ onMounted(async () => {
     chatBus.on('prefill', handleChatPrefill);
     chatBus.on('send', handleChatSend);
 
-    // 🔥 监听酒馆助手的生成事件
-    if (isTavernEnvFlag) {
+    // 🔥 仅在有原生 SillyTavern 时注册流式事件（网页版用 onStreamChunk，不依赖事件）
+    if (hasNativeTavernHelper()) {
       const helper = getTavernHelper();
       if (helper) {
         console.log('[主面板] 注册酒馆事件监听');
@@ -1804,7 +1802,7 @@ onUnmounted(() => {
   chatBus.off('prefill', handleChatPrefill);
   chatBus.off('send', handleChatSend);
 
-  if (!isTavernEnvFlag) {
+  if (!hasNativeTavernHelper()) {
     return;
   }
 

@@ -1,5 +1,12 @@
 # 更新日志
 
+## [MING] 通用版 0.2.97 (2026-02-26)
+
+- **网页与酒馆同权**：在不破坏酒馆 flow 的前提下，将网页端权限与功能对齐酒馆模式；流式输出修复（按「是否有原生 Tavern」决定用 onStreamChunk 还是事件系统）；仅依赖 SillyTavern 的功能（从酒馆同步、导出到世界书）改为有原生 TavernHelper 时才显示。  
+  详见 **[CHANGELOG_MING.md](./CHANGELOG_MING.md)**。
+
+---
+
 ## [MING] 通用版 0.2.96 (2026-02-26)
 
 - **功能分配**：解除酒馆模式下主游戏流程（main）的 API 锁定，现可像其他辅助功能一样分配独立 API；分配独立 API 后将绕过酒馆 TavernHelper 直连，默认仍走酒馆 API。  
