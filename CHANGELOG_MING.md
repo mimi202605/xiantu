@@ -4,7 +4,11 @@
 
 ---
 
-## [0.3.0] - 2026-02-26
+## [1.0.7] - 2026-02-26
+
+### 游戏版本号
+
+- **显示与导出**：游戏版本更新为 1.0.7（`package.json`、界面显示、设置导出中的 `gameVersion` 显示为「天命 v1.0.7」）。
 
 ### 行动选项：选项模式（行动导向 / 剧情导向）与节奏
 
@@ -19,10 +23,6 @@
 
 - **动态增高**：`adjustTextareaHeight` 随内容增高，单行基准约 36px，最大高度 200px，超出后 `overflow-y: auto`；程序修改 `inputText`（如选择行动选项、预填）时通过 `watch(inputText)` 在 `nextTick` 中调用 `adjustTextareaHeight`。
 - **滚动条**：`.input-container .game-input` 的 `max-height` 改为 200px；滚动条拇指使用 `var(--color-border)`（WebKit/Firefox），悬停时加深，超出阈值后可见。
-
-### 版本号
-
-- **游戏版本号**：更新为 0.3.0（`package.json`）；设置导出中的 `gameVersion` 显示为「天命 v0.3.0」（`SettingsPanel.vue`）。
 
 ---
 
