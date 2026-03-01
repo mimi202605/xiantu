@@ -1124,6 +1124,8 @@ const exportFullBackup = async () => {
     const uiSettings: any = {
       enableActionOptions: localStorage.getItem('enableActionOptions'),
       actionOptionsPrompt: localStorage.getItem('actionOptionsPrompt'),
+      actionOptionsMode: localStorage.getItem('actionOptionsMode'),
+      actionPace: localStorage.getItem('actionPace'),
       useStreaming: localStorage.getItem('useStreaming'),
       useSystemCot: localStorage.getItem('useSystemCot'),
     };

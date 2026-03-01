@@ -86,6 +86,8 @@ export const useUIStore = defineStore('ui', () => {
   // 🔥 [行动选项设置] 控制AI是否生成行动选项
   const enableActionOptions = ref(localStorage.getItem('enableActionOptions') !== 'false'); // 默认开启
   const actionOptionsPrompt = ref(localStorage.getItem('actionOptionsPrompt') || ''); // 自定义行动选项提示词
+  const actionOptionsMode = ref<'action' | 'story'>((localStorage.getItem('actionOptionsMode') as 'action' | 'story') || 'action'); // 行动导向 | 剧情导向
+  const actionPace = ref<'fast' | 'slow'>((localStorage.getItem('actionPace') as 'fast' | 'slow') || 'fast'); // 快速推动剧情 | 慢速体验剧情（仅行动导向时有效）
 
   // 🔥 [流式传输设置] 控制是否启用流式传输（全局持久化）
   const useStreaming = ref(localStorage.getItem('useStreaming') !== 'false'); // 默认开启
@@ -419,6 +421,20 @@ export const useUIStore = defineStore('ui', () => {
       set: (val) => {
         actionOptionsPrompt.value = val;
         localStorage.setItem('actionOptionsPrompt', val);
+      }
+    }),
+    actionOptionsMode: computed({
+      get: () => actionOptionsMode.value,
+      set: (val: 'action' | 'story') => {
+        actionOptionsMode.value = val;
+        localStorage.setItem('actionOptionsMode', val);
+      }
+    }),
+    actionPace: computed({
+      get: () => actionPace.value,
+      set: (val: 'fast' | 'slow') => {
+        actionPace.value = val;
+        localStorage.setItem('actionPace', val);
       }
     }),
 

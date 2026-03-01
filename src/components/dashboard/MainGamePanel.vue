@@ -1551,33 +1551,28 @@ const handleKeyDown = (event: KeyboardEvent) => {
   }
 };
 
-// 自动调整输入框高度
+// 自动调整输入框高度：随内容增高，超过最大高度后出滚动条
 const adjustTextareaHeight = () => {
   const textarea = inputRef.value;
-  if (textarea) {
-    // 单行基准高度（根据line-height计算）
-    const lineHeight = 1.4; // 与CSS中的line-height一致
-    const fontSize = 0.9; // rem
-    const padding = 16; // 8px * 2
-    const singleLineHeight = fontSize * 16 * lineHeight + padding; // 约36px
+  if (!textarea) return;
 
-    // 计算所需高度
-    textarea.style.height = `${singleLineHeight}px`; // 先设置为单行高度
-    const scrollHeight = textarea.scrollHeight;
-    const maxHeight = 120; // 与CSS中的max-height保持一致
+  const lineHeight = 1.4;
+  const fontSize = 0.9;
+  const paddingVertical = 16;
+  const singleLineHeight = fontSize * 16 * lineHeight + paddingVertical;
+  const maxHeight = 200; // 超出此高度后出现滚动条
 
-    // 只有当内容超过单行时才增加高度
-    if (scrollHeight > singleLineHeight) {
-      const newHeight = Math.min(scrollHeight, maxHeight);
-      textarea.style.height = `${newHeight}px`;
-    }
+  // 先缩到最小再量 scrollHeight，避免被当前 height 限制
+  textarea.style.height = `${singleLineHeight}px`;
+  const scrollHeight = textarea.scrollHeight;
 
-    // 如果内容超出最大高度，启用滚动
-    if (scrollHeight > maxHeight) {
-      textarea.style.overflowY = 'auto';
-    } else {
-      textarea.style.overflowY = 'hidden';
-    }
+  const newHeight = Math.min(Math.max(scrollHeight, singleLineHeight), maxHeight);
+  textarea.style.height = `${newHeight}px`;
+
+  if (scrollHeight > maxHeight) {
+    textarea.style.overflowY = 'auto';
+  } else {
+    textarea.style.overflowY = 'hidden';
   }
 };
 
@@ -1587,6 +1582,11 @@ const handleInput = () => {
     adjustTextareaHeight();
   });
 };
+
+// 程序修改 inputText 时（如选择行动选项、预填）也调整高度
+watch(inputText, () => {
+  nextTick(adjustTextareaHeight);
+});
 
 // 初始化/重新初始化面板以适应当前存档
 const initializePanelForSave = async () => {
@@ -2445,21 +2445,19 @@ const syncGameState = async () => {
   outline: none;
   box-shadow: none;
   resize: none;
-  overflow-y: auto;
-  width: 100%; /* 确保宽度填满容器 */
-  min-height: 24px; /* 单行高度 */
-  max-height: 120px;
-  min-width: 0; /* 允许缩小 */
+  overflow-y: hidden; /* 由 JS 在超出阈值时设为 auto */
+  width: 100%;
+  min-height: 24px;
+  max-height: 200px; /* 与 adjustTextareaHeight 一致，超出后出现滚动条 */
+  min-width: 0;
   box-sizing: border-box;
   word-wrap: break-word;
-  white-space: pre-wrap; /* 保持换行和空格 */
+  white-space: pre-wrap;
   overflow-wrap: break-word;
-  /* 移除自动高度相关样式，用JS控制 */
   height: auto;
   line-height: 1.4;
-  /* 透明滚动条（Firefox） */
   scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  scrollbar-color: var(--color-border) transparent;
 }
 
 .input-container .game-input:focus {
@@ -2467,7 +2465,7 @@ const syncGameState = async () => {
   box-shadow: none;
 }
 
-/* 透明滚动条（WebKit） */
+/* 有垂直滚动时显示滚动条（JS 会设置 overflow-y: auto） */
 .input-container .game-input::-webkit-scrollbar {
   width: 6px;
   background: transparent;
@@ -2481,11 +2479,11 @@ const syncGameState = async () => {
 
 .input-container .game-input::-webkit-scrollbar-thumb {
   border-radius: 3px;
-  background-color: transparent;
+  background-color: var(--color-border);
 }
 
 .input-container .game-input:hover::-webkit-scrollbar-thumb {
-  background-color: transparent;
+  background-color: var(--color-text-secondary);
 }
 
 /* 输入框内部的流式传输选项 */

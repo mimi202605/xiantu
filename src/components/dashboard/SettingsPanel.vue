@@ -156,6 +156,42 @@
             </div>
           </div>
 
+          <!-- 行动选项子选项：仅在开启时显示 -->
+          <template v-if="uiStore.enableActionOptions">
+            <div class="setting-item setting-item-sub">
+              <div class="setting-info">
+                <label class="setting-name">{{ t('选项模式') }}</label>
+                <span class="setting-desc">{{ t('行动导向：简短动作；剧情导向：剧情大纲（含走向、对话与影响）') }}</span>
+              </div>
+              <div class="setting-control">
+                <label class="setting-radio">
+                  <input type="radio" :value="'action'" v-model="uiStore.actionOptionsMode" />
+                  <span>{{ t('行动导向') }}</span>
+                </label>
+                <label class="setting-radio">
+                  <input type="radio" :value="'story'" v-model="uiStore.actionOptionsMode" />
+                  <span>{{ t('剧情导向') }}</span>
+                </label>
+              </div>
+            </div>
+            <div v-if="uiStore.actionOptionsMode === 'action'" class="setting-item setting-item-sub">
+              <div class="setting-info">
+                <label class="setting-name">{{ t('节奏') }}</label>
+                <span class="setting-desc">{{ t('快速推动剧情 / 慢速体验剧情') }}</span>
+              </div>
+              <div class="setting-control">
+                <label class="setting-radio">
+                  <input type="radio" :value="'fast'" v-model="uiStore.actionPace" />
+                  <span>{{ t('快速推动剧情') }}</span>
+                </label>
+                <label class="setting-radio">
+                  <input type="radio" :value="'slow'" v-model="uiStore.actionPace" />
+                  <span>{{ t('慢速体验剧情') }}</span>
+                </label>
+              </div>
+            </div>
+          </template>
+
           <div class="setting-item setting-item-full">
             <div class="setting-info">
               <label class="setting-name">{{ t('自定义行动选项提示词') }}</label>
@@ -899,6 +935,8 @@ const clearCache = async () => {
 const collectExtraUiSettings = () => ({
   enableActionOptions: uiStore.enableActionOptions,
   actionOptionsPrompt: uiStore.actionOptionsPrompt,
+  actionOptionsMode: uiStore.actionOptionsMode,
+  actionPace: uiStore.actionPace,
   useStreaming: uiStore.useStreaming,
   useSystemCot: uiStore.useSystemCot,
 });
@@ -912,6 +950,12 @@ const restoreExtraUiSettings = (data: any) => {
   }
   if (data.actionOptionsPrompt !== undefined) {
     uiStore.actionOptionsPrompt = String(data.actionOptionsPrompt);
+  }
+  if (data.actionOptionsMode === 'action' || data.actionOptionsMode === 'story') {
+    uiStore.actionOptionsMode = data.actionOptionsMode;
+  }
+  if (data.actionPace === 'fast' || data.actionPace === 'slow') {
+    uiStore.actionPace = data.actionPace;
   }
   if (data.useStreaming !== undefined) {
     uiStore.useStreaming = !!data.useStreaming;
@@ -1212,6 +1256,22 @@ onMounted(() => {
 .setting-item:hover {
   background: #f8fafc;
 }
+
+.setting-item-sub {
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 2px solid #e2e8f0;
+}
+
+.setting-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-right: 1rem;
+  cursor: pointer;
+  font-weight: 400;
+}
+.setting-radio input { margin: 0; }
 
 .setting-info {
   flex: 1;

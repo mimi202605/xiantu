@@ -27,6 +27,7 @@ import * as BusinessMing from '@/utils/prompts/definitions/ming/businessRulesMin
 import * as TextMing from '@/utils/prompts/definitions/ming/textFormatsMing';
 import * as WorldMing from '@/utils/prompts/definitions/ming/worldStandardsMing';
 import { ACTION_OPTIONS_RULES_MING } from '@/utils/prompts/definitions/ming/actionOptionsMing';
+import { ACTION_OPTIONS_STORY_RULES_MING } from '@/utils/prompts/definitions/ming/actionOptionsStoryMing';
 import { EVENT_SYSTEM_RULES_MING } from '@/utils/prompts/definitions/ming/eventSystemRulesMing';
 import * as InlineMing from '@/utils/prompts/definitions/ming/inlinePromptsMing';
 
@@ -95,6 +96,7 @@ export const ASSEMBLY_PROMPT_KEYS: readonly string[] = [
   'worldStandards',
   'cotCore',
   'actionOptions',
+  'actionOptionsStory',
   'eventSystemRules',
   'splitGenerationStep1',
   'splitGenerationStep2',
@@ -365,6 +367,14 @@ export function getSystemPrompts(): Record<string, PromptDefinition> {
       content: ACTION_OPTIONS_RULES_MING,
       category: 'coreRequest',
       description: '生成玩家选项',
+      order: 7,
+      weight: 6
+    },
+    actionOptionsStory: {
+      name: '7. 行动选项（剧情导向）',
+      content: ACTION_OPTIONS_STORY_RULES_MING,
+      category: 'coreRequest',
+      description: '剧情大纲式选项（走向/对话/影响）',
       order: 7,
       weight: 6
     },

@@ -85,7 +85,7 @@ export function getCotCorePromptMing(userInput: string, enableActionOptions: boo
 5. 是否有NPC受伤/消耗？→ NPC的体力/精力必须更新！
 
 ## 行动选项
-- 若启用：输出 \`action_options\`（3-5个）
+- 若启用：输出 \`action_options\`（3-5个）；格式与要求（简短行动 vs 剧情大纲）见下方「行动选项」小节
 - 若未启用：不要输出 \`action_options\`
 
 ${DICE_ROLLING_RULES}
@@ -175,7 +175,7 @@ export function getCotCorePrompt(userInput: string, enableActionOptions: boolean
 6. 是否有NPC受伤/消耗？→ NPC的属性必须更新！
 
 ## 行动选项
-- 若启用：输出 \`action_options\`（3-5个）
+- 若启用：输出 \`action_options\`（3-5个）；格式与要求（简短行动 vs 剧情大纲）见下方「行动选项」小节
 - 若未启用：不要输出 \`action_options\`
 
 ${DICE_ROLLING_RULES}

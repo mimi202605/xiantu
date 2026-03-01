@@ -126,6 +126,12 @@ export async function executeFullBackupRestore(payload: any): Promise<FullBackup
     if (ui.actionOptionsPrompt !== undefined && ui.actionOptionsPrompt !== null) {
       localStorage.setItem('actionOptionsPrompt', String(ui.actionOptionsPrompt));
     }
+    if (ui.actionOptionsMode === 'action' || ui.actionOptionsMode === 'story') {
+      localStorage.setItem('actionOptionsMode', ui.actionOptionsMode);
+    }
+    if (ui.actionPace === 'fast' || ui.actionPace === 'slow') {
+      localStorage.setItem('actionPace', ui.actionPace);
+    }
     if (ui.useStreaming !== undefined && ui.useStreaming !== null) {
       localStorage.setItem('useStreaming', String(ui.useStreaming));
     }

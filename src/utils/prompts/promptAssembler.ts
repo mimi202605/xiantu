@@ -17,16 +17,22 @@ export interface AssembleSectionCollector {
  * @param activePrompts - 一个包含了当前需要激活的prompt模块名称的数组
  * @param customActionPrompt - 自定义行动选项提示词（可选）
  * @param gameState - 游戏状态（可选，用于检测联机穿越状态）
- * @param options - onSection：调试用，收集每个模组的 key/构成/生成原因/content（纯观察，不改变返回值）
- * @returns {Promise<string>} - 拼接好的完整prompt字符串（与是否传入 onSection 无关，始终相同）
+ * @param options - onSection：调试用；actionOptionsMode/actionPace：行动选项子模式（可选）
+ * @returns {Promise<string>} - 拼接好的完整prompt字符串
  */
 export async function assembleSystemPrompt(
   activePrompts: string[],
   customActionPrompt?: string,
   gameState?: any,
-  options?: { onSection?: AssembleSectionCollector }
+  options?: {
+    onSection?: AssembleSectionCollector;
+    actionOptionsMode?: 'action' | 'story';
+    actionPace?: 'fast' | 'slow';
+  }
 ): Promise<string> {
-  const push = options?.onSection; // 仅用于调试可视化，不参与拼接
+  const push = options?.onSection;
+  const actionOptionsMode = options?.actionOptionsMode ?? 'action';
+  const actionPace = options?.actionPace ?? 'fast';
 
   // 所有提示词都使用 getPrompt() 获取，支持用户自定义
   const [
@@ -67,15 +73,25 @@ export async function assembleSystemPrompt(
   add('worldStandards', '世界标准', '属性、品质', worldStandardsPrompt);
 
   if (activePrompts.includes('actionOptions')) {
-    const actionOptionsPrompt = (await getPrompt('actionOptions')).trim();
+    const promptKey = actionOptionsMode === 'story' ? 'actionOptionsStory' : 'actionOptions';
+    let actionOptionsPrompt = (await getPrompt(promptKey)).trim();
     const customPromptSection = customActionPrompt
       ? `**用户自定义要求**：${customActionPrompt}
 
 请严格按照以上自定义要求生成行动选项。`
       : '（无特殊要求，按默认规则生成）';
     if (actionOptionsPrompt) {
-      const content = actionOptionsPrompt.replace('{{CUSTOM_ACTION_PROMPT}}', customPromptSection);
-      add('actionOptions', '行动选项', '生成玩家可选的行动选项', content);
+      actionOptionsPrompt = actionOptionsPrompt.replace('{{CUSTOM_ACTION_PROMPT}}', customPromptSection);
+      if (actionOptionsMode === 'action') {
+        const paceHint =
+          actionPace === 'fast'
+            ? '**当前为快速推动剧情模式**：选项请保持简短明确（8–20 字），便于快速推进。'
+            : '**当前为慢速体验剧情模式**：选项可稍详细一些（可至 30 字左右），便于沉浸体验。';
+        actionOptionsPrompt = actionOptionsPrompt.replace('{{ACTION_PACE_HINT}}', paceHint);
+      } else {
+        actionOptionsPrompt = actionOptionsPrompt.replace('{{ACTION_PACE_HINT}}', '');
+      }
+      add('actionOptions', '行动选项', '生成玩家可选的行动选项', actionOptionsPrompt);
     }
   }
 

@@ -780,7 +780,11 @@ class AIBidirectionalSystemClass {
         activePrompts,
         uiStore.actionOptionsPrompt,
         stateForAI,
-        shouldRecordAssembly ? { onSection: (m) => assemblyModules.push(m) } : undefined
+        {
+          ...(shouldRecordAssembly ? { onSection: (m) => assemblyModules.push(m) } : {}),
+          actionOptionsMode: uiStore.actionOptionsMode,
+          actionPace: uiStore.actionPace,
+        }
       );
 
       // 🌐 构建穿越状态提示（直接写入主提示词，确保AI一定能看到）
@@ -1149,13 +1153,23 @@ ${cotPrompt}
           push?.({ key: 'worldStandards', 构成: '世界标准', 生成原因: '地位与品质', flow引用: flowRef, content: worldStandardsPrompt });
 
           if (uiStore.enableActionOptions) {
-            const actionOptionsPrompt = await getPrompt('actionOptions');
+            const promptKey = uiStore.actionOptionsMode === 'story' ? 'actionOptionsStory' : 'actionOptions';
+            let actionOptionsPrompt = await getPrompt(promptKey);
             const customPromptSection = uiStore.actionOptionsPrompt
               ? `**用户自定义要求**：${uiStore.actionOptionsPrompt}\n\n请严格按以上要求生成行动选项。`
               : '（无特殊要求，按默认规则生成）';
-            const actionContent = actionOptionsPrompt.replace('{{CUSTOM_ACTION_PROMPT}}', customPromptSection);
-            sections.push(actionContent);
-            push?.({ key: 'actionOptions', 构成: '行动选项', 生成原因: '生成玩家可选行动', flow引用: flowRef, content: actionContent });
+            actionOptionsPrompt = actionOptionsPrompt.replace('{{CUSTOM_ACTION_PROMPT}}', customPromptSection);
+            if (uiStore.actionOptionsMode === 'action') {
+              const paceHint =
+                uiStore.actionPace === 'fast'
+                  ? '**当前为快速推动剧情模式**：选项请保持简短明确（8–20 字），便于快速推进。'
+                  : '**当前为慢速体验剧情模式**：选项可稍详细一些（可至 30 字左右），便于沉浸体验。';
+              actionOptionsPrompt = actionOptionsPrompt.replace('{{ACTION_PACE_HINT}}', paceHint);
+            } else {
+              actionOptionsPrompt = actionOptionsPrompt.replace('{{ACTION_PACE_HINT}}', '');
+            }
+            sections.push(actionOptionsPrompt);
+            push?.({ key: 'actionOptions', 构成: '行动选项', 生成原因: '生成玩家可选行动', flow引用: flowRef, content: actionOptionsPrompt });
           }
 
           const eventRules = await getPrompt('eventSystemRules');
@@ -1617,6 +1631,26 @@ ${userPrompt}
 ${cotPrompt}`.trim();
             sections.push(cotBlock);
             push?.({ key: 'cotCore', 构成: '思维链分析', 生成原因: '先分析再生成指令', flow引用: flowRef, content: cotBlock });
+          }
+
+          if (uiStore.enableActionOptions) {
+            const promptKey = uiStore.actionOptionsMode === 'story' ? 'actionOptionsStory' : 'actionOptions';
+            let actionOptionsPrompt = await getPrompt(promptKey);
+            const customPromptSection = uiStore.actionOptionsPrompt
+              ? `**用户自定义要求**：${uiStore.actionOptionsPrompt}\n\n请严格按以上要求生成行动选项。`
+              : '（无特殊要求，按默认规则生成）';
+            actionOptionsPrompt = actionOptionsPrompt.replace('{{CUSTOM_ACTION_PROMPT}}', customPromptSection);
+            if (uiStore.actionOptionsMode === 'action') {
+              const paceHint =
+                uiStore.actionPace === 'fast'
+                  ? '**当前为快速推动剧情模式**：选项请保持简短明确（8–20 字），便于快速推进。'
+                  : '**当前为慢速体验剧情模式**：选项可稍详细一些（可至 30 字左右），便于沉浸体验。';
+              actionOptionsPrompt = actionOptionsPrompt.replace('{{ACTION_PACE_HINT}}', paceHint);
+            } else {
+              actionOptionsPrompt = actionOptionsPrompt.replace('{{ACTION_PACE_HINT}}', '');
+            }
+            sections.push(actionOptionsPrompt);
+            push?.({ key: 'actionOptions', 构成: '行动选项', 生成原因: '生成玩家可选行动', flow引用: flowRef, content: actionOptionsPrompt });
           }
 
           sections.push(sanitizedBusinessRulesPrompt, sanitizedDataDefinitionsPrompt, textFormatsPrompt, worldStandardsPrompt);

@@ -4,6 +4,28 @@
 
 ---
 
+## [0.3.0] - 2026-02-26
+
+### 行动选项：选项模式（行动导向 / 剧情导向）与节奏
+
+- **子选项**：在「开启行动选项」下新增**选项模式**：**行动导向**（原逻辑） / **剧情导向**（新逻辑）；行动导向下可选**节奏**：**快速推动剧情** / **慢速体验剧情**。
+- **状态与持久化**：`uiStore` 新增 `actionOptionsMode`（'action' | 'story'）、`actionPace`（'fast' | 'slow'），localStorage 与完整备份/设置导出导入一致写入与恢复。
+- **剧情导向提示词**：新增 `actionOptionsStoryMing.ts`，生成 3–5 条**剧情级叙述**选项（延展本回合、背景与人物逻辑、走向与影响），**禁止**使用【走向】【对话要点】【影响】分条格式；每条 150–450 字，须 3–5 个不能少给；`defaultPrompts` 注册 `actionOptionsStory`，`promptAssembler` 与 `AIBidirectionalSystem`（分步 Step2、开局 Step2）按 `actionOptionsMode` 选用对应提示词并替换 `{{ACTION_PACE_HINT}}` / `{{CUSTOM_ACTION_PROMPT}}`。
+- **行动导向节奏**：`actionOptionsMing.ts` 增加 `{{ACTION_PACE_HINT}}`，快速/慢速时注入对应说明（选项简短 8–20 字 / 可稍详细至约 30 字）。
+- **CoT**：`cotCore.ts` 行动选项说明改为「格式与要求见下方『行动选项』小节」。
+- **UI**：`SettingsPanel.vue` 在行动选项开关下展示选项模式单选与节奏单选（仅行动导向时）；样式使用 `.setting-item-sub`、`.setting-radio`。
+
+### 主界面输入框：动态增高与滚动条
+
+- **动态增高**：`adjustTextareaHeight` 随内容增高，单行基准约 36px，最大高度 200px，超出后 `overflow-y: auto`；程序修改 `inputText`（如选择行动选项、预填）时通过 `watch(inputText)` 在 `nextTick` 中调用 `adjustTextareaHeight`。
+- **滚动条**：`.input-container .game-input` 的 `max-height` 改为 200px；滚动条拇指使用 `var(--color-border)`（WebKit/Firefox），悬停时加深，超出阈值后可见。
+
+### 版本号
+
+- **游戏版本号**：更新为 0.3.0（`package.json`）；设置导出中的 `gameVersion` 显示为「天命 v0.3.0」（`SettingsPanel.vue`）。
+
+---
+
 ## [0.2.97] - 2026-02-26
 
 ### 网页模式与酒馆模式同权（流式修复 + Tavern 专属按原生环境区分）

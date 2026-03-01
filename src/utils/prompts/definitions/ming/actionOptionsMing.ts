@@ -28,6 +28,8 @@ export const ACTION_OPTIONS_RULES_MING = `
 - 长度：每个 8–20 字
 - 格式：动词开头的行动描述
 
+{{ACTION_PACE_HINT}}
+
 {{CUSTOM_ACTION_PROMPT}}
 
 ## 生成规则
