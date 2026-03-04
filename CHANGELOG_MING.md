@@ -26,6 +26,15 @@
 
 ---
 
+## [0.3.1] - 2026-02-26
+
+### 地点与探索地图
+
+- **地点 prompt**：禁止「XX外」类相对指代（如总统套房外、包厢外、门外）；须为有明确名称的场所（如具体房间名、走廊名）。规则写入 `dataDefinitionsMing.ts`、`businessRulesMing.ts`、`inlinePromptsMing.ts`、`cotCore.ts`、`locationNpcGenerationPromptsMing.ts`、`worldHeartbeatPromptsMing.ts`、`characterInitializationPromptsMing.ts`。
+- **探索地图高亮**：`MapMinimap.vue` 中 `isCurrent` 改为单链高亮——仅高亮当前节点及其到根的一整条路径（`desc === name` 或 `desc.startsWith(name + "·")`），不高亮兄弟节点，避免同一父下多子节点同时高亮。
+
+---
+
 ## [0.2.97] - 2026-02-26
 
 ### 网页模式与酒馆模式同权（流式修复 + Tavern 专属按原生环境区分）

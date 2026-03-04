@@ -656,12 +656,12 @@ function explorationStatusLabel(node: MapLocationNode): string {
   if (status === 'partial') return t('部分探索');
   return t('未探索');
 }
+/** 单链高亮：仅高亮「当前节点」及其到根的一整条路径；不高亮兄弟节点（如同时高亮总统套房与总统套房外）。当前或祖先 ⇔ 名称完全一致 或 当前描述以「名称·」为前缀 */
 function isCurrent(name: string): boolean {
   const desc = currentLocationDesc.value;
-  return Boolean(
-    desc === name ||
-      (desc && name && (desc.includes(name) || name.includes(desc)))
-  );
+  if (!desc || !name) return false;
+  if (desc === name) return true;
+  return desc.startsWith(name + '·');
 }
 
 const saveDataForNpcs = computed(() => gameStateStore.toSaveData());
