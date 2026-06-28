@@ -973,20 +973,31 @@ async function finalizeAndSyncData(saveData: SaveData, baseInfo: CharacterBaseIn
     (saveData as any).角色.位置 = aiLocation as any;
     console.log(`[数据最终化] ✅ 已保留AI生成的位置信息: "${aiLocation.描述}"`);
   } else {
-    // 如果没有有效位置，记录详细的诊断信息
     console.error('[数据最终化] ❌ 位置信息无效或丢失');
     console.error('[数据最终化-诊断] aiLocation:', aiLocation);
     console.error('[数据最终化-诊断] aiLocation.描述:', aiLocation?.描述);
-    console.error('[数据最终化-诊断] 完整saveData keys:', Object.keys(saveData));
 
-    // 尝试从叙事历史中找到位置命令
-    const narrativeHistory = saveData.历史?.叙事 || [];
-    if (narrativeHistory.length > 0) {
-      const lastEntry = narrativeHistory[narrativeHistory.length - 1];
-      console.error('[数据最终化-诊断] 最后的叙事历史:', JSON.stringify(lastEntry).substring(0, 500));
+    // 兜底：从世界地点信息中选择第一个有效地点作为初始位置
+    const availableLocations = (saveData as any).世界?.信息?.地点信息 as any[] | undefined;
+    let fallbackDescription = '';
+    if (availableLocations && availableLocations.length > 0) {
+      const firstLocation = availableLocations[0];
+      const locName: string | undefined = firstLocation.名称 ?? firstLocation.name;
+      if (locName && locName.includes('·')) {
+        fallbackDescription = locName;
+        console.log(`[数据最终化] 从世界地点信息中选取兜底位置: "${fallbackDescription}"`);
+      }
     }
-
-    throw new Error(`位置信息在处理过程中丢失，aiLocation=${JSON.stringify(aiLocation)}`);
+    // 如果地点信息中没有可用位置，构造一个默认的层级位置
+    if (!fallbackDescription) {
+      const worldName = (saveData as any).世界?.信息?.世界名称 || '未知大陆';
+      fallbackDescription = `${worldName}·出生地·新手村`;
+      console.log(`[数据最终化] 构造默认初始位置: "${fallbackDescription}"`);
+    }
+    const fallbackLocation = { 描述: fallbackDescription, x: 5000, y: 5000 };
+    if (!(saveData as any).角色) (saveData as any).角色 = {};
+    (saveData as any).角色.位置 = fallbackLocation;
+    console.log(`[数据最终化] ✅ 已使用兜底位置信息: "${fallbackDescription}"`);
   }
   console.log('[数据最终化] 核心玩家状态校准完成。');
 
@@ -1032,9 +1043,10 @@ async function finalizeAndSyncData(saveData: SaveData, baseInfo: CharacterBaseIn
 
   // 双重保险：如果位置格式仍然有问题（理论上不会发生）
   if (!finalLocation || !finalLocation.includes('·')) {
-    console.error('[数据校准] ❌ 位置格式异常，这不应该发生（验证器应该已拦截）');
-    console.error('[数据校准-诊断] saveData.角色.位置:', (saveData as any).角色?.位置);
-    throw new Error(`位置格式验证失败: "${finalLocation}"`);
+    console.error('[数据校准] ❌ 位置格式异常，使用兜底位置');
+    const worldName = (saveData as any).世界?.信息?.世界名称 || '未知大陆';
+    (saveData as any).角色.位置 = { 描述: `${worldName}·出生地·新手村`, x: 5000, y: 5000 };
+    console.log(`[数据校准] ✅ 已使用兜底位置: "${(saveData as any).角色.位置.描述}"`);
   }
 
   // 4. 迁移到 V3 并最终数据校验（落盘只允许 V3）
